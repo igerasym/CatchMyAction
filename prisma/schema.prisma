@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  USER
+  PHOTOGRAPHER
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  name         String
+  passwordHash String?
+  role         UserRole @default(USER)
+  avatarUrl    String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  sessions  Session[]
+  purchases Purchase[]
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  title        String
+  location     String
+  date         DateTime
+  startTime    String   // "06:30"
+  endTime      String   // "09:00"
+  description  String?
+  coverPhotoId String?
+  photoCount   Int      @default(0)
+  published    Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  photographerId String
+  photographer   User    @relation(fields: [photographerId], references: [id])
+  photos         Photo[]
+
+  @@index([location, date])
+  @@index([photographerId])
+}
+
+model Photo {
+  id              String   @id @default(cuid())
+  originalKey     String   // S3 key for original (private bucket)
+  previewKey      String   // S3 key for watermarked preview (public bucket)
+  thumbnailKey    String   // S3 key for thumbnail
+  width           Int
+  height          Int
+  fileSize        Int      // bytes
+  mimeType        String   @default("image/jpeg")
+  priceInCents    Int      @default(999) // $9.99
+  createdAt       DateTime @default(now())
+
+  sessionId String
+  session   Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  purchases Purchase[]
+
+  @@index([sessionId])
+}
+
+model Purchase {
+  id                String   @id @default(cuid())
+  amountInCents     Int
+  currency          String   @default("usd")
+  stripePaymentId   String   @unique
+  stripeSessionId   String?  @unique
+  downloadCount     Int      @default(0)
+  maxDownloads      Int      @default(5)
+  createdAt         DateTime @default(now())
+
+  userId  String
+  user    User   @relation(fields: [userId], references: [id])
+  photoId String
+  photo   Photo  @relation(fields: [photoId], references: [id])
+
+  @@index([userId])
+  @@index([photoId])
+  @@unique([userId, photoId])
+}

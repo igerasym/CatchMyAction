@@ -1,0 +1,58 @@
+"use client";
+
+import Link from "next/link";
+
+export default function HeroSection() {
+  return (
+    <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden -mt-14">
+      {/* Background image */}
+      <div
+        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
+        style={{ backgroundImage: "url('/hero-bg.jpg')" }}
+      />
+      {/* Dark gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0a0a0a]" />
+
+      {/* Animated wave at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-20 overflow-hidden">
+        <svg viewBox="0 0 1440 120" className="w-full h-full" preserveAspectRatio="none">
+          <path
+            d="M0,80 C240,40 480,100 720,60 C960,20 1200,80 1440,50 L1440,120 L0,120 Z"
+            fill="#0a0a0a"
+            opacity="0.6"
+          />
+          <path
+            d="M0,90 C180,70 360,110 540,80 C720,50 900,100 1080,70 C1260,40 1380,90 1440,80 L1440,120 L0,120 Z"
+            fill="#0a0a0a"
+          />
+        </svg>
+      </div>
+
+      {/* Content */}
+      <div className="relative z-10 text-center px-4 max-w-3xl mx-auto animate-fade-in">
+        <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 leading-tight tracking-tight">
+          Find Yourself
+          <br />
+          <span className="text-ocean-400">on the Wave</span>
+        </h1>
+        <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-xl mx-auto leading-relaxed">
+          Photographers upload sessions → You find yourself → Buy HD photos
+        </p>
+        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+          <Link
+            href="/sessions"
+            className="px-8 py-4 bg-ocean-500 text-white font-semibold rounded-xl hover:bg-ocean-400 transition-all shadow-lg shadow-ocean-500/25 hover:shadow-ocean-400/40 hover:-translate-y-0.5 text-lg"
+          >
+            Find Me Now
+          </Link>
+          <a
+            href="#how-it-works"
+            className="px-8 py-4 border border-white/20 text-white/80 font-medium rounded-xl hover:bg-white/10 hover:border-white/30 transition-all text-lg backdrop-blur-sm"
+          >
+            How It Works
+          </a>
+        </div>
+      </div>
+    </section>
+  );
+}

@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background-color: #0a0a0a;
+  color: #e5e5e5;
+}
+
+/* Leaflet popup dark theme */
+.leaflet-popup-content-wrapper {
+  background: #1a1a2e !important;
+  color: #e5e5e5 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5) !important;
+}
+.leaflet-popup-tip {
+  background: #1a1a2e !important;
+}
+.leaflet-popup-content a {
+  color: #38bdf8 !important;
+}
+
+/* Keep Leaflet map below search dropdown */
+.leaflet-container {
+  z-index: 1 !important;
+}
+.leaflet-pane,
+.leaflet-control {
+  z-index: 1 !important;
+}
