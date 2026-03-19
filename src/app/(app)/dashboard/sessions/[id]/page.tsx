@@ -36,6 +36,7 @@ export default function ManagePhotosPage() {
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const [showQR, setShowQR] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -146,10 +147,18 @@ export default function ManagePhotosPage() {
           <h1 className="text-xl font-bold text-white">{session.title}</h1>
           <p className="text-sm text-white/40">📍 {session.location} · {photos.length} photos</p>
         </div>
-        <label className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm cursor-pointer">
-          + Add Photos
-          <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={handleUpload} />
-        </label>
+        <div className="flex gap-2">
+          <label className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm cursor-pointer">
+            + Add Photos
+            <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={handleUpload} />
+          </label>
+          <button
+            onClick={() => setShowQR(true)}
+            className="px-4 py-2 border border-white/10 text-white/60 rounded-lg hover:bg-white/10 transition-colors text-sm"
+          >
+            QR Code
+          </button>
+        </div>
       </div>
 
       {/* Upload progress */}
@@ -259,6 +268,40 @@ export default function ManagePhotosPage() {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-white mb-1">Session QR Code</h2>
+            <p className="text-sm text-white/40 mb-4">Athletes can scan this to find their photos later</p>
+            <div className="bg-white rounded-xl p-4 inline-block mb-4">
+              <img src={`/api/sessions/${sessionId}/qr`} alt="QR Code" className="w-48 h-48" />
+            </div>
+            <p className="text-xs text-white/30 mb-4 break-all">
+              {typeof window !== "undefined" ? `${window.location.origin}/sessions/${sessionId}` : ""}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => {
+                  const link = `${window.location.origin}/sessions/${sessionId}`;
+                  navigator.clipboard.writeText(link);
+                }}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/60 hover:bg-white/10 transition-colors"
+              >
+                Copy Link
+              </button>
+              <a
+                href={`/api/sessions/${sessionId}/qr`}
+                download={`session-${sessionId}-qr.svg`}
+                className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm"
+              >
+                Download QR
+              </a>
+            </div>
+          </div>
         </div>
       )}
     </div>

@@ -42,18 +42,23 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  const session = await prisma.session.create({
-    data: {
-      title,
-      location,
-      date: new Date(date),
-      startTime,
-      endTime,
-      description,
-      photographerId,
-      ...(pricePerPhoto && { pricePerPhoto }),
-    },
-  });
+  try {
+    const session = await prisma.session.create({
+      data: {
+        title,
+        location,
+        date: new Date(date),
+        startTime,
+        endTime,
+        description,
+        photographerId,
+        ...(pricePerPhoto && { pricePerPhoto }),
+      },
+    });
 
-  return NextResponse.json(session, { status: 201 });
+    return NextResponse.json(session, { status: 201 });
+  } catch (err: any) {
+    console.error("Session create error:", err);
+    return NextResponse.json({ error: err.message || "Failed to create session" }, { status: 500 });
+  }
 }

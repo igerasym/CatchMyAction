@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import PhotoGrid from "./photo-grid";
+import ComingSoon from "./coming-soon";
 
 export const dynamic = "force-dynamic";
 
@@ -77,12 +78,16 @@ export default async function SessionPage({
         )}
       </div>
 
-      <PhotoGrid
-        sessionId={session.id}
-        previewBaseUrl={previewBaseUrl}
-        initialPhotos={photos}
-        initialCursor={nextCursor}
-      />
+      {session.photoCount === 0 ? (
+        <ComingSoon sessionId={session.id} />
+      ) : (
+        <PhotoGrid
+          sessionId={session.id}
+          previewBaseUrl={previewBaseUrl}
+          initialPhotos={photos}
+          initialCursor={nextCursor}
+        />
+      )}
     </div>
   );
 }

@@ -1,8 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useSession } from "next-auth/react";
 
 export default function HeroSection() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const showUpload = !user || user.role === "PHOTOGRAPHER";
+
   return (
     <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden -mt-14">
       {/* Background image */}
@@ -45,12 +50,14 @@ export default function HeroSection() {
           >
             Find Photos
           </Link>
-          <Link
-            href="/upload"
-            className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm border border-white/20 hover:border-white/30 text-lg"
-          >
-            Upload Session
-          </Link>
+          {showUpload && (
+            <Link
+              href="/upload"
+              className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm border border-white/20 hover:border-white/30 text-lg"
+            >
+              Upload Session
+            </Link>
+          )}
           <a
             href="#how-it-works"
             className="px-8 py-4 border border-white/10 text-white/60 font-medium rounded-xl hover:bg-white/5 hover:text-white/80 transition-all text-lg"

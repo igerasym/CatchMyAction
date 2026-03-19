@@ -195,6 +195,13 @@ function SessionRow({
         >
           Edit
         </button>
+        <button
+          onClick={() => window.open(`/api/sessions/${s.id}/qr`, "_blank")}
+          className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors"
+          title="QR Code"
+        >
+          QR
+        </button>
         <Link
           href={`/dashboard/sessions/${s.id}`}
           className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors"

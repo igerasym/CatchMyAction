@@ -93,3 +93,14 @@ model Purchase {
   @@index([photoId])
   @@unique([userId, photoId])
 }
+
+model SessionNotification {
+  id        String   @id @default(cuid())
+  email     String
+  sessionId String
+  notified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([email, sessionId])
+  @@index([sessionId])
+}

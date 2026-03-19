@@ -14,6 +14,7 @@ interface Draft {
   startTime: string;
   endTime: string;
   description: string;
+  price?: string;
 }
 
 interface UploadState {
@@ -24,7 +25,7 @@ interface UploadState {
 }
 
 export default function UploadPage() {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const router = useRouter();
   const user = session?.user as any;
 
@@ -139,12 +140,16 @@ export default function UploadPage() {
     }
 
     setShowAuth(false);
-    // Wait for session to update, then create session
-    // Small delay for NextAuth to propagate
+    // Wait for session to update, then check role
     setTimeout(async () => {
       const sess = await fetch("/api/auth/session").then((r) => r.json());
       if (sess?.user) {
-        await createSession((sess.user as any).id);
+        if ((sess.user as any).role === "PHOTOGRAPHER") {
+          await createSession((sess.user as any).id);
+        } else {
+          // Existing surfer — show upgrade modal
+          setShowUpgrade(true);
+        }
       }
     }, 500);
   }
@@ -217,6 +222,19 @@ export default function UploadPage() {
               </button>
             )}
           </div>
+
+          {/* Skip upload — just get QR */}
+          {uploadState.completed === 0 && !uploadState.inProgress && (
+            <div className="text-center pt-4 border-t border-white/5">
+              <p className="text-xs text-white/30 mb-2">Want to upload photos later?</p>
+              <button
+                onClick={() => window.location.href = `/dashboard/sessions/${sessionId}`}
+                className="text-sm text-ocean-400 hover:underline"
+              >
+                Skip → Get QR Code for athletes
+              </button>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -272,24 +290,21 @@ export default function UploadPage() {
         </button>
       </form>
 
-      {/* Upgrade Modal (for logged-in users) */}
+      {/* Upgrade Info (for logged-in surfers) */}
       {showUpgrade && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowUpgrade(false)}>
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-white mb-1">Become a Photographer</h2>
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-sm p-6 text-center" onClick={(e) => e.stopPropagation()}>
+            <div className="text-4xl mb-3">📷</div>
+            <h2 className="text-lg font-bold text-white mb-2">Photographer Account Required</h2>
             <p className="text-sm text-white/40 mb-5">
-              Upgrade your account to create sessions and upload photos.
+              You&apos;re registered as a regular user. To create sessions and upload photos, upgrade your account to Photographer in Settings.
             </p>
-            <UpgradeInline
-              userId={user?.id}
-              onSuccess={async () => {
-                setShowUpgrade(false);
-                // Refresh session and create
-                await fetch("/api/auth/session");
-                window.location.reload();
-              }}
-              onError={(msg) => setAuthError(msg)}
-            />
+            <a
+              href="/settings"
+              className="block w-full py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm"
+            >
+              Go to Settings
+            </a>
             <button onClick={() => setShowUpgrade(false)} className="w-full mt-3 text-xs text-white/30 hover:text-white/50 transition-colors">
               Cancel
             </button>
@@ -357,47 +372,3 @@ export default function UploadPage() {
   );
 }
 
-function UpgradeInline({ userId, onSuccess, onError }: {
-  userId: string;
-  onSuccess: () => void;
-  onError: (msg: string) => void;
-}) {
-  const [password, setPassword] = useState("");
-  const [upgradeAgreed, setUpgradeAgreed] = useState(false);
-  const [loading, setLoading] = useState(false);
-
-  async function handle(e: React.FormEvent) {
-    e.preventDefault();
-    if (!upgradeAgreed) { onError("Please agree to the terms"); return; }
-    setLoading(true);
-    const res = await fetch("/api/user", {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: userId, role: "PHOTOGRAPHER", currentPassword: password }),
-    });
-    const data = await res.json();
-    setLoading(false);
-    if (!res.ok) onError(data.error);
-    else onSuccess();
-  }
-
-  return (
-    <form onSubmit={handle} className="space-y-3">
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
-        placeholder="Confirm your password"
-        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent placeholder-white/25" />
-      <label className="flex items-start gap-2 cursor-pointer">
-        <input type="checkbox" checked={upgradeAgreed} onChange={(e) => setUpgradeAgreed(e.target.checked)}
-          className="mt-0.5 rounded border-white/20 bg-white/5 text-ocean-500 focus:ring-ocean-500" />
-        <span className="text-[11px] text-white/40 leading-relaxed">
-          I own the rights to photos I will upload and agree to the{" "}
-          <a href="/terms" target="_blank" className="text-ocean-400 hover:underline">Terms</a>
-        </span>
-      </label>
-      <button type="submit" disabled={loading || !upgradeAgreed}
-        className="w-full py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors text-sm">
-        {loading ? "Upgrading..." : "Upgrade & Continue"}
-      </button>
-    </form>
-  );
-}

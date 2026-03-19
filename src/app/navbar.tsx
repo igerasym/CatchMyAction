@@ -91,7 +91,7 @@ export default function NavBar() {
                     <MenuItem href="/settings" icon="⚙️" label="Settings" onClick={() => setMenuOpen(false)} />
                     <div className="border-t border-white/5 my-1" />
                     <button
-                      onClick={() => { setMenuOpen(false); signOut(); }}
+                      onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/" }); }}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/5 transition-colors flex items-center gap-2.5"
                     >
                       <span className="w-5 text-center">🚪</span>
