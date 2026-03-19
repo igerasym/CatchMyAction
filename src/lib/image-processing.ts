@@ -1,7 +1,5 @@
 import sharp from "sharp";
 
-const WATERMARK_TEXT = "© SurfShots";
-
 /** Create a watermarked preview (max 1200px wide, 60% quality) */
 export async function createPreview(
   inputBuffer: Buffer
@@ -14,21 +12,64 @@ export async function createPreview(
     width * ((metadata.height || 800) / (metadata.width || 1200))
   );
 
-  // Create SVG watermark overlay
+  const fontSize = Math.round(width / 18);
+  const smallFont = Math.round(fontSize * 0.45);
+
+  // Stylish diagonal watermark pattern
   const svgWatermark = `
-    <svg width="${width}" height="${height}">
-      <style>
-        .watermark {
-          fill: rgba(255, 255, 255, 0.4);
-          font-size: ${Math.round(width / 15)}px;
-          font-family: Arial, sans-serif;
-          font-weight: bold;
-        }
-      </style>
-      <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle"
-            class="watermark" transform="rotate(-30, ${width / 2}, ${height / 2})">
-        ${WATERMARK_TEXT}
-      </text>
+    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <style>
+          .brand { 
+            fill: rgba(255,255,255,0.18); 
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 800;
+            letter-spacing: 2px;
+          }
+          .sub {
+            fill: rgba(255,255,255,0.12);
+            font-family: Arial, Helvetica, sans-serif;
+            font-weight: 400;
+            letter-spacing: 4px;
+          }
+        </style>
+      </defs>
+      <!-- Center watermark -->
+      <g transform="rotate(-25, ${width / 2}, ${height / 2})">
+        <text x="50%" y="45%" text-anchor="middle" dominant-baseline="middle"
+              class="brand" font-size="${fontSize}">
+          CATCH MY ACTION
+        </text>
+        <text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle"
+              class="sub" font-size="${smallFont}">
+          catchmyaction.com
+        </text>
+      </g>
+      <!-- Repeating pattern corners -->
+      <g transform="rotate(-25, ${width * 0.2}, ${height * 0.2})">
+        <text x="${width * 0.2}" y="${height * 0.2}" text-anchor="middle"
+              class="sub" font-size="${smallFont}">
+          CATCH MY ACTION
+        </text>
+      </g>
+      <g transform="rotate(-25, ${width * 0.8}, ${height * 0.8})">
+        <text x="${width * 0.8}" y="${height * 0.8}" text-anchor="middle"
+              class="sub" font-size="${smallFont}">
+          CATCH MY ACTION
+        </text>
+      </g>
+      <g transform="rotate(-25, ${width * 0.15}, ${height * 0.75})">
+        <text x="${width * 0.15}" y="${height * 0.75}" text-anchor="middle"
+              class="sub" font-size="${smallFont}">
+          CATCH MY ACTION
+        </text>
+      </g>
+      <g transform="rotate(-25, ${width * 0.85}, ${height * 0.25})">
+        <text x="${width * 0.85}" y="${height * 0.25}" text-anchor="middle"
+              class="sub" font-size="${smallFont}">
+          CATCH MY ACTION
+        </text>
+      </g>
     </svg>
   `;
 

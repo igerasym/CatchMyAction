@@ -30,16 +30,16 @@ export async function POST(req: NextRequest) {
   // Verify session exists
   const session = await prisma.session.findUnique({
     where: { id: sessionId },
-    select: { id: true, photoCount: true },
+    select: { id: true, photoCount: true, pricePerPhoto: true },
   });
 
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
 
-  if (session.photoCount >= 500) {
+  if (session.photoCount >= 200) {
     return NextResponse.json(
-      { error: "Session photo limit reached (500)" },
+      { error: "Session photo limit reached (200)" },
       { status: 400 }
     );
   }
@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
       width: metadata.width,
       height: metadata.height,
       fileSize: metadata.size,
+      priceInCents: session.pricePerPhoto,
     },
   });
 

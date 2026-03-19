@@ -33,7 +33,7 @@ export default function HeroSection() {
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 leading-tight tracking-tight">
           Find Yourself
           <br />
-          <span className="text-ocean-400">on the Wave</span>
+          <span className="text-ocean-400">in Action</span>
         </h1>
         <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-xl mx-auto leading-relaxed">
           Photographers upload sessions → You find yourself → Buy HD photos
@@ -43,11 +43,17 @@ export default function HeroSection() {
             href="/sessions"
             className="px-8 py-4 bg-ocean-500 text-white font-semibold rounded-xl hover:bg-ocean-400 transition-all shadow-lg shadow-ocean-500/25 hover:shadow-ocean-400/40 hover:-translate-y-0.5 text-lg"
           >
-            Find Me Now
+            Find Photos
+          </Link>
+          <Link
+            href="/upload"
+            className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm border border-white/20 hover:border-white/30 text-lg"
+          >
+            Upload Session
           </Link>
           <a
             href="#how-it-works"
-            className="px-8 py-4 border border-white/20 text-white/80 font-medium rounded-xl hover:bg-white/10 hover:border-white/30 transition-all text-lg backdrop-blur-sm"
+            className="px-8 py-4 border border-white/10 text-white/60 font-medium rounded-xl hover:bg-white/5 hover:text-white/80 transition-all text-lg"
           >
             How It Works
           </a>

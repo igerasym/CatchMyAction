@@ -37,7 +37,7 @@ export async function PATCH(
   { params }: { params: { id: string } }
 ) {
   const body = await req.json();
-  const { title, location, date, startTime, endTime, description, published } = body;
+  const { title, location, date, startTime, endTime, description, published, coverPhotoId, pricePerPhoto } = body;
 
   const session = await prisma.session.update({
     where: { id: params.id },
@@ -49,8 +49,18 @@ export async function PATCH(
       ...(endTime && { endTime }),
       ...(description !== undefined && { description }),
       ...(published !== undefined && { published }),
+      ...(coverPhotoId !== undefined && { coverPhotoId }),
+      ...(pricePerPhoto !== undefined && { pricePerPhoto }),
     },
   });
+
+  // If price changed, update all existing photos in this session
+  if (pricePerPhoto !== undefined) {
+    await prisma.photo.updateMany({
+      where: { sessionId: params.id },
+      data: { priceInCents: pricePerPhoto },
+    });
+  }
 
   return NextResponse.json(session);
 }

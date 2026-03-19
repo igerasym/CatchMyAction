@@ -24,7 +24,7 @@ export default function LoginPage() {
     });
     setLoading(false);
     if (res?.error) setError("Invalid email or password");
-    else { router.push(callbackUrl); router.refresh(); }
+    else { window.location.href = callbackUrl; }
   }
 
   return (

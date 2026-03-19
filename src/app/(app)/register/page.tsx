@@ -10,8 +10,11 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
+  const [agreed, setAgreed] = useState(false);
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
+    if (!agreed) { setError("You must agree to the Terms and Privacy Policy"); return; }
     setError("");
     setLoading(true);
     const form = new FormData(e.currentTarget);
@@ -65,8 +68,19 @@ export default function RegisterPage() {
             <option value="PHOTOGRAPHER">Photographer (upload & sell)</option>
           </select>
         </div>
-        <button type="submit" disabled={loading}
-          className="w-full py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors">
+        <label className="flex items-start gap-2.5 cursor-pointer">
+          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
+            className="mt-0.5 rounded border-white/20 bg-white/5 text-ocean-500 focus:ring-ocean-500" />
+          <span className="text-xs text-white/40 leading-relaxed">
+            I agree to the{" "}
+            <a href="/terms" target="_blank" className="text-ocean-400 hover:underline">Terms of Service</a>
+            {" "}and{" "}
+            <a href="/privacy" target="_blank" className="text-ocean-400 hover:underline">Privacy Policy</a>,
+            including the use of facial recognition technology for photo matching.
+          </span>
+        </label>
+        <button type="submit" disabled={loading || !agreed}
+          className="w-full py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors">
           {loading ? "Creating account..." : "Create account"}
         </button>
       </form>

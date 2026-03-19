@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 import PhotoGrid from "./photo-grid";
 
 export const dynamic = "force-dynamic";
@@ -16,7 +17,7 @@ export default async function SessionPage({
   const session = await prisma.session.findUnique({
     where: { id: params.id },
     include: {
-      photographer: { select: { name: true, avatarUrl: true } },
+      photographer: { select: { id: true, name: true, avatarUrl: true } },
     },
   });
 
@@ -64,7 +65,12 @@ export default async function SessionPage({
             {session.startTime}–{session.endTime}
           </span>
           <span>📸 {session.photoCount} photos</span>
-          <span>by {session.photographer.name}</span>
+          <Link
+            href={`/photographer/${session.photographer.id}`}
+            className="text-ocean-400 hover:underline"
+          >
+            by {session.photographer.name}
+          </Link>
         </div>
         {session.description && (
           <p className="text-white/40 mt-2">{session.description}</p>

@@ -107,7 +107,7 @@ export default function SessionList({
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-white/20 text-4xl">
-                  🏄
+                  📸
                 </div>
               )}
             </div>

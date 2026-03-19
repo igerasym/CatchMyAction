@@ -24,6 +24,7 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
   const [startTime, setStartTime] = useState(session.startTime);
   const [endTime, setEndTime] = useState(session.endTime);
   const [description, setDescription] = useState(session.description || "");
+  const [price, setPrice] = useState(((session as any).pricePerPhoto || 999) / 100 + "");
   const [saving, setSaving] = useState(false);
   const [showSpots, setShowSpots] = useState(false);
   const spotRef = useRef<HTMLDivElement>(null);
@@ -43,7 +44,7 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await onSave({ title, location, date, startTime, endTime, description });
+    await onSave({ title, location, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100) });
     setSaving(false);
   }
 
@@ -106,6 +107,11 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
               <label className="block text-xs text-white/40 mb-1">End</label>
               <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
             </div>
+          </div>
+          <div>
+            <label className="block text-xs text-white/40 mb-1">Price per Photo ($)</label>
+            <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required
+              min="0.50" max="999" step="0.01" className={inputClass} />
           </div>
           <div>
             <label className="block text-xs text-white/40 mb-1">Description</label>

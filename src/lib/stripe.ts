@@ -23,7 +23,7 @@ export async function createCheckoutSession(params: {
           currency: "usd",
           unit_amount: params.priceInCents,
           product_data: {
-            name: `Surf Photo — ${params.sessionTitle}`,
+            name: `Photo — ${params.sessionTitle}`,
             images: [params.photoPreviewUrl],
           },
         },

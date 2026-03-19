@@ -35,15 +35,31 @@ export const authOptions: NextAuthOptions = {
           email: user.email,
           name: user.name,
           role: user.role,
+          avatarUrl: user.avatarUrl,
         };
       },
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, trigger }) {
+      // First sign in — set id from user
       if (user) {
         token.id = user.id;
         token.role = (user as any).role;
+        token.avatarUrl = (user as any).avatarUrl;
+      }
+      // On update() call — refresh from DB
+      if (trigger === "update" && token.id) {
+        const dbUser = await prisma.user.findUnique({
+          where: { id: token.id as string },
+          select: { id: true, name: true, email: true, role: true, avatarUrl: true },
+        });
+        if (dbUser) {
+          token.name = dbUser.name;
+          token.email = dbUser.email;
+          token.role = dbUser.role;
+          token.avatarUrl = dbUser.avatarUrl;
+        }
       }
       return token;
     },
@@ -51,6 +67,9 @@ export const authOptions: NextAuthOptions = {
       if (session.user) {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
+        (session.user as any).avatarUrl = token.avatarUrl;
+        session.user.name = token.name as string;
+        session.user.email = token.email as string;
       }
       return session;
     },

@@ -4,9 +4,9 @@ import Providers from "./providers";
 import NavBar from "./navbar";
 
 export const metadata: Metadata = {
-  title: "SurfShots — Find Your Surf Photos",
+  title: "CatchMyAction — Find Yourself in Action",
   description:
-    "Browse and purchase high-quality surf photography from your sessions.",
+    "Browse and purchase high-quality action photography from your sessions.",
 };
 
 export default function RootLayout({

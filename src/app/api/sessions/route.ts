@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 /** POST /api/sessions — create a new session (photographer only) */
 export async function POST(req: NextRequest) {
   const body = await req.json();
-  const { title, location, date, startTime, endTime, description, photographerId } = body;
+  const { title, location, date, startTime, endTime, description, photographerId, pricePerPhoto } = body;
 
   if (!title || !location || !date || !startTime || !endTime || !photographerId) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -51,6 +51,7 @@ export async function POST(req: NextRequest) {
       endTime,
       description,
       photographerId,
+      ...(pricePerPhoto && { pricePerPhoto }),
     },
   });
 

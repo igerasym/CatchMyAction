@@ -151,7 +151,7 @@ function SessionRow({
         {thumbUrl ? (
           <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/20">🏄</div>
+          <div className="w-full h-full flex items-center justify-center text-white/20">📸</div>
         )}
       </div>
 
@@ -195,6 +195,12 @@ function SessionRow({
         >
           Edit
         </button>
+        <Link
+          href={`/dashboard/sessions/${s.id}`}
+          className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors"
+        >
+          Photos
+        </Link>
         <button
           onClick={onDelete}
           disabled={deleting}
