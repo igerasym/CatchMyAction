@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 
-/** GET /api/sessions/:id — get session with all photos */
+/** GET /api/sessions/:id — get session (public) */
 export async function GET(
   _req: NextRequest,
   { params }: { params: { id: string } }
@@ -11,14 +12,7 @@ export async function GET(
     include: {
       photographer: { select: { id: true, name: true, avatarUrl: true } },
       photos: {
-        select: {
-          id: true,
-          previewKey: true,
-          thumbnailKey: true,
-          width: true,
-          height: true,
-          priceInCents: true,
-        },
+        select: { id: true, previewKey: true, thumbnailKey: true, width: true, height: true, priceInCents: true },
         orderBy: { createdAt: "asc" },
       },
     },
@@ -27,63 +21,67 @@ export async function GET(
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
-
   return NextResponse.json(session);
 }
 
-/** PATCH /api/sessions/:id — update session (publish, edit details) */
+/** PATCH /api/sessions/:id — update session (owner only) */
 export async function PATCH(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const user = await getAuthUser();
+  if (user instanceof NextResponse) return user;
+
+  if (!(await verifySessionOwner(params.id, user.id))) {
+    return NextResponse.json({ error: "Not your session" }, { status: 403 });
+  }
+
   const body = await req.json();
   const { title, location, date, startTime, endTime, description, published, coverPhotoId, pricePerPhoto } = body;
 
-  const session = await prisma.session.update({
-    where: { id: params.id },
-    data: {
-      ...(title && { title }),
-      ...(location && { location }),
-      ...(date && { date: new Date(date) }),
-      ...(startTime && { startTime }),
-      ...(endTime && { endTime }),
-      ...(description !== undefined && { description }),
-      ...(published !== undefined && { published }),
-      ...(coverPhotoId !== undefined && { coverPhotoId }),
-      ...(pricePerPhoto !== undefined && { pricePerPhoto }),
-    },
-  });
-
-  // If price changed, update all existing photos in this session
-  if (pricePerPhoto !== undefined) {
-    await prisma.photo.updateMany({
-      where: { sessionId: params.id },
-      data: { priceInCents: pricePerPhoto },
+  try {
+    const session = await prisma.session.update({
+      where: { id: params.id },
+      data: {
+        ...(title && { title }),
+        ...(location && { location }),
+        ...(date && { date: new Date(date) }),
+        ...(startTime && { startTime }),
+        ...(endTime && { endTime }),
+        ...(description !== undefined && { description }),
+        ...(published !== undefined && { published }),
+        ...(coverPhotoId !== undefined && { coverPhotoId }),
+        ...(pricePerPhoto !== undefined && { pricePerPhoto }),
+      },
     });
-  }
 
-  return NextResponse.json(session);
+    if (pricePerPhoto !== undefined) {
+      await prisma.photo.updateMany({
+        where: { sessionId: params.id },
+        data: { priceInCents: pricePerPhoto },
+      });
+    }
+
+    return NextResponse.json(session);
+  } catch (err: any) {
+    return NextResponse.json({ error: err.message || "Update failed" }, { status: 500 });
+  }
 }
 
-/** DELETE /api/sessions/:id — delete session and all its photos */
+/** DELETE /api/sessions/:id — delete session (owner only) */
 export async function DELETE(
   _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const session = await prisma.session.findUnique({
-    where: { id: params.id },
-    select: { id: true },
-  });
+  const user = await getAuthUser();
+  if (user instanceof NextResponse) return user;
 
-  if (!session) {
-    return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  if (!(await verifySessionOwner(params.id, user.id))) {
+    return NextResponse.json({ error: "Not your session" }, { status: 403 });
   }
 
-  // Photos cascade-delete via schema, purchases need manual cleanup
-  await prisma.purchase.deleteMany({
-    where: { photo: { sessionId: params.id } },
-  });
-
+  // Clean up related data
+  await prisma.purchase.deleteMany({ where: { photo: { sessionId: params.id } } });
   await prisma.session.delete({ where: { id: params.id } });
 
   return NextResponse.json({ deleted: true });

@@ -80,11 +80,11 @@ export default function UploadPage() {
   }
 
   // Create session on backend
-  async function createSession(photographerId: string) {
+  async function createSession() {
     const res = await fetch("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, location, date, startTime, endTime, description, photographerId, pricePerPhoto: Math.round(parseFloat(price) * 100) }),
+      body: JSON.stringify({ title, location, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100) }),
     });
     const data = await res.json();
     if (data.id) {
@@ -101,7 +101,7 @@ export default function UploadPage() {
     saveDraft();
 
     if (user && user.role === "PHOTOGRAPHER") {
-      await createSession(user.id);
+      await createSession();
     } else if (user && user.role === "USER") {
       // Show upgrade prompt inline
       setShowUpgrade(true);
@@ -146,7 +146,7 @@ export default function UploadPage() {
       const sess = await fetch("/api/auth/session").then((r) => r.json());
       if (sess?.user) {
         if ((sess.user as any).role === "PHOTOGRAPHER") {
-          await createSession((sess.user as any).id);
+          await createSession();
         } else {
           // Existing surfer — show upgrade modal
           setShowUpgrade(true);

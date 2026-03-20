@@ -4,6 +4,7 @@ import { v4 as uuid } from "uuid";
 import { prisma } from "@/lib/db";
 import { putObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
 import { createPreview, createThumbnail, getImageMetadata } from "@/lib/image-processing";
+import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB — pro cameras shoot big
 const MIN_RESOLUTION = 2000; // px on shortest side
@@ -25,6 +26,9 @@ function detectMimeType(buffer: Buffer): string | null {
 /** POST /api/photos/upload — upload a photo to a session */
 export async function POST(req: NextRequest) {
   try {
+  const user = await getAuthUser();
+  if (user instanceof NextResponse) return user;
+
   const formData = await req.formData();
   const file = formData.get("file") as File | null;
   const sessionId = formData.get("sessionId") as string | null;
@@ -42,6 +46,9 @@ export async function POST(req: NextRequest) {
   const session = await prisma.session.findUnique({ where: { id: sessionId } });
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  }
+  if ((session as any).photographerId !== user.id) {
+    return NextResponse.json({ error: "Not your session" }, { status: 403 });
   }
   if (session.photoCount >= 200) {
     return NextResponse.json({ error: "Session photo limit reached (200)" }, { status: 400 });

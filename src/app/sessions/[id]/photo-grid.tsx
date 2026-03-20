@@ -3,6 +3,9 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
+import dynamic from "next/dynamic";
+
+const FindMe = dynamic(() => import("./find-me"), { ssr: false });
 
 interface Photo {
   id: string;
@@ -39,24 +42,28 @@ export default function PhotoGrid({
   const [purchasing, setPurchasing] = useState(false);
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
+  const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // Load user's purchased photo IDs on mount
   useEffect(() => {
     if (!userId) return;
-    fetch("/api/user/purchases")
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.purchases) {
-          const ids = new Set<string>(data.purchases.map((p: any) => p.id));
-          setPurchasedIds(ids);
-          const urls: Record<string, string> = {};
-          data.purchases.forEach((p: any) => { urls[p.id] = p.originalUrl; });
-          setOriginalUrls(urls);
-        }
-      })
-      .catch(() => {});
+    Promise.all([
+      fetch("/api/user/purchases").then((r) => r.json()),
+      fetch("/api/user/claims?sessionId=" + sessionId).then((r) => r.json()),
+    ]).then(([pData, cData]) => {
+      if (pData.purchases) {
+        const ids = new Set<string>(pData.purchases.map((p: any) => p.id));
+        setPurchasedIds(ids);
+        const urls: Record<string, string> = {};
+        pData.purchases.forEach((p: any) => { urls[p.id] = p.originalUrl; });
+        setOriginalUrls(urls);
+      }
+      if (cData.claims) {
+        setMatchedIds(new Set<string>(cData.claims.map((c: any) => c.id)));
+      }
+    }).catch(() => {});
   }, [userId]);
 
   // Auto-download after Stripe redirect (once only)
@@ -180,13 +187,26 @@ export default function PhotoGrid({
 
   return (
     <>
+      {/* Find Me button */}
+      {photos.length > 0 && (
+        <div className="flex justify-end mb-4">
+          <FindMe photos={photos} onMatchesFound={setMatchedIds} />
+        </div>
+      )}
+
       {/* Thumbnail grid with lazy loading */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
         {photos.map((photo) => (
           <button
             key={photo.id}
             onClick={() => setSelectedPhoto(photo)}
-            className="relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden hover:ring-2 hover:ring-ocean-500 transition-all focus:outline-none focus:ring-2 focus:ring-ocean-500"
+            className={`relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden transition-all focus:outline-none focus:ring-2 focus:ring-ocean-500 ${
+              purchasedIds.has(photo.id)
+                ? "ring-2 ring-green-500 shadow-lg shadow-green-500/20"
+                : matchedIds.has(photo.id)
+                ? "ring-2 ring-purple-500 shadow-lg shadow-purple-500/20"
+                : "hover:ring-2 hover:ring-ocean-500"
+            }`}
           >
             <img
               src={photo.thumbnailUrl}
@@ -198,6 +218,11 @@ export default function PhotoGrid({
             {purchasedIds.has(photo.id) && (
               <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">
                 ✓ OWNED
+              </div>
+            )}
+            {matchedIds.has(photo.id) && !purchasedIds.has(photo.id) && (
+              <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-purple-500/90 text-white text-[10px] font-bold rounded">
+                🔍 MATCH
               </div>
             )}
           </button>

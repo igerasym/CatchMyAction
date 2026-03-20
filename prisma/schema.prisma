@@ -30,6 +30,7 @@ model User {
 
   sessions  Session[]
   purchases Purchase[]
+  claims    PhotoClaim[]
 }
 
 model Session {
@@ -71,6 +72,7 @@ model Photo {
   sessionId String
   session   Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   purchases Purchase[]
+  claims    PhotoClaim[]
 
   @@index([sessionId])
 }
@@ -104,4 +106,17 @@ model SessionNotification {
 
   @@unique([email, sessionId])
   @@index([sessionId])
+}
+
+model PhotoClaim {
+  id        String   @id @default(cuid())
+  userId    String
+  photoId   String
+  createdAt DateTime @default(now())
+
+  user  User  @relation(fields: [userId], references: [id])
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, photoId])
+  @@index([userId])
 }
