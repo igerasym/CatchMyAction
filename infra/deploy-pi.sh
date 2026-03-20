@@ -32,7 +32,7 @@ APP_PORT=3100
 
 # PostgreSQL — point to your existing instance
 # Use host.docker.internal to reach Pi's localhost from inside Docker
-DATABASE_URL=postgresql://catchmyaction:catchmyaction@host.docker.internal:5432/catchmyaction?schema=public
+DATABASE_URL=postgresql://catchmyaction:password@host.docker.internal:5432/catchmyaction?schema=public
 
 # Auth
 NEXTAUTH_SECRET=change-me-to-a-random-string-at-least-32-chars
@@ -49,7 +49,7 @@ EOF
   echo ""
   echo "1. Create the database and user in your existing PostgreSQL:"
   echo "   sudo -u postgres psql"
-  echo "   CREATE USER catchmyaction WITH PASSWORD 'catchmyaction';"
+  echo "   CREATE USER catchmyaction WITH PASSWORD 'password';"
   echo "   CREATE DATABASE catchmyaction OWNER catchmyaction;"
   echo "   \\q"
   echo ""
