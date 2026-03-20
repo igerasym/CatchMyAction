@@ -22,6 +22,7 @@ interface Props {
   initialPhotos: Photo[];
   initialCursor: string | null;
   purchasedPhotoId?: string;
+  bulkPurchasedIds?: string;
 }
 
 export default function PhotoGrid({
@@ -30,6 +31,7 @@ export default function PhotoGrid({
   initialPhotos,
   initialCursor,
   purchasedPhotoId,
+  bulkPurchasedIds,
 }: Props) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -40,6 +42,8 @@ export default function PhotoGrid({
   const [loading, setLoading] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [bulkBuying, setBulkBuying] = useState(false);
+  const [cartIds, setCartIds] = useState<Set<string>>(new Set());
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
@@ -98,6 +102,36 @@ export default function PhotoGrid({
 
     verifyAndDownload();
   }, [purchasedPhotoId, userId]);
+
+  // Bulk purchase verify after Stripe redirect
+  const bulkVerified = useRef(false);
+  useEffect(() => {
+    if (!bulkPurchasedIds || !userId || bulkVerified.current) return;
+    bulkVerified.current = true;
+    window.history.replaceState({}, "", window.location.pathname);
+
+    const ids = bulkPurchasedIds.split(",");
+    async function verify() {
+      for (let i = 0; i < 5; i++) {
+        const res = await fetch("/api/photos/bulk-verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoIds: ids }),
+        });
+        const data = await res.json();
+        if (data.allPurchased) {
+          setPurchasedIds((prev) => {
+            const next = new Set(prev);
+            ids.forEach((id) => next.add(id));
+            return next;
+          });
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
+    verify();
+  }, [bulkPurchasedIds, userId]);
 
   const loadMore = useCallback(async () => {
     if (!cursor || loading) return;
@@ -185,24 +219,87 @@ export default function PhotoGrid({
     }
   }
 
+  // Buy all matched (unpurchased) photos
+  async function handleBulkPurchase() {
+    if (!userId) { router.push("/login"); return; }
+    const toBuy = Array.from(cartIds).filter((id) => !purchasedIds.has(id));
+    if (toBuy.length === 0) return;
+    setBulkBuying(true);
+    try {
+      const res = await fetch("/api/photos/bulk-purchase", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoIds: toBuy, sessionId }),
+      });
+      const data = await res.json();
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+      } else if (data.purchased || data.alreadyPurchased) {
+        setPurchasedIds((prev) => {
+          const next = new Set(prev);
+          toBuy.forEach((id) => next.add(id));
+          return next;
+        });
+        setCartIds(new Set());
+      }
+    } catch {
+      alert("Purchase failed");
+    } finally {
+      setBulkBuying(false);
+    }
+  }
+
+  function toggleCart(photoId: string) {
+    setCartIds((prev) => {
+      const next = new Set(prev);
+      next.has(photoId) ? next.delete(photoId) : next.add(photoId);
+      return next;
+    });
+  }
+
+  const cartTotal = photos
+    .filter((p) => cartIds.has(p.id) && !purchasedIds.has(p.id))
+    .reduce((sum, p) => sum + p.priceInCents, 0);
+  const cartCount = Array.from(cartIds).filter((id) => !purchasedIds.has(id)).length;
+
   return (
     <>
-      {/* Find Me button */}
+      {/* Find Me + Buy All bar */}
       {photos.length > 0 && (
-        <div className="flex justify-end mb-4">
-          <FindMe photos={photos} onMatchesFound={setMatchedIds} />
+        <div className="flex items-center justify-between mb-4 gap-3">
+          <div>
+            {cartCount > 0 && (
+              <button
+                onClick={handleBulkPurchase}
+                disabled={bulkBuying}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-all text-sm font-medium"
+              >
+                {bulkBuying
+                  ? "Processing..."
+                  : `Buy ${cartCount} Photo${cartCount > 1 ? "s" : ""} — $${(cartTotal / 100).toFixed(2)}`}
+              </button>
+            )}
+          </div>
+          <FindMe photos={photos} onMatchesFound={(ids) => {
+            setMatchedIds(ids);
+            // Auto-select all unpurchased matches for cart
+            const unpurchased = Array.from(ids).filter((id) => !purchasedIds.has(id));
+            setCartIds(new Set(unpurchased));
+          }} />
         </div>
       )}
 
       {/* Thumbnail grid with lazy loading */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
         {photos.map((photo) => (
-          <button
+          <div
             key={photo.id}
             onClick={() => setSelectedPhoto(photo)}
-            className={`relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden transition-all focus:outline-none focus:ring-2 focus:ring-ocean-500 ${
+            className={`relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden transition-all cursor-pointer ${
               purchasedIds.has(photo.id)
                 ? "ring-2 ring-green-500 shadow-lg shadow-green-500/20"
+                : cartIds.has(photo.id)
+                ? "ring-2 ring-green-500/60"
                 : matchedIds.has(photo.id)
                 ? "ring-2 ring-purple-500 shadow-lg shadow-purple-500/20"
                 : "hover:ring-2 hover:ring-ocean-500"
@@ -215,6 +312,19 @@ export default function PhotoGrid({
               loading="lazy"
               decoding="async"
             />
+            {/* Cart checkbox — all unpurchased photos */}
+            {!purchasedIds.has(photo.id) && (
+              <button
+                onClick={(e) => { e.stopPropagation(); toggleCart(photo.id); }}
+                className={`absolute top-1.5 left-1.5 w-5 h-5 rounded border flex items-center justify-center text-xs transition-all z-10 ${
+                  cartIds.has(photo.id)
+                    ? "bg-green-500 border-green-500 text-white"
+                    : "border-white/40 bg-black/50 text-transparent hover:text-white/50 hover:border-white/60"
+                }`}
+              >
+                ✓
+              </button>
+            )}
             {purchasedIds.has(photo.id) && (
               <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">
                 ✓ OWNED
@@ -225,7 +335,7 @@ export default function PhotoGrid({
                 🔍 MATCH
               </div>
             )}
-          </button>
+          </div>
         ))}
       </div>
 

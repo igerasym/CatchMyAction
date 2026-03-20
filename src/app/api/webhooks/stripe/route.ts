@@ -25,35 +25,55 @@ export async function POST(req: NextRequest) {
 
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
-    const { photoId, userId } = session.metadata || {};
+    const { photoId, photoIds, userId, type } = session.metadata || {};
 
-    if (!photoId || !userId) {
-      console.error("Missing metadata in checkout session");
+    if (!userId) {
+      console.error("Missing userId in checkout session");
       return NextResponse.json({ error: "Missing metadata" }, { status: 400 });
     }
 
-    // Get photo price
-    const photo = await prisma.photo.findUnique({
-      where: { id: photoId },
-      select: { priceInCents: true },
-    });
-
-    if (!photo) {
-      return NextResponse.json({ error: "Photo not found" }, { status: 404 });
+    // Bulk purchase
+    if (type === "bulk" && photoIds) {
+      const ids = photoIds.split(",");
+      for (const pid of ids) {
+        const photo = await prisma.photo.findUnique({
+          where: { id: pid },
+          select: { priceInCents: true },
+        });
+        if (!photo) continue;
+        await prisma.purchase.upsert({
+          where: { userId_photoId: { userId, photoId: pid } },
+          create: {
+            userId,
+            photoId: pid,
+            amountInCents: photo.priceInCents,
+            stripePaymentId: `${session.payment_intent}_${pid}`,
+            stripeSessionId: `${session.id}_${pid}`,
+          },
+          update: {},
+        });
+      }
     }
-
-    // Create purchase record (idempotent via unique constraint)
-    await prisma.purchase.upsert({
-      where: { userId_photoId: { userId, photoId } },
-      create: {
-        userId,
-        photoId,
-        amountInCents: photo.priceInCents,
-        stripePaymentId: session.payment_intent as string,
-        stripeSessionId: session.id,
-      },
-      update: {},
-    });
+    // Single purchase
+    else if (photoId) {
+      const photo = await prisma.photo.findUnique({
+        where: { id: photoId },
+        select: { priceInCents: true },
+      });
+      if (photo) {
+        await prisma.purchase.upsert({
+          where: { userId_photoId: { userId, photoId } },
+          create: {
+            userId,
+            photoId,
+            amountInCents: photo.priceInCents,
+            stripePaymentId: session.payment_intent as string,
+            stripeSessionId: session.id,
+          },
+          update: {},
+        });
+      }
+    }
   }
 
   return NextResponse.json({ received: true });

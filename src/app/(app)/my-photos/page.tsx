@@ -154,7 +154,11 @@ export default function MyPhotosPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
           {tab === "claimed" ? (
             claims.map((photo) => (
-              <div key={photo.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden group">
+              <div key={photo.id} className={`bg-white/5 rounded-xl overflow-hidden group ${
+                purchasedIds.has(photo.id)
+                  ? "border-2 border-green-500/60"
+                  : "border-2 border-purple-500/40"
+              }`}>
                 <button onClick={() => setSelected(photo)} className="block w-full text-left">
                   <div className="aspect-[4/3] overflow-hidden relative">
                     <img src={photo.thumbnailUrl} alt=""
@@ -183,7 +187,7 @@ export default function MyPhotosPage() {
             ))
           ) : (
             purchases.map((photo) => (
-              <div key={photo.id} className="bg-white/5 border border-white/10 rounded-xl overflow-hidden group">
+              <div key={photo.id} className="bg-white/5 border-2 border-green-500/60 rounded-xl overflow-hidden group">
                 <button onClick={() => setSelected(photo)} className="block w-full text-left">
                   <div className="aspect-[4/3] overflow-hidden">
                     <img src={photo.thumbnailUrl} alt=""

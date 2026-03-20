@@ -15,7 +15,7 @@ export default async function SessionPage({
   searchParams,
 }: {
   params: { id: string };
-  searchParams: { purchased?: string };
+  searchParams: { purchased?: string; bulkPurchased?: string };
 }) {
   const session = await prisma.session.findUnique({
     where: { id: params.id },
@@ -89,6 +89,7 @@ export default async function SessionPage({
           initialPhotos={photos}
           initialCursor={nextCursor}
           purchasedPhotoId={searchParams.purchased}
+          bulkPurchasedIds={searchParams.bulkPurchased}
         />
       )}
     </div>
