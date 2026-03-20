@@ -54,6 +54,7 @@ export default function UploadPage() {
   const [uploadState, setUploadState] = useState<UploadState>({
     total: 0, completed: 0, failed: 0, inProgress: false,
   });
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Restore draft from localStorage on mount
@@ -160,6 +161,7 @@ export default function UploadPage() {
     if (!files || files.length === 0 || !sessionId) return;
     const arr = Array.from(files);
     setUploadState({ total: arr.length, completed: 0, failed: 0, inProgress: true });
+    setUploadErrors([]);
     for (let i = 0; i < arr.length; i += 3) {
       const batch = arr.slice(i, i + 3);
       const results = await Promise.allSettled(
@@ -168,12 +170,17 @@ export default function UploadPage() {
           fd.append("file", file);
           fd.append("sessionId", sessionId);
           const res = await fetch("/api/photos/upload", { method: "POST", body: fd });
-          if (!res.ok) throw new Error("fail");
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(`${file.name}: ${data.error || "Upload failed"}`);
+          }
         })
       );
       const ok = results.filter((r) => r.status === "fulfilled").length;
-      const fail = results.filter((r) => r.status === "rejected").length;
-      setUploadState((p) => ({ ...p, completed: p.completed + ok, failed: p.failed + fail }));
+      const failed = results.filter((r) => r.status === "rejected");
+      const newErrors = failed.map((r) => (r as PromiseRejectedResult).reason?.message || "Unknown error");
+      setUploadState((p) => ({ ...p, completed: p.completed + ok, failed: p.failed + failed.length }));
+      if (newErrors.length) setUploadErrors((prev) => [...prev, ...newErrors]);
     }
     setUploadState((p) => ({ ...p, inProgress: false }));
   }
@@ -224,6 +231,17 @@ export default function UploadPage() {
           </div>
 
           {/* Skip upload — just get QR */}
+          {uploadErrors.length > 0 && (
+            <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+              <p className="text-xs font-medium text-red-400 mb-1">Some photos were rejected:</p>
+              <ul className="text-xs text-red-400/80 space-y-0.5">
+                {uploadErrors.map((err, i) => (
+                  <li key={i}>• {err}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           {uploadState.completed === 0 && !uploadState.inProgress && (
             <div className="text-center pt-4 border-t border-white/5">
               <p className="text-xs text-white/30 mb-2">Want to upload photos later?</p>

@@ -36,6 +36,7 @@ export default function ManagePhotosPage() {
   const [deleting, setDeleting] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
+  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [showQR, setShowQR] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -106,6 +107,7 @@ export default function ManagePhotosPage() {
     const files = fileRef.current?.files;
     if (!files || files.length === 0) return;
     setUploading(true);
+    setUploadErrors([]);
     const arr = Array.from(files);
     setUploadProgress({ done: 0, total: arr.length });
     for (let i = 0; i < arr.length; i += 3) {
@@ -116,13 +118,19 @@ export default function ManagePhotosPage() {
           fd.append("file", file);
           fd.append("sessionId", sessionId);
           const res = await fetch("/api/photos/upload", { method: "POST", body: fd });
-          if (!res.ok) throw new Error("fail");
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(`${file.name}: ${data.error || "Upload failed"}`);
+          }
           return res.json();
         })
       );
       const ok = results.filter((r) => r.status === "fulfilled").map((r) => (r as any).value);
+      const failed = results.filter((r) => r.status === "rejected");
+      const newErrors = failed.map((r) => (r as PromiseRejectedResult).reason?.message || "Unknown error");
       setPhotos((prev) => [...prev, ...ok]);
-      setUploadProgress((prev) => ({ ...prev, done: prev.done + batch.length }));
+      setUploadProgress((prev) => ({ ...prev, done: prev.done + ok.length }));
+      if (newErrors.length) setUploadErrors((prev) => [...prev, ...newErrors]);
     }
     setUploading(false);
     if (fileRef.current) fileRef.current.value = "";
@@ -172,6 +180,21 @@ export default function ManagePhotosPage() {
             <div className="bg-ocean-500 h-1.5 rounded-full transition-all"
               style={{ width: `${(uploadProgress.done / uploadProgress.total) * 100}%` }} />
           </div>
+        </div>
+      )}
+
+      {/* Upload errors */}
+      {uploadErrors.length > 0 && (
+        <div className="mb-4 bg-red-500/10 border border-red-500/20 rounded-lg p-3">
+          <p className="text-xs font-medium text-red-400 mb-1">Some photos were rejected:</p>
+          <ul className="text-xs text-red-400/80 space-y-0.5">
+            {uploadErrors.map((err, i) => (
+              <li key={i}>• {err}</li>
+            ))}
+          </ul>
+          <button onClick={() => setUploadErrors([])} className="text-[10px] text-red-400/50 hover:text-red-400 mt-2">
+            Dismiss
+          </button>
         </div>
       )}
 

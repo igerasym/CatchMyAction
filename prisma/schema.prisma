@@ -63,6 +63,7 @@ model Photo {
   width           Int
   height          Int
   fileSize        Int      // bytes
+  fileHash        String?  // SHA-256 for duplicate detection
   mimeType        String   @default("image/jpeg")
   priceInCents    Int      @default(999) // $9.99
   createdAt       DateTime @default(now())

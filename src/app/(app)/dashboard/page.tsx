@@ -21,6 +21,21 @@ interface Session {
   _count: { photos: number };
 }
 
+interface Stats {
+  sessions: number;
+  photos: number;
+  photosSold: number;
+  revenue: number;
+  recentSales: {
+    id: string;
+    amount: number;
+    date: string;
+    sessionTitle: string;
+    buyerName: string;
+    thumbnailKey: string;
+  }[];
+}
+
 export default function DashboardPage() {
   const { data: authSession, status } = useSession();
   const router = useRouter();
@@ -30,6 +45,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [editSession, setEditSession] = useState<Session | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [period, setPeriod] = useState("all");
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login?callbackUrl=/dashboard");
@@ -42,7 +59,11 @@ export default function DashboardPage() {
       .then((r) => r.json())
       .then(setSessions)
       .finally(() => setLoading(false));
-  }, [user?.id]);
+    fetch(`/api/photographer/stats?period=${period}`)
+      .then((r) => r.json())
+      .then(setStats)
+      .catch(() => {});
+  }, [user?.id, period]);
 
   async function handleDelete(id: string) {
     if (!confirm("Delete this session and all its photos? This cannot be undone.")) return;
@@ -82,8 +103,64 @@ export default function DashboardPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-8">
-        <h1 className="text-2xl font-bold text-white">My Sessions</h1>
+      {/* Period filter */}
+      <div className="flex gap-1 mb-4">
+        {[
+          { key: "today", label: "Today" },
+          { key: "week", label: "This Week" },
+          { key: "month", label: "This Month" },
+          { key: "all", label: "All Time" },
+        ].map((p) => (
+          <button
+            key={p.key}
+            onClick={() => setPeriod(p.key)}
+            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
+              period === p.key
+                ? "bg-ocean-500 text-white"
+                : "text-white/40 hover:text-white/60 hover:bg-white/5"
+            }`}
+          >
+            {p.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Stats cards */}
+      {stats && (
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
+          <StatCard label="Sessions" value={stats.sessions} icon="📁" />
+          <StatCard label="Photos" value={stats.photos} icon="📸" />
+          <StatCard label="Photos Sold" value={stats.photosSold} icon="💰" />
+          <StatCard label="Revenue" value={`$${(stats.revenue / 100).toFixed(2)}`} icon="💵" />
+        </div>
+      )}
+
+      {/* Recent sales */}
+      {stats && stats.recentSales.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-medium text-white/50 mb-3">Recent Sales</h2>
+          <div className="space-y-2">
+            {stats.recentSales.map((sale) => (
+              <div key={sale.id} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5">
+                <div className="w-10 h-7 rounded overflow-hidden bg-white/5 flex-shrink-0">
+                  <img src={`/uploads/previews/${sale.thumbnailKey}`} alt="" className="w-full h-full object-cover" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm text-white truncate">{sale.sessionTitle}</p>
+                  <p className="text-xs text-white/30">{sale.buyerName}</p>
+                </div>
+                <div className="text-right flex-shrink-0">
+                  <p className="text-sm text-green-400 font-medium">${(sale.amount / 100).toFixed(2)}</p>
+                  <p className="text-[10px] text-white/20">{new Date(sale.date).toLocaleDateString()}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-6">
+        <h2 className="text-lg font-bold text-white">My Sessions</h2>
         <Link
           href="/upload"
           className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm"
@@ -123,6 +200,18 @@ export default function DashboardPage() {
           onClose={() => setEditSession(null)}
         />
       )}
+    </div>
+  );
+}
+
+function StatCard({ label, value, icon }: { label: string; value: string | number; icon: string }) {
+  return (
+    <div className="bg-white/5 border border-white/10 rounded-xl p-4">
+      <div className="flex items-center gap-2 mb-1">
+        <span className="text-lg">{icon}</span>
+        <span className="text-xs text-white/40">{label}</span>
+      </div>
+      <p className="text-2xl font-bold text-white">{value}</p>
     </div>
   );
 }

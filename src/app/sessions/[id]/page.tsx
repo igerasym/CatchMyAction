@@ -12,8 +12,10 @@ const PAGE_SIZE = 24;
 
 export default async function SessionPage({
   params,
+  searchParams,
 }: {
   params: { id: string };
+  searchParams: { purchased?: string };
 }) {
   const session = await prisma.session.findUnique({
     where: { id: params.id },
@@ -86,6 +88,7 @@ export default async function SessionPage({
           previewBaseUrl={previewBaseUrl}
           initialPhotos={photos}
           initialCursor={nextCursor}
+          purchasedPhotoId={searchParams.purchased}
         />
       )}
     </div>

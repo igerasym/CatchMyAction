@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { createCheckoutSession } from "@/lib/stripe";
 
-/** POST /api/photos/:id/purchase — mock purchase (no Stripe for dev) */
+/** POST /api/photos/:id/purchase — create Stripe Checkout session or mock purchase */
 export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
@@ -15,7 +16,7 @@ export async function POST(
 
   const photo = await prisma.photo.findUnique({
     where: { id: params.id },
-    include: { session: { select: { title: true } } },
+    include: { session: { select: { title: true, id: true } } },
   });
 
   if (!photo) {
@@ -29,12 +30,34 @@ export async function POST(
 
   if (existing) {
     return NextResponse.json(
-      { error: "Already purchased", purchaseId: existing.id },
-      { status: 409 }
+      { alreadyPurchased: true, purchaseId: existing.id },
+      { status: 200 }
     );
   }
 
-  // Mock purchase — create record directly (skip Stripe in dev)
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+
+  // If Stripe keys are configured, use real checkout
+  if (process.env.STRIPE_SECRET_KEY && !process.env.STRIPE_SECRET_KEY.startsWith("mock")) {
+    try {
+      const checkoutSession = await createCheckoutSession({
+        photoId: photo.id,
+        photoPreviewUrl: `${baseUrl}/uploads/previews/${photo.previewKey}`,
+        sessionTitle: photo.session.title,
+        priceInCents: photo.priceInCents,
+        userId,
+        successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}`,
+        cancelUrl: `${baseUrl}/sessions/${photo.session.id}`,
+      });
+
+      return NextResponse.json({ checkoutUrl: checkoutSession.url });
+    } catch (err: any) {
+      console.error("Stripe checkout error:", err);
+      return NextResponse.json({ error: "Payment failed" }, { status: 500 });
+    }
+  }
+
+  // Fallback: mock purchase for dev without Stripe
   const purchase = await prisma.purchase.create({
     data: {
       userId,
@@ -45,9 +68,5 @@ export async function POST(
     },
   });
 
-  return NextResponse.json({
-    purchased: true,
-    purchaseId: purchase.id,
-    message: "Mock purchase successful (dev mode)",
-  });
+  return NextResponse.json({ purchased: true, purchaseId: purchase.id });
 }

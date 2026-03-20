@@ -18,6 +18,7 @@ interface Props {
   previewBaseUrl: string;
   initialPhotos: Photo[];
   initialCursor: string | null;
+  purchasedPhotoId?: string;
 }
 
 export default function PhotoGrid({
@@ -25,6 +26,7 @@ export default function PhotoGrid({
   previewBaseUrl,
   initialPhotos,
   initialCursor,
+  purchasedPhotoId,
 }: Props) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -36,8 +38,59 @@ export default function PhotoGrid({
   const [selectedPhoto, setSelectedPhoto] = useState<Photo | null>(null);
   const [purchasing, setPurchasing] = useState(false);
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
+  const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
 
   const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // Load user's purchased photo IDs on mount
+  useEffect(() => {
+    if (!userId) return;
+    fetch("/api/user/purchases")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.purchases) {
+          const ids = new Set<string>(data.purchases.map((p: any) => p.id));
+          setPurchasedIds(ids);
+          const urls: Record<string, string> = {};
+          data.purchases.forEach((p: any) => { urls[p.id] = p.originalUrl; });
+          setOriginalUrls(urls);
+        }
+      })
+      .catch(() => {});
+  }, [userId]);
+
+  // Auto-download after Stripe redirect (once only)
+  const downloadTriggered = useRef(false);
+  useEffect(() => {
+    if (!purchasedPhotoId || !userId || downloadTriggered.current) return;
+    downloadTriggered.current = true;
+
+    // Clear the query param so reload doesn't re-trigger
+    window.history.replaceState({}, "", window.location.pathname);
+
+    async function verifyAndDownload() {
+      // Poll for purchase (webhook may be delayed)
+      for (let i = 0; i < 5; i++) {
+        const res = await fetch(`/api/photos/${purchasedPhotoId}/verify-purchase?userId=${userId}`);
+        const data = await res.json();
+        if (data.purchased) {
+          setPurchasedIds((prev) => new Set(prev).add(purchasedPhotoId!));
+          const dlRes = await fetch(`/api/photos/${purchasedPhotoId}/download?userId=${userId}`);
+          const dlData = await dlRes.json();
+          if (dlData.downloadUrl) {
+            const a = document.createElement("a");
+            a.href = dlData.downloadUrl;
+            a.download = `photo-${purchasedPhotoId}.jpg`;
+            a.click();
+          }
+          return;
+        }
+        await new Promise((r) => setTimeout(r, 1500));
+      }
+    }
+
+    verifyAndDownload();
+  }, [purchasedPhotoId, userId]);
 
   const loadMore = useCallback(async () => {
     if (!cursor || loading) return;
@@ -92,16 +145,32 @@ export default function PhotoGrid({
         body: JSON.stringify({ userId }),
       });
       const data = await res.json();
-      if (data.purchased || data.error === "Already purchased") {
+
+      // Already purchased — download directly
+      if (data.alreadyPurchased) {
         setPurchasedIds((prev) => new Set(prev).add(photo.id));
-        const dlRes = await fetch(
-          `/api/photos/${photo.id}/download?userId=${userId}`
-        );
+        const dlRes = await fetch(`/api/photos/${photo.id}/download?userId=${userId}`);
         const dlData = await dlRes.json();
         if (dlData.downloadUrl) window.open(dlData.downloadUrl, "_blank");
-      } else {
-        alert(data.error || "Something went wrong");
+        return;
       }
+
+      // Stripe checkout — redirect to Stripe
+      if (data.checkoutUrl) {
+        window.location.href = data.checkoutUrl;
+        return;
+      }
+
+      // Mock purchase (dev mode) — download directly
+      if (data.purchased) {
+        setPurchasedIds((prev) => new Set(prev).add(photo.id));
+        const dlRes = await fetch(`/api/photos/${photo.id}/download?userId=${userId}`);
+        const dlData = await dlRes.json();
+        if (dlData.downloadUrl) window.open(dlData.downloadUrl, "_blank");
+        return;
+      }
+
+      alert(data.error || "Something went wrong");
     } catch {
       alert("Failed to purchase");
     } finally {
@@ -117,15 +186,20 @@ export default function PhotoGrid({
           <button
             key={photo.id}
             onClick={() => setSelectedPhoto(photo)}
-            className="aspect-[4/3] bg-white/5 rounded-lg overflow-hidden hover:ring-2 hover:ring-ocean-500 transition-all focus:outline-none focus:ring-2 focus:ring-ocean-500"
+            className="relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden hover:ring-2 hover:ring-ocean-500 transition-all focus:outline-none focus:ring-2 focus:ring-ocean-500"
           >
             <img
               src={photo.thumbnailUrl}
-              alt="Surf photo"
+              alt="Photo"
               className="w-full h-full object-cover"
               loading="lazy"
               decoding="async"
             />
+            {purchasedIds.has(photo.id) && (
+              <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">
+                ✓ OWNED
+              </div>
+            )}
           </button>
         ))}
       </div>
@@ -161,8 +235,10 @@ export default function PhotoGrid({
           >
             <div className="relative">
               <img
-                src={selectedPhoto.previewUrl}
-                alt="Surf photo preview"
+                src={purchasedIds.has(selectedPhoto.id) && originalUrls[selectedPhoto.id]
+                  ? originalUrls[selectedPhoto.id]
+                  : selectedPhoto.previewUrl}
+                alt="Photo preview"
                 className="w-full rounded-t-xl"
               />
               <button
@@ -175,28 +251,41 @@ export default function PhotoGrid({
             </div>
             <div className="p-4 flex items-center justify-between">
               <div>
-                <p className="text-lg font-semibold text-white">
-                  ${(selectedPhoto.priceInCents / 100).toFixed(2)}
-                </p>
-                <p className="text-sm text-white/40">
-                  {selectedPhoto.width} × {selectedPhoto.height} · High-res download
-                </p>
+                {purchasedIds.has(selectedPhoto.id) ? (
+                  <>
+                    <p className="text-sm font-medium text-green-400">✓ Purchased</p>
+                    <p className="text-sm text-white/40">
+                      {selectedPhoto.width} × {selectedPhoto.height} · Original quality
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-lg font-semibold text-white">
+                      ${(selectedPhoto.priceInCents / 100).toFixed(2)}
+                    </p>
+                    <p className="text-sm text-white/40">
+                      {selectedPhoto.width} × {selectedPhoto.height} · High-res download
+                    </p>
+                  </>
+                )}
               </div>
-              <button
-                onClick={() => handlePurchase(selectedPhoto)}
-                disabled={purchasing}
-                className={`px-6 py-2.5 rounded-lg transition-colors disabled:opacity-50 ${
-                  purchasedIds.has(selectedPhoto.id)
-                    ? "bg-green-600 text-white"
-                    : "bg-ocean-600 text-white hover:bg-ocean-700"
-                }`}
-              >
-                {purchasing
-                  ? "Processing..."
-                  : purchasedIds.has(selectedPhoto.id)
-                  ? "Download Again"
-                  : "Buy & Download"}
-              </button>
+              {purchasedIds.has(selectedPhoto.id) ? (
+                <button
+                  onClick={() => handlePurchase(selectedPhoto)}
+                  disabled={purchasing}
+                  className="px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50"
+                >
+                  {purchasing ? "..." : "⬇ Download HD"}
+                </button>
+              ) : (
+                <button
+                  onClick={() => handlePurchase(selectedPhoto)}
+                  disabled={purchasing}
+                  className="px-6 py-2.5 rounded-lg bg-ocean-600 text-white hover:bg-ocean-500 transition-colors disabled:opacity-50"
+                >
+                  {purchasing ? "Processing..." : "Buy & Download"}
+                </button>
+              )}
             </div>
           </div>
         </div>

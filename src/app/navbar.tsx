@@ -34,16 +34,11 @@ export default function NavBar() {
           <span>CatchMyAction</span>
         </Link>
         <div className="flex items-center gap-3 text-sm">
-          {/* Primary CTA — always visible */}
           <Link
             href="/sessions"
-            className={`px-4 py-1.5 rounded-lg transition-colors ${
-              pathname === "/sessions"
-                ? "bg-ocean-500 text-white"
-                : "text-white/60 hover:text-white hover:bg-white/5"
-            }`}
+            className="text-white/60 hover:text-white transition-colors"
           >
-            Find Photos
+            Explore
           </Link>
 
           {status === "loading" ? (
@@ -88,6 +83,7 @@ export default function NavBar() {
                       </>
                     )}
                     <MenuItem href="/sessions" icon="🔍" label="Find Photos" onClick={() => setMenuOpen(false)} />
+                    <MenuItem href="/my-photos" icon="🖼️" label="My Actions" onClick={() => setMenuOpen(false)} />
                     <MenuItem href="/settings" icon="⚙️" label="Settings" onClick={() => setMenuOpen(false)} />
                     <div className="border-t border-white/5 my-1" />
                     <button
