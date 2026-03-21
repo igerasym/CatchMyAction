@@ -9,10 +9,10 @@ export async function GET(req: NextRequest) {
 
   const user = await prisma.user.findUnique({
     where: { id },
-    select: { id: true, name: true, email: true, role: true, avatarUrl: true, bio: true, website: true, instagram: true, youtube: true, tiktok: true, createdAt: true },
   });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  return NextResponse.json(user);
+  const { passwordHash, ...safeUser } = user as any;
+  return NextResponse.json(safeUser);
 }
 
 /** PATCH /api/user — update profile */
@@ -22,7 +22,7 @@ export async function PATCH(req: NextRequest) {
 
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  const user = await prisma.user.findUnique({ where: { id } });
+  const user = await prisma.user.findUnique({ where: { id } }) as any;
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
   const data: Record<string, any> = {};
