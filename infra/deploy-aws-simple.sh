@@ -8,7 +8,7 @@ set -e
 
 REGION=$(aws configure get region)
 APP_NAME="catchmyaction"
-DOMAIN="catchmyaction.live"
+DOMAIN="catchmyactions.com"
 KEY_NAME="${APP_NAME}-key"
 SG_NAME="${APP_NAME}-sg"
 INSTANCE_TYPE="t4g.micro"   # 1GB RAM, ARM64, ~$6/mo
