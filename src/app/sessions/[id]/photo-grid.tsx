@@ -263,7 +263,6 @@ export default function PhotoGrid({
   const cartCount = Array.from(cartIds).filter((id) => !purchasedIds.has(id)).length;
 
   return (
-  return (
     <>
       {/* Toolbar: Find Me button */}
       {photos.length > 0 && (
