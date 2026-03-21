@@ -3,7 +3,7 @@ import { createHash } from "crypto";
 import { v4 as uuid } from "uuid";
 import { prisma } from "@/lib/db";
 import { putObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
-import { createPreview, createThumbnail, getImageMetadata } from "@/lib/image-processing";
+import { createPreview, createThumbnail, getImageMetadata, extractExif } from "@/lib/image-processing";
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB — pro cameras shoot big
@@ -91,7 +91,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Duplicate photo — this image was already uploaded to this session." }, { status: 409 });
   }
 
-  // All checks passed — process and store
+  // All checks passed — extract EXIF, process and store
+  const exif = await extractExif(buffer);
   const photoId = uuid();
   const originalKey = `sessions/${sessionId}/originals/${photoId}.jpg`;
   const previewKey = `sessions/${sessionId}/previews/${photoId}.jpg`;
@@ -119,6 +120,15 @@ export async function POST(req: NextRequest) {
       height: metadata.height,
       fileSize: metadata.size,
       fileHash,
+      takenAt: exif.takenAt,
+      cameraMake: exif.cameraMake,
+      cameraModel: exif.cameraModel,
+      focalLength: exif.focalLength,
+      iso: exif.iso,
+      shutterSpeed: exif.shutterSpeed,
+      aperture: exif.aperture,
+      gpsLat: exif.gpsLat,
+      gpsLng: exif.gpsLng,
       priceInCents: (session as any).pricePerPhoto,
     } as any,
   });

@@ -66,6 +66,15 @@ model Photo {
   fileSize        Int      // bytes
   fileHash        String?  // SHA-256 for duplicate detection
   mimeType        String   @default("image/jpeg")
+  takenAt         DateTime? // EXIF capture time
+  cameraMake      String?   // e.g. "Canon"
+  cameraModel     String?   // e.g. "EOS R5"
+  focalLength     Float?    // mm
+  iso             Int?
+  shutterSpeed    String?   // e.g. "1/2000"
+  aperture        Float?    // e.g. 2.8
+  gpsLat          Float?
+  gpsLng          Float?
   priceInCents    Int      @default(999) // $9.99
   createdAt       DateTime @default(now())
 

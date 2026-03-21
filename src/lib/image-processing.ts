@@ -103,3 +103,81 @@ export async function getImageMetadata(
     size: inputBuffer.length,
   };
 }
+
+export interface ExifData {
+  takenAt: Date | null;
+  cameraMake: string | null;
+  cameraModel: string | null;
+  focalLength: number | null;
+  iso: number | null;
+  shutterSpeed: string | null;
+  aperture: number | null;
+  gpsLat: number | null;
+  gpsLng: number | null;
+}
+
+/** Extract useful EXIF metadata from image */
+export async function extractExif(inputBuffer: Buffer): Promise<ExifData> {
+  const metadata = await sharp(inputBuffer).metadata();
+  const exif = metadata.exif ? parseExifBuffer(metadata.exif) : null;
+
+  return {
+    takenAt: exif?.DateTimeOriginal ? parseExifDate(exif.DateTimeOriginal) : null,
+    cameraMake: exif?.Make?.trim() || null,
+    cameraModel: exif?.Model?.trim() || null,
+    focalLength: exif?.FocalLength ? parseFloat(exif.FocalLength) : null,
+    iso: exif?.ISOSpeedRatings ? parseInt(exif.ISOSpeedRatings) : null,
+    shutterSpeed: exif?.ExposureTime || null,
+    aperture: exif?.FNumber ? parseFloat(exif.FNumber) : null,
+    gpsLat: exif?.GPSLatitude ? parseDMS(exif.GPSLatitude, exif.GPSLatitudeRef) : null,
+    gpsLng: exif?.GPSLongitude ? parseDMS(exif.GPSLongitude, exif.GPSLongitudeRef) : null,
+  };
+}
+
+function parseExifBuffer(exifBuffer: Buffer): Record<string, any> | null {
+  try {
+    // Simple EXIF parser — extract key tags from IFD0 and EXIF IFD
+    const str = exifBuffer.toString("binary");
+    const tags: Record<string, any> = {};
+
+    // Look for common EXIF strings
+    const patterns: [string, RegExp][] = [
+      ["Make", /Make\x00[^\x00]{0,2}([A-Za-z][A-Za-z0-9 .]+)/],
+      ["Model", /Model\x00[^\x00]{0,2}([A-Za-z][A-Za-z0-9 .\-/]+)/],
+      ["DateTimeOriginal", /(\d{4}:\d{2}:\d{2} \d{2}:\d{2}:\d{2})/],
+    ];
+
+    for (const [key, regex] of patterns) {
+      const match = str.match(regex);
+      if (match) tags[key] = match[1];
+    }
+
+    return Object.keys(tags).length > 0 ? tags : null;
+  } catch {
+    return null;
+  }
+}
+
+function parseExifDate(dateStr: string): Date | null {
+  try {
+    // EXIF format: "2024:03:15 07:23:45"
+    const fixed = dateStr.replace(/^(\d{4}):(\d{2}):(\d{2})/, "$1-$2-$3");
+    const d = new Date(fixed);
+    return isNaN(d.getTime()) ? null : d;
+  } catch {
+    return null;
+  }
+}
+
+function parseDMS(dms: string, ref: string): number | null {
+  try {
+    const parts = dms.split(",").map((s) => parseFloat(s.trim()));
+    if (parts.length < 3) return null;
+    let decimal = parts[0] + parts[1] / 60 + parts[2] / 3600;
+    if (ref === "S" || ref === "W") decimal = -decimal;
+    return decimal;
+  } catch {
+    return null;
+  }
+}
+

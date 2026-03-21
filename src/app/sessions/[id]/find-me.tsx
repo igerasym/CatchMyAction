@@ -178,6 +178,10 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
     stopCamera();
     setOpen(false);
     setStep("idle");
+    // Clear matches if user didn't view results
+    if (step !== "results") {
+      onMatchesFound(new Set());
+    }
   }
 
   function handleRetry() {
@@ -331,6 +335,10 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
                     className="w-full py-3 bg-ocean-500 text-white rounded-xl hover:bg-ocean-400 transition-colors font-medium">
                     View in Gallery
                   </button>
+                  <button onClick={() => { onMatchesFound(new Set()); handleClose(); }}
+                    className="w-full mt-2 text-xs text-white/20 hover:text-white/40 transition-colors py-1">
+                    Dismiss
+                  </button>
                 </div>
               )}
 
@@ -348,8 +356,8 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
               )}
             </div>
 
-            {/* Footer */}
-            {step !== "scanning" && (
+            {/* Footer — hide on results (View in Gallery is the action) */}
+            {step !== "scanning" && step !== "results" && (
               <div className="px-6 pb-4">
                 <button onClick={handleClose} className="w-full text-xs text-white/20 hover:text-white/40 transition-colors py-2">
                   Close
