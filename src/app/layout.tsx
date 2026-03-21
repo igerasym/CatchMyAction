@@ -3,6 +3,8 @@ import "./globals.css";
 import Providers from "./providers";
 import NavBar from "./navbar";
 
+export const dynamic = "force-dynamic";
+
 export const metadata: Metadata = {
   title: "CatchMyAction — Find Yourself in Action",
   description:
