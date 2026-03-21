@@ -263,81 +263,78 @@ export default function PhotoGrid({
   const cartCount = Array.from(cartIds).filter((id) => !purchasedIds.has(id)).length;
 
   return (
+  return (
     <>
-      {/* Find Me + Buy All bar */}
+      {/* Toolbar: Find Me button */}
       {photos.length > 0 && (
-        <div className="flex items-center justify-between mb-4 gap-3">
-          <div>
-            {cartCount > 0 && (
-              <button
-                onClick={handleBulkPurchase}
-                disabled={bulkBuying}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-all text-sm font-medium"
-              >
-                {bulkBuying
-                  ? "Processing..."
-                  : `Buy ${cartCount} Photo${cartCount > 1 ? "s" : ""} — $${(cartTotal / 100).toFixed(2)}`}
-              </button>
-            )}
-          </div>
+        <div className="flex items-center justify-end mb-4">
           <FindMe photos={photos} onMatchesFound={(ids) => {
             setMatchedIds(ids);
-            // Auto-select all unpurchased matches for cart
             const unpurchased = Array.from(ids).filter((id) => !purchasedIds.has(id));
             setCartIds(new Set(unpurchased));
           }} />
         </div>
       )}
 
-      {/* Thumbnail grid with lazy loading */}
+      {/* Photo grid */}
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-        {photos.map((photo) => (
-          <div
-            key={photo.id}
-            onClick={() => setSelectedPhoto(photo)}
-            className={`relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden transition-all cursor-pointer ${
-              purchasedIds.has(photo.id)
-                ? "ring-2 ring-green-500 shadow-lg shadow-green-500/20"
-                : cartIds.has(photo.id)
-                ? "ring-2 ring-green-500/60"
-                : matchedIds.has(photo.id)
-                ? "ring-2 ring-purple-500 shadow-lg shadow-purple-500/20"
+        {photos.map((photo) => {
+          const isOwned = purchasedIds.has(photo.id);
+          const isMatched = matchedIds.has(photo.id);
+          const isInCart = cartIds.has(photo.id);
+          return (
+            <div key={photo.id} onClick={() => setSelectedPhoto(photo)}
+              className={`relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden transition-all cursor-pointer ${
+                isOwned ? "ring-2 ring-green-500 shadow-lg shadow-green-500/20"
+                : isInCart ? "ring-2 ring-green-500/60"
+                : isMatched ? "ring-2 ring-purple-500 shadow-lg shadow-purple-500/20"
                 : "hover:ring-2 hover:ring-ocean-500"
-            }`}
-          >
-            <img
-              src={photo.thumbnailUrl}
-              alt="Photo"
-              className="w-full h-full object-cover"
-              loading="lazy"
-              decoding="async"
-            />
-            {/* Cart checkbox — all unpurchased photos */}
-            {!purchasedIds.has(photo.id) && (
-              <button
-                onClick={(e) => { e.stopPropagation(); toggleCart(photo.id); }}
-                className={`absolute top-1.5 left-1.5 w-5 h-5 rounded border flex items-center justify-center text-xs transition-all z-10 ${
-                  cartIds.has(photo.id)
-                    ? "bg-green-500 border-green-500 text-white"
+              }`}>
+              <img src={isOwned && originalUrls[photo.id] ? originalUrls[photo.id] : photo.thumbnailUrl}
+                alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" />
+
+              {/* Checkbox for unpurchased */}
+              {!isOwned && (
+                <button onClick={(e) => { e.stopPropagation(); toggleCart(photo.id); }}
+                  className={`absolute top-1.5 left-1.5 w-5 h-5 rounded border flex items-center justify-center text-xs transition-all z-10 ${
+                    isInCart ? "bg-green-500 border-green-500 text-white"
                     : "border-white/40 bg-black/50 text-transparent hover:text-white/50 hover:border-white/60"
-                }`}
-              >
-                ✓
-              </button>
-            )}
-            {purchasedIds.has(photo.id) && (
-              <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">
-                ✓ OWNED
-              </div>
-            )}
-            {matchedIds.has(photo.id) && !purchasedIds.has(photo.id) && (
-              <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-purple-500/90 text-white text-[10px] font-bold rounded">
-                🔍 MATCH
-              </div>
-            )}
-          </div>
-        ))}
+                  }`}>✓</button>
+              )}
+
+              {/* Badges */}
+              {isOwned && (
+                <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">✓ OWNED</div>
+              )}
+              {isMatched && !isOwned && (
+                <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-purple-500/90 text-white text-[10px] font-bold rounded">IT&apos;S YOU</div>
+              )}
+            </div>
+          );
+        })}
       </div>
+
+      {/* Sticky purchase bar */}
+      {cartCount > 0 && (
+        <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#111]/95 backdrop-blur-lg border-t border-white/10 px-4 py-3">
+          <div className="max-w-5xl mx-auto flex items-center justify-between">
+            <div>
+              <p className="text-sm text-white font-medium">{cartCount} photo{cartCount > 1 ? "s" : ""} selected</p>
+              <p className="text-xs text-white/40">${(cartTotal / 100).toFixed(2)} total</p>
+            </div>
+            <div className="flex gap-2">
+              <button onClick={() => setCartIds(new Set())}
+                className="px-4 py-2 text-xs text-white/40 hover:text-white/60 transition-colors">
+                Clear
+              </button>
+              <button onClick={handleBulkPurchase} disabled={bulkBuying}
+                className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-all text-sm font-medium">
+                {bulkBuying ? "Processing..." : `Buy ${cartCount} Photo${cartCount > 1 ? "s" : ""}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Infinite scroll sentinel */}
       <div ref={sentinelRef} className="py-8 text-center">
@@ -357,30 +354,16 @@ export default function PhotoGrid({
 
       {/* Photo detail modal */}
       {selectedPhoto && (
-        <div
-          className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedPhoto(null)}
-          role="dialog"
-          aria-modal="true"
-          aria-label="Photo detail"
-        >
-          <div
-            className="bg-[#1a1a2e] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto border border-white/10"
-            onClick={(e) => e.stopPropagation()}
-          >
+        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+          onClick={() => setSelectedPhoto(null)} role="dialog" aria-modal="true">
+          <div className="bg-[#1a1a2e] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto border border-white/10"
+            onClick={(e) => e.stopPropagation()}>
             <div className="relative">
-              <img
-                src={purchasedIds.has(selectedPhoto.id) && originalUrls[selectedPhoto.id]
-                  ? originalUrls[selectedPhoto.id]
-                  : selectedPhoto.previewUrl}
-                alt="Photo preview"
-                className="w-full rounded-t-xl"
-              />
-              <button
-                onClick={() => setSelectedPhoto(null)}
-                className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70"
-                aria-label="Close"
-              >
+              <img src={purchasedIds.has(selectedPhoto.id) && originalUrls[selectedPhoto.id]
+                  ? originalUrls[selectedPhoto.id] : selectedPhoto.previewUrl}
+                alt="" className="w-full rounded-t-xl" />
+              <button onClick={() => setSelectedPhoto(null)}
+                className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70">
                 ✕
               </button>
             </div>
@@ -389,35 +372,23 @@ export default function PhotoGrid({
                 {purchasedIds.has(selectedPhoto.id) ? (
                   <>
                     <p className="text-sm font-medium text-green-400">✓ Purchased</p>
-                    <p className="text-sm text-white/40">
-                      {selectedPhoto.width} × {selectedPhoto.height} · Original quality
-                    </p>
+                    <p className="text-sm text-white/40">{selectedPhoto.width} × {selectedPhoto.height} · Original quality</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-semibold text-white">
-                      ${(selectedPhoto.priceInCents / 100).toFixed(2)}
-                    </p>
-                    <p className="text-sm text-white/40">
-                      {selectedPhoto.width} × {selectedPhoto.height} · High-res download
-                    </p>
+                    <p className="text-lg font-semibold text-white">${(selectedPhoto.priceInCents / 100).toFixed(2)}</p>
+                    <p className="text-sm text-white/40">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
                   </>
                 )}
               </div>
               {purchasedIds.has(selectedPhoto.id) ? (
-                <button
-                  onClick={() => handlePurchase(selectedPhoto)}
-                  disabled={purchasing}
-                  className="px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50"
-                >
-                  {purchasing ? "..." : "⬇ Download HD"}
+                <button onClick={() => handlePurchase(selectedPhoto)} disabled={purchasing}
+                  className="px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50">
+                  {purchasing ? "..." : "Download HD"}
                 </button>
               ) : (
-                <button
-                  onClick={() => handlePurchase(selectedPhoto)}
-                  disabled={purchasing}
-                  className="px-6 py-2.5 rounded-lg bg-ocean-600 text-white hover:bg-ocean-500 transition-colors disabled:opacity-50"
-                >
+                <button onClick={() => handlePurchase(selectedPhoto)} disabled={purchasing}
+                  className="px-6 py-2.5 rounded-lg bg-ocean-600 text-white hover:bg-ocean-500 transition-colors disabled:opacity-50">
                   {purchasing ? "Processing..." : "Buy & Download"}
                 </button>
               )}
