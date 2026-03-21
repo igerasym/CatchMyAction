@@ -5,31 +5,18 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-interface PurchasedPhoto {
+interface MyPhoto {
   id: string;
   thumbnailUrl: string;
-  originalUrl: string;
-  width: number;
-  height: number;
-  amountInCents: number;
-  downloadCount: number;
-  purchasedAt: string;
-  sessionTitle: string;
-  sessionId: string;
-  photographerName: string;
-}
-
-interface ClaimedPhoto {
-  id: string;
-  thumbnailUrl: string;
-  previewUrl: string;
+  originalUrl?: string;
   width: number;
   height: number;
   priceInCents: number;
-  claimedAt: string;
   sessionTitle: string;
   sessionId: string;
   photographerName: string;
+  purchased: boolean;
+  claimed: boolean;
 }
 
 export default function MyPhotosPage() {
@@ -37,11 +24,9 @@ export default function MyPhotosPage() {
   const router = useRouter();
   const user = session?.user as any;
 
-  const [tab, setTab] = useState<"claimed" | "purchased">("claimed");
-  const [purchases, setPurchases] = useState<PurchasedPhoto[]>([]);
-  const [claims, setClaims] = useState<ClaimedPhoto[]>([]);
+  const [photos, setPhotos] = useState<MyPhoto[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<PurchasedPhoto | ClaimedPhoto | null>(null);
+  const [selected, setSelected] = useState<MyPhoto | null>(null);
   const [downloading, setDownloading] = useState<string | null>(null);
   const [buying, setBuying] = useState<string | null>(null);
 
@@ -55,18 +40,42 @@ export default function MyPhotosPage() {
       fetch("/api/user/purchases").then((r) => r.json()),
       fetch("/api/user/claims").then((r) => r.json()),
     ]).then(([pData, cData]) => {
-      setPurchases(pData.purchases || []);
-      setClaims(cData.claims || []);
+      const purchaseMap = new Map<string, any>();
+      (pData.purchases || []).forEach((p: any) => purchaseMap.set(p.id, p));
+
+      const allPhotos = new Map<string, MyPhoto>();
+
+      // Add purchased photos
+      (pData.purchases || []).forEach((p: any) => {
+        allPhotos.set(p.id, {
+          id: p.id, thumbnailUrl: p.thumbnailUrl, originalUrl: p.originalUrl,
+          width: p.width, height: p.height, priceInCents: p.amountInCents,
+          sessionTitle: p.sessionTitle, sessionId: p.sessionId,
+          photographerName: p.photographerName, purchased: true, claimed: false,
+        });
+      });
+
+      // Add/merge claimed photos
+      (cData.claims || []).forEach((c: any) => {
+        const existing = allPhotos.get(c.id);
+        if (existing) {
+          existing.claimed = true;
+        } else {
+          allPhotos.set(c.id, {
+            id: c.id, thumbnailUrl: c.thumbnailUrl,
+            width: c.width, height: c.height, priceInCents: c.priceInCents,
+            sessionTitle: c.sessionTitle, sessionId: c.sessionId,
+            photographerName: c.photographerName, purchased: false, claimed: true,
+          });
+        }
+      });
+
+      setPhotos(Array.from(allPhotos.values()));
       setLoading(false);
     }).catch(() => setLoading(false));
   }, [user?.id]);
 
-  const purchasedIds = new Set(purchases.map((p) => p.id));
-  const purchasedOriginals: Record<string, string> = {};
-  purchases.forEach((p) => { purchasedOriginals[p.id] = p.originalUrl; });
-
   async function handleDownload(photoId: string) {
-    if (!user?.id) return;
     setDownloading(photoId);
     try {
       const res = await fetch(`/api/photos/${photoId}/download?userId=${user.id}`);
@@ -76,14 +85,9 @@ export default function MyPhotosPage() {
         a.href = data.downloadUrl;
         a.download = `photo-${photoId}.jpg`;
         a.click();
-      } else {
-        alert(data.error || "Download failed");
       }
-    } catch {
-      alert("Download failed");
-    } finally {
-      setDownloading(null);
-    }
+    } catch { /* */ }
+    finally { setDownloading(null); }
   }
 
   async function handleBuy(photoId: string) {
@@ -96,67 +100,35 @@ export default function MyPhotosPage() {
         body: JSON.stringify({ userId: user.id }),
       });
       const data = await res.json();
-      if (data.alreadyPurchased) {
-        handleDownload(photoId);
-      } else if (data.checkoutUrl) {
-        window.location.href = data.checkoutUrl;
-      } else if (data.purchased) {
-        handleDownload(photoId);
-      }
-    } catch {
-      alert("Purchase failed");
-    } finally {
-      setBuying(null);
-    }
+      if (data.checkoutUrl) window.location.href = data.checkoutUrl;
+      else if (data.purchased || data.alreadyPurchased) handleDownload(photoId);
+    } catch { alert("Purchase failed"); }
+    finally { setBuying(null); }
   }
 
   async function handleUnclaim(photoId: string) {
-    if (!confirm("Remove this photo from My Actions?")) return;
     await fetch("/api/photos/unclaim", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ photoId }),
     });
-    setClaims((prev) => prev.filter((c) => c.id !== photoId));
+    setPhotos((prev) => prev.filter((p) => !(p.id === photoId && !p.purchased)));
   }
 
   if (status === "loading" || loading) {
     return <p className="text-center py-12 text-white/40">Loading...</p>;
   }
 
-  const currentItems = tab === "purchased" ? purchases : claims;
-
   return (
     <div className="max-w-5xl mx-auto">
       <h1 className="text-2xl font-bold text-white mb-1">My Actions</h1>
-      <p className="text-sm text-white/40 mb-4">Photos where you were found and photos you purchased</p>
+      <p className="text-sm text-white/40 mb-6">Photos you purchased and where you were found</p>
 
-      {/* Tabs */}
-      <div className="flex gap-1 mb-6">
-        <button
-          onClick={() => setTab("claimed")}
-          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-            tab === "claimed" ? "bg-purple-500 text-white" : "text-white/40 hover:text-white/60 hover:bg-white/5"
-          }`}
-        >
-          🔍 Found Me ({claims.length})
-        </button>
-        <button
-          onClick={() => setTab("purchased")}
-          className={`px-4 py-2 text-sm rounded-lg transition-colors ${
-            tab === "purchased" ? "bg-ocean-500 text-white" : "text-white/40 hover:text-white/60 hover:bg-white/5"
-          }`}
-        >
-          💰 Purchased ({purchases.length})
-        </button>
-      </div>
-
-      {currentItems.length === 0 ? (
+      {photos.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-5xl mb-4">{tab === "claimed" ? "🔍" : "🖼️"}</div>
-          <p className="text-white/40 mb-4">
-            {tab === "claimed" ? "No photos found yet — use Find Me on a session" : "No purchased photos yet"}
-          </p>
+          <div className="text-5xl mb-4">📷</div>
+          <p className="text-white/40 mb-4">No photos yet</p>
+          <p className="text-xs text-white/20 mb-4">Use Find Me on a session or buy photos to see them here</p>
           <Link href="/sessions"
             className="inline-block px-6 py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm">
             Browse Sessions
@@ -164,65 +136,47 @@ export default function MyPhotosPage() {
         </div>
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-          {tab === "claimed" ? (
-            claims.map((photo) => (
-              <div key={photo.id} className={`bg-white/5 rounded-xl overflow-hidden group ${
-                purchasedIds.has(photo.id)
-                  ? "border-2 border-green-500/60"
-                  : "border-2 border-purple-500/40"
-              }`}>
-                <button onClick={() => setSelected(photo)} className="block w-full text-left">
-                  <div className="aspect-[4/3] overflow-hidden relative">
-                    <img src={purchasedIds.has(photo.id) ? (purchasedOriginals[photo.id] || photo.thumbnailUrl) : photo.thumbnailUrl} alt=""
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                    {purchasedIds.has(photo.id) && (
-                      <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">OWNED</div>
-                    )}
-                  </div>
-                </button>
-                <div className="p-3">
-                  <p className="text-sm text-white font-medium truncate">{photo.sessionTitle}</p>
-                  <p className="text-xs text-white/30 mb-3">by {photo.photographerName}</p>
-                  <p className="text-xs text-white/30 mb-3">by {photo.photographerName}</p>
+          {photos.map((photo) => (
+            <div key={photo.id} className={`bg-white/5 rounded-xl overflow-hidden group ${
+              photo.purchased ? "border-2 border-green-500/50" : "border-2 border-purple-500/30"
+            }`}>
+              <div onClick={() => setSelected(photo)} className="cursor-pointer">
+                <div className="aspect-[4/3] overflow-hidden relative">
+                  <img src={photo.purchased && photo.originalUrl ? photo.originalUrl : photo.thumbnailUrl}
+                    alt="" className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
+                  {photo.purchased && (
+                    <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">OWNED</div>
+                  )}
+                  {!photo.purchased && photo.claimed && (
+                    <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-purple-500/90 text-white text-[10px] font-bold rounded">IT'S YOU</div>
+                  )}
+                </div>
+              </div>
+              <div className="p-3">
+                <p className="text-sm text-white font-medium truncate">{photo.sessionTitle}</p>
+                <p className="text-xs text-white/30 mb-2">by {photo.photographerName}</p>
+                {photo.purchased ? (
+                  <button onClick={() => handleDownload(photo.id)} disabled={downloading === photo.id}
+                    className="w-full px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-500 disabled:opacity-40 transition-colors">
+                    {downloading === photo.id ? "..." : "Download HD"}
+                  </button>
+                ) : (
                   <div className="flex gap-2">
-                    {purchasedIds.has(photo.id) ? (
-                      <span className="flex-1 px-3 py-1.5 bg-green-500/10 text-green-400 text-xs rounded-lg text-center border border-green-500/20">
-                        ✓ Owned
-                      </span>
-                    ) : (
-                      <button onClick={() => handleBuy(photo.id)} disabled={buying === photo.id}
-                        className="flex-1 px-3 py-1.5 bg-ocean-500 text-white text-xs rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors">
-                        {buying === photo.id ? "..." : `Buy ${(photo.priceInCents / 100).toFixed(2)}`}
+                    <button onClick={() => handleBuy(photo.id)} disabled={buying === photo.id}
+                      className="flex-1 px-3 py-1.5 bg-ocean-500 text-white text-xs rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors">
+                      {buying === photo.id ? "..." : `Buy $${(photo.priceInCents / 100).toFixed(2)}`}
+                    </button>
+                    {photo.claimed && (
+                      <button onClick={() => handleUnclaim(photo.id)}
+                        className="px-2 py-1.5 border border-red-500/20 text-red-400/50 text-xs rounded-lg hover:bg-red-500/10 transition-colors" title="Remove">
+                        ✕
                       </button>
                     )}
-                    <button onClick={() => handleUnclaim(photo.id)}
-                      className="px-2 py-1.5 border border-red-500/20 text-red-400/60 text-xs rounded-lg hover:bg-red-500/10 transition-colors" title="Remove">
-                      ✕
-                    </button>
                   </div>
-                </div>
+                )}
               </div>
-            ))
-          ) : (
-            purchases.map((photo) => (
-              <div key={photo.id} className="bg-white/5 border-2 border-green-500/60 rounded-xl overflow-hidden group">
-                <button onClick={() => setSelected(photo)} className="block w-full text-left">
-                  <div className="aspect-[4/3] overflow-hidden">
-                    <img src={photo.thumbnailUrl} alt=""
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
-                  </div>
-                </button>
-                <div className="p-3">
-                  <p className="text-sm text-white font-medium truncate">{photo.sessionTitle}</p>
-                  <p className="text-xs text-white/30 mb-3">by {photo.photographerName}</p>
-                  <button onClick={() => handleDownload(photo.id)} disabled={downloading === photo.id}
-                    className="w-full px-3 py-1.5 bg-ocean-500 text-white text-xs rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors">
-                    {downloading === photo.id ? "..." : "⬇ Download HD"}
-                  </button>
-                </div>
-              </div>
-            ))
-          )}
+            </div>
+          ))}
         </div>
       )}
 
@@ -232,15 +186,10 @@ export default function MyPhotosPage() {
           onClick={() => setSelected(null)} role="dialog" aria-modal="true">
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
             <button onClick={() => setSelected(null)}
-              className="absolute -top-10 right-0 text-white/50 hover:text-white text-sm transition-colors" aria-label="Close">
-              ✕ Close
-            </button>
+              className="absolute -top-10 right-0 text-white/50 hover:text-white text-sm transition-colors">✕ Close</button>
             <div className="flex-1 min-h-0 flex items-center justify-center">
-              <img
-                src={"originalUrl" in selected ? selected.originalUrl : selected.previewUrl}
-                alt="Photo"
-                className="max-w-full max-h-[75vh] object-contain rounded-lg"
-              />
+              <img src={selected.purchased && selected.originalUrl ? selected.originalUrl : selected.thumbnailUrl}
+                alt="" className="max-w-full max-h-[75vh] object-contain rounded-lg" />
             </div>
             <div className="mt-4 flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-5 py-3">
               <div>
@@ -252,10 +201,10 @@ export default function MyPhotosPage() {
                   className="px-4 py-2 text-xs border border-white/10 text-white/50 rounded-lg hover:bg-white/5 transition-colors">
                   View Session
                 </Link>
-                {purchasedIds.has(selected.id) ? (
+                {selected.purchased ? (
                   <button onClick={() => handleDownload(selected.id)} disabled={downloading === selected.id}
-                    className="px-4 py-2 text-xs bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors">
-                    {downloading === selected.id ? "..." : "⬇ Download HD"}
+                    className="px-4 py-2 text-xs bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-40 transition-colors">
+                    {downloading === selected.id ? "..." : "Download HD"}
                   </button>
                 ) : (
                   <button onClick={() => handleBuy(selected.id)} disabled={buying === selected.id}
