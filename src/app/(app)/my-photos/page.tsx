@@ -62,6 +62,8 @@ export default function MyPhotosPage() {
   }, [user?.id]);
 
   const purchasedIds = new Set(purchases.map((p) => p.id));
+  const purchasedOriginals: Record<string, string> = {};
+  purchases.forEach((p) => { purchasedOriginals[p.id] = p.originalUrl; });
 
   async function handleDownload(photoId: string) {
     if (!user?.id) return;
@@ -106,6 +108,16 @@ export default function MyPhotosPage() {
     } finally {
       setBuying(null);
     }
+  }
+
+  async function handleUnclaim(photoId: string) {
+    if (!confirm("Remove this photo from My Actions?")) return;
+    await fetch("/api/photos/unclaim", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ photoId }),
+    });
+    setClaims((prev) => prev.filter((c) => c.id !== photoId));
   }
 
   if (status === "loading" || loading) {
@@ -161,7 +173,7 @@ export default function MyPhotosPage() {
               }`}>
                 <button onClick={() => setSelected(photo)} className="block w-full text-left">
                   <div className="aspect-[4/3] overflow-hidden relative">
-                    <img src={photo.thumbnailUrl} alt=""
+                    <img src={purchasedIds.has(photo.id) ? (purchasedOriginals[photo.id] || photo.thumbnailUrl) : photo.thumbnailUrl} alt=""
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform" loading="lazy" />
                     {purchasedIds.has(photo.id) && (
                       <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">OWNED</div>
@@ -171,17 +183,23 @@ export default function MyPhotosPage() {
                 <div className="p-3">
                   <p className="text-sm text-white font-medium truncate">{photo.sessionTitle}</p>
                   <p className="text-xs text-white/30 mb-3">by {photo.photographerName}</p>
-                  {purchasedIds.has(photo.id) ? (
-                    <button onClick={() => handleDownload(photo.id)} disabled={downloading === photo.id}
-                      className="w-full px-3 py-1.5 bg-green-600 text-white text-xs rounded-lg hover:bg-green-500 disabled:opacity-40 transition-colors">
-                      {downloading === photo.id ? "..." : "⬇ Download HD"}
+                  <p className="text-xs text-white/30 mb-3">by {photo.photographerName}</p>
+                  <div className="flex gap-2">
+                    {purchasedIds.has(photo.id) ? (
+                      <span className="flex-1 px-3 py-1.5 bg-green-500/10 text-green-400 text-xs rounded-lg text-center border border-green-500/20">
+                        ✓ Owned
+                      </span>
+                    ) : (
+                      <button onClick={() => handleBuy(photo.id)} disabled={buying === photo.id}
+                        className="flex-1 px-3 py-1.5 bg-ocean-500 text-white text-xs rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors">
+                        {buying === photo.id ? "..." : `Buy ${(photo.priceInCents / 100).toFixed(2)}`}
+                      </button>
+                    )}
+                    <button onClick={() => handleUnclaim(photo.id)}
+                      className="px-2 py-1.5 border border-red-500/20 text-red-400/60 text-xs rounded-lg hover:bg-red-500/10 transition-colors" title="Remove">
+                      ✕
                     </button>
-                  ) : (
-                    <button onClick={() => handleBuy(photo.id)} disabled={buying === photo.id}
-                      className="w-full px-3 py-1.5 bg-ocean-500 text-white text-xs rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors">
-                      {buying === photo.id ? "Processing..." : `Buy — $${(photo.priceInCents / 100).toFixed(2)}`}
-                    </button>
-                  )}
+                  </div>
                 </div>
               </div>
             ))

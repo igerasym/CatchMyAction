@@ -7,7 +7,7 @@ import { createPreview, createThumbnail, getImageMetadata } from "@/lib/image-pr
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB — pro cameras shoot big
-const MIN_RESOLUTION = 2000; // px on shortest side
+const MIN_RESOLUTION = 1200; // px on shortest side
 const MAX_ASPECT_RATIO = 5; // reject super narrow crops
 const ALLOWED_MAGIC: [string, string][] = [
   ["ffd8ff", "image/jpeg"],       // JPEG

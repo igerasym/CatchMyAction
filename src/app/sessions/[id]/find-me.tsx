@@ -31,6 +31,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
   const [status, setStatus] = useState("");
   const [matches, setMatches] = useState<Match[]>([]);
   const [confirmedIds, setConfirmedIds] = useState<Set<string>>(new Set());
+  const [rejectedIds, setRejectedIds] = useState<Set<string>>(new Set());
   const [error, setError] = useState("");
   const [useCamera, setUseCamera] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -50,8 +51,9 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
         ]);
         setModelsLoaded(true);
         setStatus("");
-      } catch {
-        setError("Failed to load face detection models");
+      } catch (err) {
+        setError("Failed to load face detection models. Check browser console.");
+        console.error("Model load error:", err);
       }
     }
     load();
@@ -141,31 +143,41 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
   );
 
   async function handleFileUpload() {
-    const file = fileRef.current?.files?.[0];
-    if (!file) return;
-    setLoading(true);
-    setError("");
-    setMatches([]);
+      const file = fileRef.current?.files?.[0];
+      console.log("[FindMe] File selected:", file?.name, file?.size);
+      if (!file) return;
+      setLoading(true);
+      setError("");
+      setMatches([]);
 
-    try {
-      const img = await loadImageFromFile(file);
-      const descriptor = await getFaceDescriptor(img);
-      if (!descriptor) {
-        setError("No face detected in your photo. Try a clearer selfie.");
+      try {
+        console.log("[FindMe] Loading image...");
+        const img = await loadImageFromFile(file);
+        console.log("[FindMe] Image loaded:", img.width, "x", img.height);
+        console.log("[FindMe] Models loaded:", modelsLoaded);
+        const descriptor = await getFaceDescriptor(img);
+        console.log("[FindMe] Descriptor:", descriptor ? "FOUND" : "NOT FOUND");
+        if (!descriptor) {
+          setError("No face detected in your photo. Try a clearer selfie.");
+          setLoading(false);
+          return;
+        }
+
+        console.log("[FindMe] Scanning", photos.length, "photos...");
+        const found = await findMatches(descriptor);
+        console.log("[FindMe] Matches:", found.length);
+        setMatches(found);
+        setConfirmedIds(new Set());
+        setRejectedIds(new Set());
+        onMatchesFound(new Set());
+        setStatus(found.length > 0 ? `Found you in ${found.length} photo${found.length > 1 ? "s" : ""}!` : "No matches found in this session.");
+      } catch (err) {
+        console.error("[FindMe] Error:", err);
+        setError("Face detection failed: " + (err instanceof Error ? err.message : "Unknown error"));
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const found = await findMatches(descriptor);
-      setMatches(found);
-      onMatchesFound(new Set(found.map((m) => m.photoId)));
-      setStatus(found.length > 0 ? `Found you in ${found.length} photo${found.length > 1 ? "s" : ""}!` : "No matches found in this session.");
-    } catch (err) {
-      setError("Face detection failed. Try another photo.");
-    } finally {
-      setLoading(false);
     }
-  }
 
   async function handleCameraCapture() {
     if (!videoRef.current) return;
@@ -177,6 +189,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
       const descriptor = await getFaceDescriptor(videoRef.current);
       if (!descriptor) {
         setError("No face detected. Make sure your face is clearly visible.");
+        stopCamera();
         setLoading(false);
         return;
       }
@@ -184,10 +197,13 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
       stopCamera();
       const found = await findMatches(descriptor);
       setMatches(found);
-      onMatchesFound(new Set(found.map((m) => m.photoId)));
+      setConfirmedIds(new Set());
+      setRejectedIds(new Set());
+      onMatchesFound(new Set());
       setStatus(found.length > 0 ? `Found you in ${found.length} photo${found.length > 1 ? "s" : ""}!` : "No matches found in this session.");
-    } catch {
-      setError("Face detection failed. Try again.");
+    } catch (err) {
+      console.error("Camera capture error:", err);
+      setError("Face detection failed: " + (err instanceof Error ? err.message : "Unknown error"));
     } finally {
       setLoading(false);
     }
@@ -205,6 +221,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
     stopCamera();
     setMatches([]);
     setConfirmedIds(new Set());
+    setRejectedIds(new Set());
     setStatus("");
     setError("");
     onMatchesFound(new Set());
@@ -265,11 +282,12 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
                 </div>
 
                 <div className="space-y-2 mb-4 max-h-[50vh] overflow-y-auto">
-                  {matches.map((m) => {
+                  {matches
+                    .filter((m) => !rejectedIds.has(m.photoId))
+                    .map((m) => {
                     const photo = photos.find((p) => p.id === m.photoId);
                     if (!photo) return null;
                     const isConfirmed = confirmedIds.has(m.photoId);
-                    const isRejected = !isConfirmed && confirmedIds.size > 0 && matches.some((x) => confirmedIds.has(x.photoId));
                     return (
                       <div key={m.photoId} className={`flex items-center gap-3 p-2 rounded-xl border transition-all ${
                         isConfirmed
@@ -292,8 +310,11 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
                             That&apos;s me ✓
                           </button>
                           <button
-                            onClick={() => setConfirmedIds((prev) => { const n = new Set(prev); n.delete(m.photoId); return n; })}
-                            className="px-2 py-1.5 rounded-lg text-xs border border-white/10 text-white/30 hover:bg-white/5 transition-colors"
+                            onClick={() => {
+                              setRejectedIds((prev) => { const n = new Set(prev); n.add(m.photoId); return n; });
+                              setConfirmedIds((prev) => { const n = new Set(prev); n.delete(m.photoId); return n; });
+                            }}
+                            className="px-2 py-1.5 rounded-lg text-xs border border-red-500/20 text-red-400/60 hover:bg-red-500/10 transition-colors"
                           >
                             ✕
                           </button>
@@ -306,21 +327,20 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
                 <div className="flex gap-2">
                   <button
                     onClick={async () => {
-                      const ids = confirmedIds.size > 0 ? confirmedIds : new Set(matches.map((m) => m.photoId));
-                      onMatchesFound(ids);
-                      // Save claims to backend if logged in
-                      if (userId && ids.size > 0) {
+                      onMatchesFound(confirmedIds);
+                      if (userId && confirmedIds.size > 0) {
                         fetch("/api/photos/claim", {
                           method: "POST",
                           headers: { "Content-Type": "application/json" },
-                          body: JSON.stringify({ photoIds: Array.from(ids) }),
+                          body: JSON.stringify({ photoIds: Array.from(confirmedIds) }),
                         }).catch(() => {});
                       }
                       handleClose();
                     }}
-                    className="flex-1 py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm"
+                    disabled={confirmedIds.size === 0}
+                    className="flex-1 py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-40 transition-colors text-sm"
                   >
-                    {confirmedIds.size > 0 ? `Show ${confirmedIds.size} Photo${confirmedIds.size > 1 ? "s" : ""} in Gallery` : "Show All in Gallery"}
+                    {confirmedIds.size > 0 ? `Show ${confirmedIds.size} Photo${confirmedIds.size > 1 ? "s" : ""} in Gallery` : "Confirm at least one photo"}
                   </button>
                   <button
                     onClick={handleSearchAgain}
