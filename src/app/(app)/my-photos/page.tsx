@@ -8,6 +8,7 @@ import Link from "next/link";
 interface MyPhoto {
   id: string;
   thumbnailUrl: string;
+  previewUrl?: string;
   originalUrl?: string;
   width: number;
   height: number;
@@ -62,7 +63,7 @@ export default function MyPhotosPage() {
           existing.claimed = true;
         } else {
           allPhotos.set(c.id, {
-            id: c.id, thumbnailUrl: c.thumbnailUrl,
+            id: c.id, thumbnailUrl: c.thumbnailUrl, previewUrl: c.previewUrl,
             width: c.width, height: c.height, priceInCents: c.priceInCents,
             sessionTitle: c.sessionTitle, sessionId: c.sessionId,
             photographerName: c.photographerName, purchased: false, claimed: true,
@@ -188,7 +189,7 @@ export default function MyPhotosPage() {
             <button onClick={() => setSelected(null)}
               className="absolute -top-10 right-0 text-white/50 hover:text-white text-sm transition-colors">✕ Close</button>
             <div className="flex-1 min-h-0 flex items-center justify-center">
-              <img src={selected.purchased && selected.originalUrl ? selected.originalUrl : selected.thumbnailUrl}
+              <img src={selected.purchased && selected.originalUrl ? selected.originalUrl : (selected.previewUrl || selected.thumbnailUrl)}
                 alt="" className="max-w-full max-h-[75vh] object-contain rounded-lg" />
             </div>
             <div className="mt-4 flex items-center justify-between bg-white/5 border border-white/10 rounded-xl px-5 py-3">
