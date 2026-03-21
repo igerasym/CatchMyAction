@@ -72,6 +72,9 @@ export default async function SessionsPage({
     photoCount: s.photoCount,
     photographerName: s.photographer.name,
     coverUrl: s.photos[0] ? getPreviewUrl(s.photos[0].previewKey) : null,
+    sportType: (s as any).sportType || "surf",
+    waveHeight: (s as any).waveHeight ?? null,
+    windSpeed: (s as any).windSpeed ?? null,
   }));
 
   return (

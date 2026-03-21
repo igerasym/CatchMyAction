@@ -14,6 +14,9 @@ interface SessionItem {
   photoCount: number;
   photographerName: string;
   coverUrl: string | null;
+  sportType: string;
+  waveHeight: number | null;
+  windSpeed: number | null;
 }
 
 interface Props {
@@ -120,6 +123,20 @@ export default function SessionList({
               <p className="text-sm text-white/40">
                 📸 {s.photoCount} photos · by {s.photographerName}
               </p>
+              {(s.waveHeight || s.windSpeed) && (
+                <div className="flex gap-2 mt-1.5">
+                  {s.waveHeight != null && (
+                    <span className="text-xs px-2 py-0.5 bg-ocean-500/10 text-ocean-300 rounded">
+                      🌊 {(s.waveHeight * 3.281).toFixed(1)}ft
+                    </span>
+                  )}
+                  {s.windSpeed != null && (
+                    <span className="text-xs px-2 py-0.5 bg-white/5 text-white/50 rounded">
+                      💨 {s.windSpeed.toFixed(0)}km/h
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </Link>
         ))}
