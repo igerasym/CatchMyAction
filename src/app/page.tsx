@@ -30,7 +30,7 @@ export default async function HomePage() {
       prisma.purchase.count(),
     ]);
 
-  const locations = [...new Set(sessions.map((s) => s.location))];
+  const locations = Array.from(new Set(sessions.map((s) => s.location)));
 
   const activeSessions = sessions.map((s) => ({
     id: s.id,
