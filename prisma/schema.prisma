@@ -41,9 +41,17 @@ model Session {
   startTime       String   // "06:30"
   endTime         String   // "09:00"
   description     String?
+  sportType       String   @default("surf") // surf, kite, windsurf, skate, mtb, other
   coverPhotoId    String?
   photoCount      Int      @default(0)
   pricePerPhoto   Int      @default(999) // cents, $9.99
+  // Marine conditions (auto-fetched for water sports)
+  waveHeight      Float?   // meters
+  wavePeriod      Float?   // seconds
+  waveDirection   Float?   // degrees
+  windSpeed       Float?   // km/h
+  windDirection   Float?   // degrees
+  waterTemp       Float?   // celsius
   published       Boolean  @default(false)
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

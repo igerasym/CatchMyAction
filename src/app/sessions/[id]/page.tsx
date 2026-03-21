@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import Link from "next/link";
 import PhotoGrid from "./photo-grid";
 import ComingSoon from "./coming-soon";
+import Conditions from "./conditions";
 
 export const dynamic = "force-dynamic";
 
@@ -78,6 +79,14 @@ export default async function SessionPage({
         {session.description && (
           <p className="text-white/40 mt-2">{session.description}</p>
         )}
+        <Conditions
+          waveHeight={(session as any).waveHeight}
+          wavePeriod={(session as any).wavePeriod}
+          waveDirection={(session as any).waveDirection}
+          windSpeed={(session as any).windSpeed}
+          windDirection={(session as any).windDirection}
+          waterTemp={(session as any).waterTemp}
+        />
       </div>
 
       {session.photoCount === 0 ? (

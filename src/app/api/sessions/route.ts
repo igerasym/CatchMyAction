@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
+import { isWaterSport, fetchMarineConditions } from "@/lib/marine-conditions";
+import { SURF_SPOTS } from "@/lib/surf-spots";
 
 /** GET /api/sessions — list sessions with optional filters */
 export async function GET(req: NextRequest) {
@@ -40,14 +42,33 @@ export async function POST(req: NextRequest) {
   if (user instanceof NextResponse) return user;
 
   const body = await req.json();
-  const { title, location, date, startTime, endTime, description, photographerId, pricePerPhoto } = body;
+  const { title, location, date, startTime, endTime, description, pricePerPhoto, sportType } = body;
 
   if (!title || !location || !date || !startTime || !endTime) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
-  // Use authenticated user's ID, ignore client-sent photographerId
+  const sport = sportType || "surf";
+
   try {
+    // Auto-fetch marine conditions for water sports
+    let conditions = {};
+    if (isWaterSport(sport)) {
+      const spot = SURF_SPOTS.find((s) => s.name === location || s.name.includes(location) || location.includes(s.name));
+      if (spot) {
+        const hour = parseInt(startTime.split(":")[0]) || 8;
+        const marine = await fetchMarineConditions(spot.lat, spot.lng, date, hour);
+        conditions = {
+          waveHeight: marine.waveHeight,
+          wavePeriod: marine.wavePeriod,
+          waveDirection: marine.waveDirection,
+          windSpeed: marine.windSpeed,
+          windDirection: marine.windDirection,
+          waterTemp: marine.waterTemp,
+        };
+      }
+    }
+
     const session = await prisma.session.create({
       data: {
         title,
@@ -56,9 +77,11 @@ export async function POST(req: NextRequest) {
         startTime,
         endTime,
         description,
+        sportType: sport,
         photographerId: user.id,
         ...(pricePerPhoto && { pricePerPhoto }),
-      },
+        ...conditions,
+      } as any,
     });
 
     return NextResponse.json(session, { status: 201 });

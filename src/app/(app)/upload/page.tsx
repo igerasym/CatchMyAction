@@ -37,6 +37,7 @@ export default function UploadPage() {
   const [endTime, setEndTime] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("9.99");
+  const [sportType, setSportType] = useState("surf");
 
   // Auth modal
   const [showAuth, setShowAuth] = useState(false);
@@ -84,7 +85,7 @@ export default function UploadPage() {
     const res = await fetch("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, location, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100) }),
+      body: JSON.stringify({ title, location, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100), sportType }),
     });
     const data = await res.json();
     if (data.id) {
@@ -287,7 +288,21 @@ export default function UploadPage() {
             <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
           </div>
         </div>
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-3 gap-3">
+          <div>
+            <label className="block text-xs text-white/40 mb-1">Sport</label>
+            <select value={sportType} onChange={(e) => setSportType(e.target.value)} className={inputClass}>
+              <option value="surf">🏄 Surf</option>
+              <option value="kite">🪁 Kite</option>
+              <option value="windsurf">🏄‍♂️ Windsurf</option>
+              <option value="skate">🛹 Skate</option>
+              <option value="mtb">🚵 MTB</option>
+              <option value="moto">🏍️ Moto</option>
+              <option value="ski">⛷️ Ski</option>
+              <option value="snowboard">🏂 Snowboard</option>
+              <option value="other">📸 Other</option>
+            </select>
+          </div>
           <div>
             <label className="block text-xs text-white/40 mb-1">Price per Photo ($)</label>
             <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required
