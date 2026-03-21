@@ -164,8 +164,8 @@ EOF
 cat > .env.production << 'ENVEOF'
 DATABASE_URL=postgresql://catchmyaction:CatchMyAction2026!@postgres:5432/catchmyaction?schema=public
 NEXTAUTH_SECRET=PLACEHOLDER_WILL_BE_REPLACED
-NEXTAUTH_URL=https://catchmyaction.live
-NEXT_PUBLIC_APP_URL=https://catchmyaction.live
+NEXTAUTH_URL=https://catchmyactions.com
+NEXT_PUBLIC_APP_URL=https://catchmyactions.com
 STRIPE_SECRET_KEY=PLACEHOLDER
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=PLACEHOLDER
 STRIPE_WEBHOOK_SECRET=
