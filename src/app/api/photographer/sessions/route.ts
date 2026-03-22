@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getPreviewUrl } from "@/lib/s3";
 
 /** GET /api/photographer/sessions?userId=xxx */
 export async function GET(req: NextRequest) {
@@ -17,5 +18,13 @@ export async function GET(req: NextRequest) {
     orderBy: { createdAt: "desc" },
   });
 
-  return NextResponse.json(sessions);
+  const result = sessions.map((s) => ({
+    ...s,
+    photos: s.photos.map((p) => ({
+      ...p,
+      thumbnailUrl: getPreviewUrl(p.thumbnailKey),
+    })),
+  }));
+
+  return NextResponse.json(result);
 }

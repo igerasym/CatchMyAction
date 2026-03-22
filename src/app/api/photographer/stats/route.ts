@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getPreviewUrl } from "@/lib/s3";
 
 /** GET /api/photographer/stats?period=week — photographer dashboard stats */
 export async function GET(req: NextRequest) {
@@ -69,7 +70,7 @@ export async function GET(req: NextRequest) {
       date: s.createdAt.toISOString(),
       sessionTitle: s.photo.session.title,
       buyerName: s.user.name,
-      thumbnailKey: s.photo.thumbnailKey,
+      thumbnailUrl: getPreviewUrl(s.photo.thumbnailKey),
     })),
   });
 }

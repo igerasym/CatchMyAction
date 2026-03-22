@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getPreviewUrl } from "@/lib/s3";
 
 /** GET /api/sessions/:id/photos?cursor=xxx&limit=20 */
 export async function GET(
@@ -28,6 +29,11 @@ export async function GET(
   const hasMore = photos.length > limit;
   const items = hasMore ? photos.slice(0, limit) : photos;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
+  const result = items.map((p) => ({
+    ...p,
+    thumbnailUrl: getPreviewUrl(p.thumbnailKey),
+    previewUrl: getPreviewUrl(p.previewKey),
+  }));
 
-  return NextResponse.json({ photos: items, nextCursor });
+  return NextResponse.json({ photos: result, nextCursor });
 }

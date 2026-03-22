@@ -143,7 +143,7 @@ export default function DashboardPage() {
             {stats.recentSales.map((sale) => (
               <div key={sale.id} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5">
                 <div className="w-10 h-7 rounded overflow-hidden bg-white/5 flex-shrink-0">
-                  <img src={`/api/uploads/previews/${sale.thumbnailKey}`} alt="" className="w-full h-full object-cover" />
+                  <img src={sale.thumbnailUrl} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white truncate">{sale.sessionTitle}</p>
@@ -229,9 +229,7 @@ function SessionRow({
   onDelete: () => void;
   onTogglePublish: () => void;
 }) {
-  const thumbUrl = s.photos[0]
-    ? `/api/uploads/previews/${s.photos[0].thumbnailKey}`
-    : null;
+  const thumbUrl = s.photos[0]?.thumbnailUrl || null;
 
   return (
     <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors">
