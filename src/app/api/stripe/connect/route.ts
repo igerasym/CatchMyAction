@@ -13,6 +13,10 @@ export async function POST() {
   const dbUser = await prisma.user.findUnique({ where: { id: user.id } }) as any;
   if (!dbUser) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
+  if (!dbUser.emailVerified) {
+    return NextResponse.json({ error: "Please verify your email before connecting Stripe.", needsVerification: true }, { status: 403 });
+  }
+
   let accountId = dbUser.stripeAccountId;
 
   // Create Connect account if doesn't exist

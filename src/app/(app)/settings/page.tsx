@@ -243,6 +243,7 @@ function StripeConnect() {
   const [status, setStatus] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     fetch("/api/stripe/connect").then((r) => r.json()).then(setStatus).finally(() => setLoading(false));
@@ -250,10 +251,14 @@ function StripeConnect() {
 
   async function handleConnect() {
     setConnecting(true);
+    setError("");
     const res = await fetch("/api/stripe/connect", { method: "POST" });
     const data = await res.json();
     if (data.url) window.location.href = data.url;
-    else setConnecting(false);
+    else {
+      setError(data.error || "Failed to connect");
+      setConnecting(false);
+    }
   }
 
   if (loading) return <p className="text-xs text-white/30 mt-2">Loading payout status...</p>;
@@ -293,6 +298,9 @@ function StripeConnect() {
         <li>• Stripe handles all payment processing securely</li>
         <li>• Takes about 2 minutes to set up</li>
       </ul>
+      {error && (
+        <div className="bg-red-500/10 text-red-400 text-xs p-2.5 rounded-lg border border-red-500/20 mb-3">{error}</div>
+      )}
       <button onClick={handleConnect} disabled={connecting}
         className="px-5 py-2.5 bg-ocean-500 text-white text-sm rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors font-medium">
         {connecting ? "Redirecting to Stripe..." : "Connect Stripe Account"}
