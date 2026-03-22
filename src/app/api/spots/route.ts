@@ -1,0 +1,40 @@
+import { NextResponse } from "next/server";
+import { prisma } from "@/lib/db";
+import { SURF_SPOTS } from "@/lib/surf-spots";
+
+/** GET /api/spots — all known spots (static + from sessions) */
+export async function GET() {
+  // Get unique locations from sessions
+  const sessions = await prisma.session.findMany({
+    where: { published: true },
+    select: { location: true },
+    distinct: ["location"],
+  });
+
+  // Merge: static spots + DB locations (deduplicated)
+  const staticNames = new Set(SURF_SPOTS.map((s) => s.name.toLowerCase()));
+  const dbLocations = sessions
+    .map((s) => s.location)
+    .filter((loc) => !staticNames.has(loc.toLowerCase()));
+
+  const spots = [
+    ...SURF_SPOTS.map((s) => ({
+      name: s.name,
+      region: s.region,
+      country: s.country,
+      lat: s.lat,
+      lng: s.lng,
+      source: "static" as const,
+    })),
+    ...dbLocations.map((loc) => ({
+      name: loc,
+      region: "",
+      country: "",
+      lat: 0,
+      lng: 0,
+      source: "user" as const,
+    })),
+  ];
+
+  return NextResponse.json({ spots, total: spots.length });
+}
