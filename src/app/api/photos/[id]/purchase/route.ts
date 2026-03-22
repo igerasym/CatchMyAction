@@ -42,7 +42,7 @@ export async function POST(
     try {
       const checkoutSession = await createCheckoutSession({
         photoId: photo.id,
-        photoPreviewUrl: `${baseUrl}/uploads/previews/${photo.previewKey}`,
+        photoPreviewUrl: `${baseUrl}/api/uploads/previews/${photo.previewKey}`,
         sessionTitle: photo.session.title,
         priceInCents: photo.priceInCents,
         userId,

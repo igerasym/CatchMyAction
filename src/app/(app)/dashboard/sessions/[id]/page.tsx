@@ -247,7 +247,7 @@ export default function ManagePhotosPage() {
                   : "border-transparent group-hover:border-white/20"
               }`}>
                 <img
-                  src={`/uploads/previews/${p.thumbnailKey}`}
+                  src={`/api/uploads/previews/${p.thumbnailKey}`}
                   alt=""
                   className="w-full h-full object-cover pointer-events-none"
                   loading="lazy"

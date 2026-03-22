@@ -41,7 +41,7 @@ export default async function HomePage() {
     thumbnails: s.photos.map((p) =>
       process.env.AWS_REGION && process.env.USE_LOCAL_STORAGE !== "true"
         ? `https://${process.env.S3_BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${p.thumbnailKey}`
-        : `/uploads/previews/${p.thumbnailKey}`
+        : `/api/uploads/previews/${p.thumbnailKey}`
     ),
   }));
 

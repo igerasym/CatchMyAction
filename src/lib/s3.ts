@@ -62,7 +62,7 @@ export async function putObject(
 /** Get the public URL for preview files */
 export function getPreviewUrl(key: string): string {
   if (IS_LOCAL) {
-    return `/uploads/${BUCKET_PREVIEWS}/${key}`;
+    return `/api/uploads/${BUCKET_PREVIEWS}/${key}`;
   }
   return `https://${BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 }
@@ -74,7 +74,7 @@ export async function getDownloadUrl(
   expiresIn = 300
 ): Promise<string> {
   if (IS_LOCAL) {
-    return `/uploads/${bucket}/${key}`;
+    return `/api/uploads/${bucket}/${key}`;
   }
 
   const command = new GetObjectCommand({ Bucket: bucket, Key: key });

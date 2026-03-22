@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
 
   const isLocal = !process.env.AWS_REGION || process.env.USE_LOCAL_STORAGE === "true";
   const avatarUrl = isLocal
-    ? `/uploads/previews/${key}`
+    ? `/api/uploads/previews/${key}`
     : `https://${BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
   await prisma.user.update({

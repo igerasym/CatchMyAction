@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
           unit_amount: photo.priceInCents,
           product_data: {
             name: `Photo — ${photo.session.title}`,
-            images: [`${baseUrl}/uploads/previews/${photo.previewKey}`],
+            images: [`${baseUrl}/api/uploads/previews/${photo.previewKey}`],
           },
         },
         quantity: 1,

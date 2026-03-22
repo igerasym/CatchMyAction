@@ -60,7 +60,7 @@ export async function GET(req: Request) {
       id: c.photo.id,
       claimId: c.id,
       thumbnailUrl: isPurchased
-        ? (isLocal ? `/uploads/originals/${c.photo.originalKey}` : getPreviewUrl(c.photo.originalKey))
+        ? (isLocal ? `/api/uploads/originals/${c.photo.originalKey}` : getPreviewUrl(c.photo.originalKey))
         : getPreviewUrl(c.photo.thumbnailKey),
       previewUrl: getPreviewUrl(c.photo.previewKey),
       width: c.photo.width,

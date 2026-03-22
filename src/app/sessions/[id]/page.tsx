@@ -49,7 +49,7 @@ export default async function SessionPage({
   // Determine base URL for previews
   const isLocal = !process.env.AWS_REGION || process.env.USE_LOCAL_STORAGE === "true";
   const previewBaseUrl = isLocal
-    ? "/uploads/previews/"
+    ? "/api/uploads/previews/"
     : `https://${process.env.S3_BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
 
   const photos = firstPage.map((p) => ({

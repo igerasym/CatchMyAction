@@ -56,7 +56,7 @@ export default function SessionList({
         photoCount: s.photoCount,
         photographerName: s.photographer.name,
         coverUrl: s.photos?.[0]?.previewKey
-          ? `/uploads/previews/${s.photos[0].previewKey}`
+          ? `/api/uploads/previews/${s.photos[0].previewKey}`
           : null,
       }))]);
       setCursor(data.pagination.page * data.pagination.limit < data.pagination.total

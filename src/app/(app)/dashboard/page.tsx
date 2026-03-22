@@ -143,7 +143,7 @@ export default function DashboardPage() {
             {stats.recentSales.map((sale) => (
               <div key={sale.id} className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-lg px-4 py-2.5">
                 <div className="w-10 h-7 rounded overflow-hidden bg-white/5 flex-shrink-0">
-                  <img src={`/uploads/previews/${sale.thumbnailKey}`} alt="" className="w-full h-full object-cover" />
+                  <img src={`/api/uploads/previews/${sale.thumbnailKey}`} alt="" className="w-full h-full object-cover" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm text-white truncate">{sale.sessionTitle}</p>
@@ -230,7 +230,7 @@ function SessionRow({
   onTogglePublish: () => void;
 }) {
   const thumbUrl = s.photos[0]
-    ? `/uploads/previews/${s.photos[0].thumbnailKey}`
+    ? `/api/uploads/previews/${s.photos[0].thumbnailKey}`
     : null;
 
   return (
