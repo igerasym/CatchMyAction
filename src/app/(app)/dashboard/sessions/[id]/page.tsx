@@ -8,6 +8,7 @@ import Link from "next/link";
 interface Photo {
   id: string;
   thumbnailKey: string;
+  thumbnailUrl?: string;
   width: number;
   height: number;
   createdAt: string;
