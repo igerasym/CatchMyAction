@@ -142,14 +142,18 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
     const file = fileRef.current?.files?.[0];
     if (!file) return;
     setError("");
+    setStep("scanning");
+    setScanProgress({ current: 0, total: 1 });
     try {
       const img = await loadImageFromFile(file);
+      setScanProgress({ current: 0, total: photos.length });
       const descriptor = await getFaceDescriptor(img);
-      if (!descriptor) { setError("No face detected. Try a clearer photo."); return; }
+      if (!descriptor) { setError("No face detected. Try a clearer photo."); setStep("input"); return; }
       await scanPhotos(descriptor);
     } catch (err) {
       console.error("Find Me error:", err);
       setError("Detection failed. Try another photo.");
+      setStep("input");
     }
   }
 
