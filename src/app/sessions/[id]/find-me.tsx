@@ -87,7 +87,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
     }
   }
 
-  async function getFaceDescriptor(input: HTMLImageElement | HTMLVideoElement) {
+  async function getFaceDescriptor(input: HTMLImageElement | HTMLVideoElement | HTMLCanvasElement) {
     const detection = await faceapi
       .detectSingleFace(input)
       .withFaceLandmarks()
@@ -146,8 +146,10 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
     setScanProgress({ current: 0, total: 1 });
     try {
       const img = await loadImageFromFile(file);
+      // Resize large images for faster face detection on mobile
+      const resized = resizeForDetection(img, 640);
       setScanProgress({ current: 0, total: photos.length });
-      const descriptor = await getFaceDescriptor(img);
+      const descriptor = await getFaceDescriptor(resized);
       if (!descriptor) { setError("No face detected. Try a clearer photo."); setStep("input"); return; }
       await scanPhotos(descriptor);
     } catch (err) {
@@ -405,3 +407,17 @@ function loadImageFromFile(file: File): Promise<HTMLImageElement> {
     reader.readAsDataURL(file);
   });
 }
+
+// Resize image to maxWidth for faster face detection on mobile
+function resizeForDetection(img: HTMLImageElement, maxWidth: number): HTMLCanvasElement | HTMLImageElement {
+  if (img.width <= maxWidth) return img;
+  const scale = maxWidth / img.width;
+  const canvas = document.createElement("canvas");
+  canvas.width = maxWidth;
+  canvas.height = Math.round(img.height * scale);
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return img;
+  ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+  return canvas;
+}
+
