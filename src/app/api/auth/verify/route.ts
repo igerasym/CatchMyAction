@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export async function GET(req: NextRequest) {
   const token = new URL(req.url).searchParams.get("token");
   if (!token) {
-    return NextResponse.redirect(new URL("/login?error=invalid-token", req.url));
+    return NextResponse.redirect(new URL("/?error=invalid-token", req.url));
   }
 
   const user = await (prisma.user as any).findFirst({
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   });
 
   if (!user) {
-    return NextResponse.redirect(new URL("/login?error=invalid-token", req.url));
+    return NextResponse.redirect(new URL("/?error=invalid-token", req.url));
   }
 
   await prisma.user.update({
@@ -21,5 +21,5 @@ export async function GET(req: NextRequest) {
     data: { emailVerified: true, verifyToken: null } as any,
   });
 
-  return NextResponse.redirect(new URL("/login?verified=true", req.url));
+  return NextResponse.redirect(new URL("/?verified=true", req.url));
 }
