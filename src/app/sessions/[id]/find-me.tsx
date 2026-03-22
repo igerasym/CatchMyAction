@@ -258,17 +258,11 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
                     <span className="text-xs text-white/20">or</span>
                     <div className="flex-1 h-px bg-white/10" />
                   </div>
-                  {/* Mobile: native camera via capture attribute */}
-                  <label className="block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 transition-colors text-center cursor-pointer sm:hidden">
+                  <label className="block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 transition-colors text-center cursor-pointer">
                     📷 Take a Selfie
                     <input type="file" accept="image/*" capture="user" className="hidden"
                       onChange={handleFile} disabled={!modelsLoaded} />
                   </label>
-                  {/* Desktop: webcam via getUserMedia */}
-                  <button onClick={startCamera} disabled={!modelsLoaded}
-                    className="hidden sm:block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 disabled:opacity-30 transition-colors">
-                    📷 Use Camera
-                  </button>
                   {!modelsLoaded && (
                     <p className="text-xs text-white/20 text-center">Loading AI models...</p>
                   )}
