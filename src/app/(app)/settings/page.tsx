@@ -89,7 +89,21 @@ export default function SettingsPage() {
           </Field>
           <Field label="Email">
             <input value={email} disabled className={`${inp} opacity-50 cursor-not-allowed`} />
-            <p className="text-[11px] text-white/20 mt-1">Email cannot be changed</p>
+            {user?.emailVerified ? (
+              <p className="text-[11px] text-green-400 mt-1">✓ Email verified</p>
+            ) : (
+              <div className="flex items-center gap-2 mt-1">
+                <p className="text-[11px] text-yellow-400">⚠ Email not verified</p>
+                <button type="button" onClick={async () => {
+                  const res = await fetch("/api/auth/resend-verification", { method: "POST" });
+                  const data = await res.json();
+                  if (data.sent) alert("Verification email sent! Check your inbox.");
+                  else if (data.already) alert("Email already verified. Please refresh.");
+                }} className="text-[11px] text-ocean-400 hover:underline">
+                  Resend verification
+                </button>
+              </div>
+            )}
           </Field>
           <Field label="Bio">
             <textarea value={form.bio} onChange={set("bio")} rows={3} placeholder="Tell us about yourself..."
