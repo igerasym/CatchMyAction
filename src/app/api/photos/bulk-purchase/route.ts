@@ -14,6 +14,12 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "photoIds required" }, { status: 400 });
   }
 
+  // Check email verification
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { emailVerified: true } }) as any;
+  if (dbUser && !dbUser.emailVerified) {
+    return NextResponse.json({ error: "Please verify your email before purchasing.", needsVerification: true }, { status: 403 });
+  }
+
   // Get photos and filter out already purchased
   const photos = await prisma.photo.findMany({
     where: { id: { in: photoIds } },

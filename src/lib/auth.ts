@@ -24,11 +24,6 @@ export const authOptions: NextAuthOptions = {
 
         if (!user || !user.passwordHash) return null;
 
-        // Check email verification
-        if (!(user as any).emailVerified) {
-          throw new Error("Please verify your email before signing in. Check your inbox.");
-        }
-
         const valid = await bcrypt.compare(
           credentials.password,
           user.passwordHash
@@ -52,6 +47,7 @@ export const authOptions: NextAuthOptions = {
         token.id = user.id;
         token.role = (user as any).role;
         token.avatarUrl = (user as any).avatarUrl;
+        token.emailVerified = (user as any).emailVerified || false;
       }
       // On update() call — refresh from DB
       if (trigger === "update" && token.id) {
@@ -64,6 +60,7 @@ export const authOptions: NextAuthOptions = {
           token.email = dbUser.email;
           token.role = dbUser.role;
           token.avatarUrl = dbUser.avatarUrl;
+          token.emailVerified = (dbUser as any).emailVerified;
         }
       }
       return token;
@@ -73,6 +70,7 @@ export const authOptions: NextAuthOptions = {
         (session.user as any).id = token.id;
         (session.user as any).role = token.role;
         (session.user as any).avatarUrl = token.avatarUrl;
+        (session.user as any).emailVerified = token.emailVerified;
         session.user.name = token.name as string;
         session.user.email = token.email as string;
       }

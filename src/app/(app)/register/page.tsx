@@ -35,8 +35,9 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
-    setSuccess(true);
-    setLoading(false);
+    const form2 = new FormData(e.currentTarget);
+    await signIn("credentials", { email: form2.get("email"), password: form2.get("password"), redirect: false });
+    window.location.href = "/";
   }
 
   const inputClass = "w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-ocean-500 focus:border-transparent";
