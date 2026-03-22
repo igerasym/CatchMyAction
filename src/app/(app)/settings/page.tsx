@@ -149,7 +149,7 @@ export default function SettingsPage() {
           </Field>
           <Field label="New Password">
             <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Min 6 characters" minLength={6} className={inp} />
+              placeholder="Min 8 chars, upper + lower + number" minLength={8} className={inp} />
           </Field>
         </div>
 
