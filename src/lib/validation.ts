@@ -11,3 +11,16 @@ export function validatePassword(password: string): string | null {
 export function validateEmail(email: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
+
+/** Check if email domain has MX records (real mail server) */
+export async function validateEmailDomain(email: string): Promise<boolean> {
+  const domain = email.split("@")[1];
+  if (!domain) return false;
+  try {
+    const dns = await import("dns").then((m) => m.promises);
+    const records = await dns.resolveMx(domain);
+    return records.length > 0;
+  } catch {
+    return false;
+  }
+}

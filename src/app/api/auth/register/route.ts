@@ -3,7 +3,7 @@ import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/email";
-import { validatePassword, validateEmail } from "@/lib/validation";
+import { validatePassword, validateEmail, validateEmailDomain } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   const { email, password, name, role } = await req.json();
@@ -14,6 +14,11 @@ export async function POST(req: NextRequest) {
 
   if (!validateEmail(email)) {
     return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+  }
+
+  const validDomain = await validateEmailDomain(email);
+  if (!validDomain) {
+    return NextResponse.json({ error: "Email domain doesn't exist. Please use a real email." }, { status: 400 });
   }
 
   const passwordError = validatePassword(password);
