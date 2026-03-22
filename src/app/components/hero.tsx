@@ -41,7 +41,7 @@ export default function HeroSection() {
           <span className="text-ocean-400">in Action</span>
         </h1>
         <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-xl mx-auto leading-relaxed">
-          Photographers upload sessions → You find yourself → Buy HD photos
+          Photographers capture it. You find it. Make it yours.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link

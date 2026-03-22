@@ -3,12 +3,12 @@ export default function HowItWorks() {
     {
       icon: "📸",
       title: "Photographer Uploads",
-      desc: "Surf photographers upload sessions tagged by spot, date, and time. Photos are auto-watermarked.",
+      desc: "Action photographers upload sessions tagged by spot, date, and time. Photos are auto-watermarked.",
     },
     {
       icon: "🔍",
       title: "Find Your Photos",
-      desc: "Browse by location and date. You know when and where you surfed — find your session in seconds.",
+      desc: "Browse by location and date. You know when and where you were — find your session in seconds.",
     },
     {
       icon: "⬇️",

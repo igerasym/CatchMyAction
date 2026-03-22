@@ -35,7 +35,7 @@ function buildSuggestions(query: string): Suggestion[] {
       results.push({
         type: "country",
         label: country,
-        sub: `${spots.length} surf spots`,
+        sub: `${spots.length} spots`,
         searchValue: country,
         count: spots.length,
       });
@@ -134,7 +134,7 @@ export default function SearchBar({ locations }: { locations: string[] }) {
       >
         <div className="flex-1 relative" ref={wrapperRef}>
           <label htmlFor="spot" className="block text-xs font-medium text-white/40 mb-1">
-            Surf Spot, Region, or Country
+            Spot, Region, or Country
           </label>
           <input
             id="spot"

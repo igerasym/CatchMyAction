@@ -27,7 +27,7 @@ export default function SearchForm({
         <SpotAutocomplete
           value={location}
           onChange={setLocation}
-          label="Surf Spot, Region, or Country"
+          label="Spot, Region, or Country"
           placeholder="Pipeline, Bali, Portugal..."
           required={false}
         />

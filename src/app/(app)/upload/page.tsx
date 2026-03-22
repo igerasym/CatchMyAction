@@ -325,7 +325,7 @@ export default function UploadPage() {
         </button>
       </form>
 
-      {/* Upgrade Info (for logged-in surfers) */}
+      {/* Upgrade Info (for logged-in users) */}
       {showUpgrade && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowUpgrade(false)}>
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-sm p-6 text-center" onClick={(e) => e.stopPropagation()}>

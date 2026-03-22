@@ -75,7 +75,7 @@ export default function SpotMap({
     <section className="py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-2 text-white">
-          Surf Spots Worldwide
+          Action Spots Worldwide
         </h2>
         <p className="text-white/40 text-center mb-6 text-sm">
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 mr-1" />

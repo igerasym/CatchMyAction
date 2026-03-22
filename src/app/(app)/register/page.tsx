@@ -78,7 +78,7 @@ export default function RegisterPage() {
         <div>
           <label htmlFor="role" className="block text-sm font-medium text-white/50 mb-1">I am a...</label>
           <select id="role" name="role" className={inputClass}>
-            <option value="USER">Surfer (browse & buy photos)</option>
+            <option value="USER">Athlete (browse & buy photos)</option>
             <option value="PHOTOGRAPHER">Photographer (upload & sell)</option>
           </select>
         </div>
