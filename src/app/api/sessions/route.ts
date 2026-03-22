@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { isWaterSport, fetchMarineConditions } from "@/lib/marine-conditions";
 import { SURF_SPOTS } from "@/lib/surf-spots";
+import { geocodeLocation } from "@/lib/geocode";
 
 /** GET /api/sessions — list sessions with optional filters */
 export async function GET(req: NextRequest) {
@@ -60,22 +61,22 @@ export async function POST(req: NextRequest) {
   const sport = sportType || "surf";
 
   try {
+    // Geocode location
+    const coords = await geocodeLocation(location);
+
     // Auto-fetch marine conditions for water sports
     let conditions = {};
-    if (isWaterSport(sport)) {
-      const spot = SURF_SPOTS.find((s) => s.name === location || s.name.includes(location) || location.includes(s.name));
-      if (spot) {
-        const hour = parseInt(startTime.split(":")[0]) || 8;
-        const marine = await fetchMarineConditions(spot.lat, spot.lng, date, hour);
-        conditions = {
-          waveHeight: marine.waveHeight,
-          wavePeriod: marine.wavePeriod,
-          waveDirection: marine.waveDirection,
-          windSpeed: marine.windSpeed,
-          windDirection: marine.windDirection,
-          waterTemp: marine.waterTemp,
-        };
-      }
+    if (isWaterSport(sport) && coords) {
+      const hour = parseInt(startTime.split(":")[0]) || 8;
+      const marine = await fetchMarineConditions(coords.lat, coords.lng, date, hour);
+      conditions = {
+        waveHeight: marine.waveHeight,
+        wavePeriod: marine.wavePeriod,
+        waveDirection: marine.waveDirection,
+        windSpeed: marine.windSpeed,
+        windDirection: marine.windDirection,
+        waterTemp: marine.waterTemp,
+      };
     }
 
     const session = await prisma.session.create({
@@ -88,6 +89,7 @@ export async function POST(req: NextRequest) {
         description,
         sportType: sport,
         photographerId: user.id,
+        ...(coords && { locationLat: coords.lat, locationLng: coords.lng }),
         ...(pricePerPhoto && { pricePerPhoto }),
         ...conditions,
       } as any,

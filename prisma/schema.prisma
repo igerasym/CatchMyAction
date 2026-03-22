@@ -39,6 +39,8 @@ model Session {
   id              String   @id @default(cuid())
   title           String
   location        String
+  locationLat     Float?
+  locationLng     Float?
   date            DateTime
   startTime       String   // "06:30"
   endTime         String   // "09:00"
