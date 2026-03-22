@@ -18,6 +18,7 @@ export default function SettingsPage() {
     name: "", bio: "", website: "", instagram: "", youtube: "", tiktok: "", avatarUrl: "",
   });
   const [email, setEmail] = useState("");
+  const [verified, setVerified] = useState(false);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -37,6 +38,7 @@ export default function SettingsPage() {
         tiktok: data.tiktok || "", avatarUrl: data.avatarUrl || "",
       });
       setEmail(data.email || "");
+      setVerified(!!data.emailVerified);
     });
   }, [user?.id]);
 
@@ -89,7 +91,7 @@ export default function SettingsPage() {
           </Field>
           <Field label="Email">
             <input value={email} disabled className={`${inp} opacity-50 cursor-not-allowed`} />
-            {user?.emailVerified ? (
+            {verified ? (
               <p className="text-[11px] text-green-400 mt-1">✓ Email verified</p>
             ) : (
               <div className="flex items-center gap-2 mt-1">
@@ -98,7 +100,7 @@ export default function SettingsPage() {
                   const res = await fetch("/api/auth/resend-verification", { method: "POST" });
                   const data = await res.json();
                   if (data.sent) alert("Verification email sent! Check your inbox.");
-                  else if (data.already) alert("Email already verified. Please refresh.");
+                  else if (data.already) { alert("Email already verified!"); setVerified(true); }
                 }} className="text-[11px] text-ocean-400 hover:underline">
                   Resend verification
                 </button>
