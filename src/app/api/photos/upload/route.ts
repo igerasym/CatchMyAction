@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
 import { v4 as uuid } from "uuid";
 import { prisma } from "@/lib/db";
-import { putObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
+import { putObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS, getPreviewUrl } from "@/lib/s3";
 import { createPreview, createThumbnail, getImageMetadata, extractExif } from "@/lib/image-processing";
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 
@@ -138,7 +138,11 @@ export async function POST(req: NextRequest) {
     data: { photoCount: { increment: 1 } },
   });
 
-  return NextResponse.json(photo, { status: 201 });
+  return NextResponse.json({
+    ...photo,
+    thumbnailUrl: getPreviewUrl(thumbnailKey),
+    previewUrl: getPreviewUrl(previewKey),
+  }, { status: 201 });
   } catch (err: any) {
     console.error("Upload error:", err);
     return NextResponse.json(
