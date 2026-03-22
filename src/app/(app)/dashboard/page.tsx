@@ -17,7 +17,7 @@ interface Session {
   description: string | null;
   published: boolean;
   photoCount: number;
-  photos: { thumbnailKey: string }[];
+  photos: { thumbnailKey: string; thumbnailUrl?: string }[];
   _count: { photos: number };
 }
 
@@ -32,7 +32,7 @@ interface Stats {
     date: string;
     sessionTitle: string;
     buyerName: string;
-    thumbnailKey: string;
+    thumbnailUrl: string;
   }[];
 }
 
