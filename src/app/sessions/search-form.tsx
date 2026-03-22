@@ -39,6 +39,8 @@ export default function SearchForm({
           type="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
+          max={new Date().toISOString().split("T")[0]}
+          min={`${new Date().getFullYear() - 1}-01-01`}
           className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent"
         />
       </div>

@@ -97,7 +97,9 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="block text-xs text-white/40 mb-1">Date</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className={inputClass} />
+              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required
+                max={new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]}
+                min={`${new Date().getFullYear() - 1}-01-01`} className={inputClass} />
             </div>
             <div>
               <label className="block text-xs text-white/40 mb-1">Start</label>

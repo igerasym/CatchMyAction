@@ -48,6 +48,15 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  // Validate date range
+  const dateObj = new Date(date);
+  const now = new Date();
+  const minYear = now.getFullYear() - 1;
+  const maxDate = new Date(now.getTime() + 7 * 86400000);
+  if (isNaN(dateObj.getTime()) || dateObj.getFullYear() < minYear || dateObj > maxDate) {
+    return NextResponse.json({ error: "Date must be within last year to 7 days ahead" }, { status: 400 });
+  }
+
   const sport = sportType || "surf";
 
   try {

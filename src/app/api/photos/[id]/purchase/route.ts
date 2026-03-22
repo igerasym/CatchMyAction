@@ -22,7 +22,7 @@ export async function POST(
 
   const photo = await prisma.photo.findUnique({
     where: { id: params.id },
-    include: { session: { select: { title: true, id: true } } },
+    include: { session: { select: { title: true, id: true, photographerId: true } } },
   });
 
   if (!photo) {
@@ -46,6 +46,12 @@ export async function POST(
   // If Stripe keys are configured, use real checkout
   if (process.env.STRIPE_SECRET_KEY && !process.env.STRIPE_SECRET_KEY.startsWith("mock")) {
     try {
+      // Get photographer's Stripe Connect account
+      const photographer = await prisma.user.findUnique({
+        where: { id: photo.session.photographerId },
+        select: { stripeAccountId: true },
+      });
+
       const checkoutSession = await createCheckoutSession({
         photoId: photo.id,
         photoPreviewUrl: `${baseUrl}/api/uploads/previews/${photo.previewKey}`,
@@ -54,6 +60,7 @@ export async function POST(
         userId,
         successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}`,
         cancelUrl: `${baseUrl}/sessions/${photo.session.id}`,
+        photographerStripeAccountId: photographer?.stripeAccountId,
       });
 
       return NextResponse.json({ checkoutUrl: checkoutSession.url });

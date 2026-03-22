@@ -196,6 +196,14 @@ export default function SettingsPage() {
         </div>
       )}
 
+      {/* Stripe Connect — Photographers only */}
+      {user?.role === "PHOTOGRAPHER" && (
+        <div className="mt-8">
+          <SectionHeader title="Payouts" />
+          <StripeConnect />
+        </div>
+      )}
+
       {/* Danger Zone */}
       <div className="mt-12 pt-8 border-t border-red-500/10">
         <SectionHeader title="Danger Zone" className="text-red-400/60" />
@@ -229,6 +237,68 @@ export default function SettingsPage() {
 
 function SectionHeader({ title, className = "" }: { title: string; className?: string }) {
   return <h2 className={`text-sm font-medium text-white/60 uppercase tracking-wider ${className}`}>{title}</h2>;
+}
+
+function StripeConnect() {
+  const [status, setStatus] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [connecting, setConnecting] = useState(false);
+
+  useEffect(() => {
+    fetch("/api/stripe/connect").then((r) => r.json()).then(setStatus).finally(() => setLoading(false));
+  }, []);
+
+  async function handleConnect() {
+    setConnecting(true);
+    const res = await fetch("/api/stripe/connect", { method: "POST" });
+    const data = await res.json();
+    if (data.url) window.location.href = data.url;
+    else setConnecting(false);
+  }
+
+  if (loading) return <p className="text-xs text-white/30 mt-2">Loading payout status...</p>;
+
+  if (status?.connected && status?.chargesEnabled) {
+    return (
+      <div className="mt-3 p-4 bg-green-500/10 border border-green-500/20 rounded-xl">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="text-green-400">✓</span>
+          <p className="text-sm text-green-400 font-medium">Stripe Connected</p>
+        </div>
+        <p className="text-xs text-white/30">Payouts are enabled. You receive 80% of each sale automatically.</p>
+      </div>
+    );
+  }
+
+  if (status?.connected && !status?.chargesEnabled) {
+    return (
+      <div className="mt-3 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl">
+        <p className="text-sm text-yellow-400 font-medium mb-1">⚠ Setup incomplete</p>
+        <p className="text-xs text-white/30 mb-3">Stripe needs more information to enable payouts.</p>
+        <button onClick={handleConnect} disabled={connecting}
+          className="px-4 py-2 bg-yellow-500 text-black text-xs rounded-lg hover:bg-yellow-400 disabled:opacity-50 transition-colors font-medium">
+          {connecting ? "Redirecting..." : "Complete Setup"}
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 p-4 bg-white/5 border border-white/10 rounded-xl">
+      <p className="text-sm text-white font-medium mb-2">Get paid for your photos</p>
+      <p className="text-xs text-white/30 mb-1">Connect your Stripe account to receive payouts when your photos sell.</p>
+      <ul className="text-xs text-white/20 mb-4 space-y-1">
+        <li>• You keep 80% of each sale</li>
+        <li>• Automatic payouts to your bank account</li>
+        <li>• Stripe handles all payment processing securely</li>
+        <li>• Takes about 2 minutes to set up</li>
+      </ul>
+      <button onClick={handleConnect} disabled={connecting}
+        className="px-5 py-2.5 bg-ocean-500 text-white text-sm rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors font-medium">
+        {connecting ? "Redirecting to Stripe..." : "Connect Stripe Account"}
+      </button>
+    </div>
+  );
 }
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) {
