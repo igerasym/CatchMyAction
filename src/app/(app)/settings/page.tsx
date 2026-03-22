@@ -161,22 +161,6 @@ export default function SettingsPage() {
         </button>
       </form>
 
-      {/* Stripe (placeholder) */}
-      {user?.role === "PHOTOGRAPHER" && (
-        <>
-          <SectionHeader title="Payouts" className="mt-10" />
-          <div className="p-5 rounded-xl bg-white/[0.03] border border-white/10">
-            <p className="text-sm text-white/40 mb-3">
-              Connect your Stripe account to receive payouts when your photos are purchased.
-            </p>
-            <button disabled
-              className="px-5 py-2 bg-[#635bff]/20 text-[#635bff] border border-[#635bff]/30 rounded-lg text-sm opacity-60 cursor-not-allowed">
-              Connect Stripe (Coming Soon)
-            </button>
-          </div>
-        </>
-      )}
-
       {/* Account Type */}
       {user?.role === "USER" && (
         <UpgradeSection userId={user.id} update={update}
