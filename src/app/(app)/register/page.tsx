@@ -35,8 +35,7 @@ export default function RegisterPage() {
       setLoading(false);
       return;
     }
-    const form2 = new FormData(e.currentTarget);
-    await signIn("credentials", { email: form2.get("email"), password: form2.get("password"), redirect: false });
+    await signIn("credentials", { email: data.email, password: data.password, redirect: false });
     window.location.href = "/";
   }
 
