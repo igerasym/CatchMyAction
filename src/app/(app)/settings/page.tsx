@@ -113,6 +113,14 @@ export default function SettingsPage() {
           </Field>
         </div>
 
+        {/* Payouts — Photographers only */}
+        {user?.role === "PHOTOGRAPHER" && (
+          <div className="mt-6">
+            <SectionHeader title="Payouts" />
+            <StripeConnect />
+          </div>
+        )}
+
         {/* Social Links */}
         <SectionHeader title="Social Links" />
         <div className="space-y-3">
@@ -177,14 +185,6 @@ export default function SettingsPage() {
           <DowngradeSection userId={user.id} update={update}
             onSuccess={(msg) => setMessage({ type: "ok", text: msg })}
             onError={(msg) => setMessage({ type: "err", text: msg })} />
-        </div>
-      )}
-
-      {/* Stripe Connect — Photographers only */}
-      {user?.role === "PHOTOGRAPHER" && (
-        <div className="mt-8">
-          <SectionHeader title="Payouts" />
-          <StripeConnect />
         </div>
       )}
 
