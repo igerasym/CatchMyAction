@@ -38,10 +38,10 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 ## Next Session TODO
 - Fix face recognition on production (S3 URLs vs local)
 - Dev/prod deploy pipeline (GitHub Actions or similar)
+- SEO: add sitemap.xml + submit to Google Search Console
 - Mobile responsiveness pass
 - Email notifications (Resend/SES)
 - Stripe Connect photographer payouts
-- CloudFront CDN for S3 photos
 
 ## Demo Accounts
 - Photographer: photographer@demo.com / password
