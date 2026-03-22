@@ -1,24 +1,24 @@
-import { SURF_SPOTS } from "./surf-spots";
+import { ACTION_SPOTS, findSpotByName } from "./spots-database";
 
 interface GeoResult {
   lat: number;
   lng: number;
 }
 
-/** Geocode a location name — check static spots first, then Nominatim */
+/** Geocode a location name — check spots database first, then Nominatim */
 export async function geocodeLocation(location: string): Promise<GeoResult | null> {
-  // 1. Check static spots
-  const spot = SURF_SPOTS.find(
-    (s) => s.name.toLowerCase() === location.toLowerCase() ||
-      location.toLowerCase().includes(s.name.toLowerCase())
-  );
+  // 1. Check spots database (instant, accurate)
+  const spot = findSpotByName(location);
   if (spot) return { lat: spot.lat, lng: spot.lng };
 
   // 2. Nominatim (OpenStreetMap) — free, no API key
   try {
     const res = await fetch(
-      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1`,
-      { headers: { "User-Agent": "CatchMyActions/1.0" } }
+      `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(location)}&format=json&limit=1&addressdetails=1`,
+      {
+        headers: { "User-Agent": "CatchMyActions/1.0" },
+        signal: AbortSignal.timeout(5000),
+      }
     );
     const data = await res.json();
     if (data.length > 0) {

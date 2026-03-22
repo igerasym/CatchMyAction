@@ -1,7 +1,12 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { SURF_SPOTS, getSpotLabel } from "@/lib/surf-spots";
+
+interface SpotSuggestion {
+  label: string;
+  type: string;
+  sub?: string;
+}
 
 interface Props {
   session: {
@@ -27,11 +32,22 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
   const [price, setPrice] = useState(((session as any).pricePerPhoto || 999) / 100 + "");
   const [saving, setSaving] = useState(false);
   const [showSpots, setShowSpots] = useState(false);
+  const [spotMatches, setSpotMatches] = useState<SpotSuggestion[]>([]);
   const spotRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
 
-  const spotMatches = location.length > 0
-    ? SURF_SPOTS.filter((s) => getSpotLabel(s).toLowerCase().includes(location.toLowerCase())).slice(0, 6)
-    : [];
+  function fetchSpots(q: string) {
+    if (q.length < 2) { setSpotMatches([]); setShowSpots(false); return; }
+    clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/spots/autocomplete?q=${encodeURIComponent(q)}`);
+        const data = await res.json();
+        setSpotMatches(data.suggestions || []);
+        setShowSpots(true);
+      } catch { setSpotMatches([]); }
+    }, 200);
+  }
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -70,24 +86,24 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
             <label className="block text-xs text-white/40 mb-1">Location</label>
             <input
               value={location}
-              onChange={(e) => { setLocation(e.target.value); setShowSpots(true); }}
-              onFocus={() => location.length > 0 && setShowSpots(true)}
+              onChange={(e) => { setLocation(e.target.value); fetchSpots(e.target.value); }}
+              onFocus={() => location.length >= 2 && spotMatches.length > 0 && setShowSpots(true)}
               required
               autoComplete="off"
               className={inputClass}
             />
             {showSpots && spotMatches.length > 0 && (
               <ul className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-lg shadow-xl max-h-40 overflow-y-auto z-50">
-                {spotMatches.map((s) => (
-                  <li key={getSpotLabel(s)}>
+                {spotMatches.map((s, i) => (
+                  <li key={`${s.type}-${s.label}-${i}`}>
                     <button
                       type="button"
-                      onClick={() => { setLocation(`${s.name}, ${s.region}`); setShowSpots(false); }}
+                      onClick={() => { setLocation(s.label); setShowSpots(false); }}
                       className="w-full text-left px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
                     >
                       <span className="text-ocean-400 mr-1">📍</span>
-                      <span className="text-white">{s.name}</span>
-                      <span className="text-white/30 ml-1 text-xs">{s.region}, {s.country}</span>
+                      <span className="text-white">{s.label}</span>
+                      {s.sub && <span className="text-white/30 ml-1 text-xs">{s.sub}</span>}
                     </button>
                   </li>
                 ))}

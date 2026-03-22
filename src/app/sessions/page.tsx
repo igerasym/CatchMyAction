@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
-import { SURF_SPOTS } from "@/lib/surf-spots";
+import { ACTION_SPOTS } from "@/lib/spots-database";
 import SessionList from "./session-list";
 import SearchForm from "./search-form";
 
@@ -16,7 +16,7 @@ function expandLocationQuery(query: string): string[] {
   // Always include the raw query itself
   names.add(query);
 
-  SURF_SPOTS.forEach((s) => {
+  ACTION_SPOTS.forEach((s) => {
     const match =
       s.name.toLowerCase().includes(q) ||
       s.region.toLowerCase().includes(q) ||

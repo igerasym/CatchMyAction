@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/db";
-import { SURF_SPOTS } from "@/lib/surf-spots";
+import { ACTION_SPOTS } from "@/lib/spots-database";
 import HeroSection from "./components/hero";
 import SpotMap from "./components/spot-map";
 import SearchBar from "./components/search-bar";
@@ -45,14 +45,24 @@ export default async function HomePage() {
     ),
   }));
 
-  // All known surf spots for background markers
-  const allSpots = SURF_SPOTS.map((s) => ({
-    name: s.name,
-    region: s.region,
-    country: s.country,
-    lat: s.lat,
-    lng: s.lng,
-  }));
+  // All known spots for background markers (static + from DB sessions with coordinates)
+  const dbSessions = await (prisma.session.findMany as any)({
+    where: { published: true, locationLat: { not: null } },
+    select: { location: true, locationLat: true, locationLng: true },
+    distinct: ["location"],
+  }) as { location: string; locationLat: number | null; locationLng: number | null }[];
+
+  const staticNames = new Set(ACTION_SPOTS.map((s) => s.name.toLowerCase()));
+  const allSpots = [
+    ...ACTION_SPOTS.map((s) => ({
+      name: s.name, region: s.region, country: s.country, lat: s.lat, lng: s.lng,
+    })),
+    ...dbSessions
+      .filter((s) => !staticNames.has(s.location.toLowerCase()) && s.locationLat && s.locationLng)
+      .map((s) => ({
+        name: s.location, region: "", country: "", lat: s.locationLat!, lng: s.locationLng!,
+      })),
+  ];
 
   // Count unique locations that have photos
   const activeSpotCount = new Set(

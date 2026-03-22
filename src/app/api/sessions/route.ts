@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { isWaterSport, fetchMarineConditions } from "@/lib/marine-conditions";
-import { SURF_SPOTS } from "@/lib/surf-spots";
 import { geocodeLocation } from "@/lib/geocode";
 
 /** GET /api/sessions — list sessions with optional filters */

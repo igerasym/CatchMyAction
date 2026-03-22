@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useMemo } from "react";
-import { getCoordsForLocation } from "@/lib/surf-spots";
+import { getCoordsForSpot } from "@/lib/spots-database";
 
 interface ActiveSession {
   id: string;
@@ -44,12 +44,14 @@ export default function SpotMap({
 
   const activeMarkers = useMemo(
     () =>
-      activeSessions.map((s) => ({
-        ...s,
-        coords: getCoordsForLocation(s.location),
-        color: getMarkerColor(s.date),
-        type: "active" as const,
-      })),
+      activeSessions
+        .map((s) => ({
+          ...s,
+          coords: getCoordsForSpot(s.location),
+          color: getMarkerColor(s.date),
+          type: "active" as const,
+        }))
+        .filter((s) => s.coords !== null),
     [activeSessions]
   );
 

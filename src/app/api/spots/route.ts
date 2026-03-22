@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { SURF_SPOTS } from "@/lib/surf-spots";
+import { ACTION_SPOTS } from "@/lib/spots-database";
 
 /** GET /api/spots — all known spots (static + from sessions with coordinates) */
 export async function GET() {
@@ -10,14 +10,14 @@ export async function GET() {
     distinct: ["location"],
   });
 
-  const staticNames = new Set(SURF_SPOTS.map((s) => s.name.toLowerCase()));
+  const staticNames = new Set(ACTION_SPOTS.map((s) => s.name.toLowerCase()));
 
   const dbLocations = sessions
     .map((s) => s.location)
     .filter((loc) => !staticNames.has(loc.toLowerCase()));
 
   const spots = [
-    ...SURF_SPOTS.map((s) => ({
+    ...ACTION_SPOTS.map((s) => ({
       name: s.name, region: s.region, country: s.country,
       lat: s.lat, lng: s.lng, source: "static",
     })),
