@@ -151,7 +151,7 @@ export default function ManagePhotosPage() {
       </div>
 
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold text-white">{session.title}</h1>
           <p className="text-sm text-white/40">📍 {session.location} · {photos.length} photos</p>
@@ -232,7 +232,7 @@ export default function ManagePhotosPage() {
           <p className="text-sm">Click "+ Add Photos" to upload</p>
         </div>
       ) : (
-        <div className="grid grid-cols-3 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
           {photos.map((p) => (
             <div
               key={p.id}

@@ -232,43 +232,44 @@ function SessionRow({
   const thumbUrl = s.photos[0]?.thumbnailUrl || null;
 
   return (
-    <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors">
-      {/* Thumbnail */}
-      <div className="w-20 h-14 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
-        {thumbUrl ? (
-          <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-white/20">📸</div>
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <Link
-            href={`/sessions/${s.id}`}
-            className="font-medium text-white hover:text-ocean-400 transition-colors truncate"
-          >
-            {s.title}
-          </Link>
-          <span
-            className={`text-xs px-2 py-0.5 rounded-full ${
-              s.published
-                ? "bg-green-500/20 text-green-400"
-                : "bg-yellow-500/20 text-yellow-400"
-            }`}
-          >
-            {s.published ? "Published" : "Draft"}
-          </span>
+    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors">
+      <div className="flex items-center gap-4">
+        {/* Thumbnail */}
+        <div className="w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
+          {thumbUrl ? (
+            <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-white/20">📸</div>
+          )}
         </div>
-        <p className="text-sm text-white/40 truncate">
-          📍 {s.location} · 📅 {format(new Date(s.date), "MMM d, yyyy")} · 📸{" "}
-          {s.photoCount} photos
-        </p>
+
+        {/* Info */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/sessions/${s.id}`}
+              className="font-medium text-white hover:text-ocean-400 transition-colors truncate text-sm sm:text-base"
+            >
+              {s.title}
+            </Link>
+            <span
+              className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ${
+                s.published
+                  ? "bg-green-500/20 text-green-400"
+                  : "bg-yellow-500/20 text-yellow-400"
+              }`}
+            >
+              {s.published ? "Published" : "Draft"}
+            </span>
+          </div>
+          <p className="text-xs sm:text-sm text-white/40 truncate">
+            📍 {s.location} · 📸 {s.photoCount} photos
+          </p>
+        </div>
       </div>
 
-      {/* Actions */}
-      <div className="flex items-center gap-2 flex-shrink-0">
+      {/* Actions — wrap on mobile */}
+      <div className="flex items-center gap-2 mt-3 flex-wrap">
         <button
           onClick={onTogglePublish}
           className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors"

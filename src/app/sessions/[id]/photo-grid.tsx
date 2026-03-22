@@ -352,9 +352,36 @@ export default function PhotoGrid({
       </div>
 
       {/* Photo detail modal */}
-      {selectedPhoto && (
+      {selectedPhoto && (() => {
+        const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
+        const prevPhoto = currentIndex > 0 ? photos[currentIndex - 1] : null;
+        const nextPhoto = currentIndex < photos.length - 1 ? photos[currentIndex + 1] : null;
+        return (
         <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelectedPhoto(null)} role="dialog" aria-modal="true">
+          onClick={() => setSelectedPhoto(null)} role="dialog" aria-modal="true"
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft" && prevPhoto) setSelectedPhoto(prevPhoto);
+            if (e.key === "ArrowRight" && nextPhoto) setSelectedPhoto(nextPhoto);
+            if (e.key === "Escape") setSelectedPhoto(null);
+          }}
+          tabIndex={0}
+          ref={(el) => el?.focus()}
+        >
+          {/* Prev button */}
+          {prevPhoto && (
+            <button onClick={(e) => { e.stopPropagation(); setSelectedPhoto(prevPhoto); }}
+              className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+          )}
+          {/* Next button */}
+          {nextPhoto && (
+            <button onClick={(e) => { e.stopPropagation(); setSelectedPhoto(nextPhoto); }}
+              className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+          )}
+
           <div className="bg-[#1a1a2e] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto border border-white/10"
             onClick={(e) => e.stopPropagation()}>
             <div className="relative">
@@ -365,8 +392,12 @@ export default function PhotoGrid({
                 className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70">
                 ✕
               </button>
+              {/* Photo counter */}
+              <div className="absolute bottom-3 left-3 bg-black/50 text-white/70 text-xs px-2 py-1 rounded">
+                {currentIndex + 1} / {photos.length}
+              </div>
             </div>
-            <div className="p-4 flex items-center justify-between">
+            <div className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div>
                 {purchasedIds.has(selectedPhoto.id) ? (
                   <>
@@ -394,7 +425,8 @@ export default function PhotoGrid({
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </>
   );
 }

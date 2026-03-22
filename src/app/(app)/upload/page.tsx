@@ -274,7 +274,7 @@ export default function UploadPage() {
             placeholder="Morning session at Pipeline" className={inputClass} />
         </div>
         <SpotAutocomplete value={location} onChange={setLocation} label="Location" />
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs text-white/40 mb-1">Date</label>
             <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required className={inputClass} />
@@ -288,7 +288,7 @@ export default function UploadPage() {
             <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
           </div>
         </div>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs text-white/40 mb-1">Sport</label>
             <select value={sportType} onChange={(e) => setSportType(e.target.value)} className={inputClass}>

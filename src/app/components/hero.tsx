@@ -9,7 +9,7 @@ export default function HeroSection() {
   const showUpload = !user || user.role === "PHOTOGRAPHER";
 
   return (
-    <section className="relative h-[90vh] min-h-[600px] flex items-center justify-center overflow-hidden -mt-14">
+    <section className="relative h-[85vh] min-h-[500px] sm:h-[90vh] sm:min-h-[600px] flex items-center justify-center overflow-hidden -mt-14">
       {/* Background image */}
       <div
         className="absolute inset-0 bg-cover bg-center bg-no-repeat"

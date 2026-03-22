@@ -182,12 +182,39 @@ export default function MyPhotosPage() {
       )}
 
       {/* Lightbox */}
-      {selected && (
+      {selected && (() => {
+        const currentIndex = photos.findIndex((p) => p.id === selected.id);
+        const prevPhoto = currentIndex > 0 ? photos[currentIndex - 1] : null;
+        const nextPhoto = currentIndex < photos.length - 1 ? photos[currentIndex + 1] : null;
+        return (
         <div className="fixed inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
-          onClick={() => setSelected(null)} role="dialog" aria-modal="true">
+          onClick={() => setSelected(null)} role="dialog" aria-modal="true"
+          onKeyDown={(e) => {
+            if (e.key === "ArrowLeft" && prevPhoto) setSelected(prevPhoto);
+            if (e.key === "ArrowRight" && nextPhoto) setSelected(nextPhoto);
+            if (e.key === "Escape") setSelected(null);
+          }}
+          tabIndex={0} ref={(el) => el?.focus()}>
+
+          {prevPhoto && (
+            <button onClick={(e) => { e.stopPropagation(); setSelected(prevPhoto); }}
+              className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+            </button>
+          )}
+          {nextPhoto && (
+            <button onClick={(e) => { e.stopPropagation(); setSelected(nextPhoto); }}
+              className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+            </button>
+          )}
+
           <div className="relative max-w-5xl w-full max-h-[90vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
-            <button onClick={() => setSelected(null)}
-              className="absolute -top-10 right-0 text-white/50 hover:text-white text-sm transition-colors">✕ Close</button>
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs text-white/30">{currentIndex + 1} / {photos.length}</span>
+              <button onClick={() => setSelected(null)}
+                className="text-white/50 hover:text-white text-sm transition-colors">✕ Close</button>
+            </div>
             <div className="flex-1 min-h-0 flex items-center justify-center">
               <img src={selected.purchased && selected.originalUrl ? selected.originalUrl : (selected.previewUrl || selected.thumbnailUrl)}
                 alt="" className="max-w-full max-h-[75vh] object-contain rounded-lg" />
@@ -217,7 +244,8 @@ export default function MyPhotosPage() {
             </div>
           </div>
         </div>
-      )}
+        );
+      })()}
     </div>
   );
 }
