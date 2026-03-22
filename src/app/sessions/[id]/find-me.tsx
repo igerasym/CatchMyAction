@@ -203,6 +203,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
       <button onClick={handleOpen}
         className="px-4 py-2 bg-gradient-to-r from-purple-600 to-ocean-500 text-white rounded-lg hover:from-purple-500 hover:to-ocean-400 transition-all text-sm font-medium shadow-lg shadow-purple-500/20">
         🔍 Find Me
+        <span className="ml-1.5 text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-normal">BETA</span>
       </button>
 
       {open && (
