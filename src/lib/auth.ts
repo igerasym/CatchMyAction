@@ -24,6 +24,11 @@ export const authOptions: NextAuthOptions = {
 
         if (!user || !user.passwordHash) return null;
 
+        // Check email verification
+        if (!(user as any).emailVerified) {
+          throw new Error("Please verify your email before signing in. Check your inbox.");
+        }
+
         const valid = await bcrypt.compare(
           credentials.password,
           user.passwordHash

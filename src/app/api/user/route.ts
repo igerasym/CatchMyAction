@@ -82,8 +82,10 @@ export async function PATCH(req: NextRequest) {
     if (!valid) {
       return NextResponse.json({ error: "Current password is incorrect" }, { status: 403 });
     }
-    if (newPassword.length < 6) {
-      return NextResponse.json({ error: "New password must be at least 6 characters" }, { status: 400 });
+    const { validatePassword } = await import("@/lib/validation");
+    const pwError = validatePassword(newPassword);
+    if (pwError) {
+      return NextResponse.json({ error: pwError }, { status: 400 });
     }
     data.passwordHash = await bcrypt.hash(newPassword, 12);
   }

@@ -11,6 +11,8 @@ export default function LoginPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const verified = searchParams.get("verified");
+  const tokenError = searchParams.get("error");
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -23,13 +25,26 @@ export default function LoginPage() {
       redirect: false,
     });
     setLoading(false);
-    if (res?.error) setError("Invalid email or password");
-    else { window.location.href = callbackUrl; }
+    if (res?.error) {
+      setError(res.error === "CredentialsSignin" ? "Invalid email or password" : res.error);
+    } else {
+      window.location.href = callbackUrl;
+    }
   }
 
   return (
     <div className="max-w-sm mx-auto mt-16">
       <h1 className="text-2xl font-bold text-center mb-6 text-white">Sign in</h1>
+      {verified && (
+        <div className="bg-green-500/10 text-green-400 text-sm p-3 rounded-lg mb-4 border border-green-500/20">
+          ✓ Email verified! You can now sign in.
+        </div>
+      )}
+      {tokenError === "invalid-token" && (
+        <div className="bg-red-500/10 text-red-400 text-sm p-3 rounded-lg mb-4 border border-red-500/20">
+          Invalid or expired verification link.
+        </div>
+      )}
       {error && (
         <div className="bg-red-500/10 text-red-400 text-sm p-3 rounded-lg mb-4 border border-red-500/20">{error}</div>
       )}

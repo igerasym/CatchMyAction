@@ -3,6 +3,7 @@ import { randomBytes } from "crypto";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/email";
+import { validatePassword, validateEmail } from "@/lib/validation";
 
 export async function POST(req: NextRequest) {
   const { email, password, name, role } = await req.json();
@@ -11,8 +12,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "email, password, and name are required" }, { status: 400 });
   }
 
-  if (password.length < 6) {
-    return NextResponse.json({ error: "Password must be at least 6 characters" }, { status: 400 });
+  if (!validateEmail(email)) {
+    return NextResponse.json({ error: "Invalid email format" }, { status: 400 });
+  }
+
+  const passwordError = validatePassword(password);
+  if (passwordError) {
+    return NextResponse.json({ error: passwordError }, { status: 400 });
   }
 
   const existing = await prisma.user.findUnique({ where: { email } });
