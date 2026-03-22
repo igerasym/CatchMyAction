@@ -4,8 +4,13 @@ import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { sendVerificationEmail } from "@/lib/email";
 import { validatePassword, validateEmail, validateEmailDomain } from "@/lib/validation";
+import { rateLimit } from "@/lib/rate-limit";
 
 export async function POST(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for") || "unknown";
+  if (!rateLimit(`register:${ip}`, 5, 15 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many attempts. Try again in 15 minutes." }, { status: 429 });
+  }
   const { email, password, name, role } = await req.json();
 
   if (!email || !password || !name) {

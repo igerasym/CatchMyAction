@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import Providers from "./providers";
 import NavBar from "./navbar";
+import ToastBanner from "./components/toast-banner";
 
 export const dynamic = "force-dynamic";
 
@@ -21,6 +22,7 @@ export default function RootLayout({
       <body className="bg-[#0a0a0a] text-gray-100 min-h-screen">
         <Providers>
           <NavBar />
+          <ToastBanner />
           {children}
         </Providers>
       </body>

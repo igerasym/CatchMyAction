@@ -64,10 +64,13 @@ export default function LoginPage() {
           {loading ? "Signing in..." : "Sign in"}
         </button>
       </form>
-      <p className="text-center text-sm text-white/40 mt-4">
-        Don&apos;t have an account?{" "}
-        <Link href="/register" className="text-ocean-400 hover:underline">Sign up</Link>
-      </p>
+      <div className="flex justify-between text-sm text-white/40 mt-4">
+        <Link href="/forgot-password" className="text-white/30 hover:text-white/50 transition-colors">Forgot password?</Link>
+        <span>
+          Don&apos;t have an account?{" "}
+          <Link href="/register" className="text-ocean-400 hover:underline">Sign up</Link>
+        </span>
+      </div>
     </div>
   );
 }

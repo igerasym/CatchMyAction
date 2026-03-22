@@ -195,6 +195,34 @@ export default function SettingsPage() {
             onError={(msg) => setMessage({ type: "err", text: msg })} />
         </div>
       )}
+
+      {/* Danger Zone */}
+      <div className="mt-12 pt-8 border-t border-red-500/10">
+        <SectionHeader title="Danger Zone" className="text-red-400/60" />
+        <p className="text-xs text-white/30 mt-2 mb-3">Permanently delete your account and all data. This cannot be undone.</p>
+        <button
+          onClick={async () => {
+            const pw = prompt("Enter your password to confirm account deletion:");
+            if (!pw) return;
+            if (!confirm("Are you sure? This will permanently delete your account, all sessions, photos, and purchases.")) return;
+            const res = await fetch("/api/user/delete", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ password: pw }),
+            });
+            const data = await res.json();
+            if (data.deleted) {
+              alert("Account deleted.");
+              window.location.href = "/";
+            } else {
+              alert(data.error || "Failed to delete account");
+            }
+          }}
+          className="px-4 py-2 text-xs border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
+        >
+          Delete Account
+        </button>
+      </div>
     </div>
   );
 }
