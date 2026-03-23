@@ -128,6 +128,34 @@ export async function deleteFaceCollection(sessionId: string): Promise<void> {
   }
 }
 
+/** Delete faces for a specific photo from a session collection */
+export async function deleteFacesForPhoto(sessionId: string, photoId: string): Promise<void> {
+  if (!rekognition) return;
+  try {
+    // List faces with this ExternalImageId
+    const { ListFacesCommand } = await import("@aws-sdk/client-rekognition");
+    const listResult = await rekognition.send(new ListFacesCommand({
+      CollectionId: `session-${sessionId}`,
+      MaxResults: 100,
+    }));
+
+    const faceIds = (listResult.Faces || [])
+      .filter((f) => f.ExternalImageId === photoId)
+      .map((f) => f.FaceId!)
+      .filter(Boolean);
+
+    if (faceIds.length > 0) {
+      const { DeleteFacesCommand } = await import("@aws-sdk/client-rekognition");
+      await rekognition.send(new DeleteFacesCommand({
+        CollectionId: `session-${sessionId}`,
+        FaceIds: faceIds,
+      }));
+    }
+  } catch {
+    // Non-critical — don't fail photo deletion
+  }
+}
+
 /** Check image for prohibited content */
 export async function moderateImage(
   imageBytes: Buffer
