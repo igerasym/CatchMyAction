@@ -1,0 +1,44 @@
+{
+  "CallerReference": "catchmyaction-previews-2026",
+  "Comment": "CatchMyAction photo previews CDN",
+  "Enabled": true,
+  "Origins": {
+    "Quantity": 1,
+    "Items": [
+      {
+        "Id": "S3-catchmyaction-previews",
+        "DomainName": "catchmyaction-previews-us-west-2.s3.us-west-2.amazonaws.com",
+        "S3OriginConfig": {
+          "OriginAccessIdentity": ""
+        }
+      }
+    ]
+  },
+  "DefaultCacheBehavior": {
+    "TargetOriginId": "S3-catchmyaction-previews",
+    "ViewerProtocolPolicy": "redirect-to-https",
+    "AllowedMethods": {
+      "Quantity": 2,
+      "Items": ["GET", "HEAD"],
+      "CachedMethods": {
+        "Quantity": 2,
+        "Items": ["GET", "HEAD"]
+      }
+    },
+    "ForwardedValues": {
+      "QueryString": false,
+      "Cookies": { "Forward": "none" },
+      "Headers": { "Quantity": 0 },
+      "QueryStringCacheKeys": { "Quantity": 0 }
+    },
+    "MinTTL": 86400,
+    "DefaultTTL": 604800,
+    "MaxTTL": 31536000,
+    "Compress": true
+  },
+  "PriceClass": "PriceClass_100",
+  "ViewerCertificate": {
+    "CloudFrontDefaultCertificate": true
+  },
+  "HttpVersion": "http2"
+}

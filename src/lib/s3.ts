@@ -64,6 +64,10 @@ export function getPreviewUrl(key: string): string {
   if (IS_LOCAL) {
     return `/api/uploads/${BUCKET_PREVIEWS}/${key}`;
   }
+  // Use CloudFront CDN if configured, otherwise direct S3
+  if (process.env.CLOUDFRONT_DOMAIN) {
+    return `https://${process.env.CLOUDFRONT_DOMAIN}/${key}`;
+  }
   return `https://${BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 }
 

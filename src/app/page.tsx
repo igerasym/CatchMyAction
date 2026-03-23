@@ -40,7 +40,9 @@ export default async function HomePage() {
     photoCount: s.photoCount,
     thumbnails: s.photos.map((p) =>
       process.env.AWS_REGION && process.env.USE_LOCAL_STORAGE !== "true"
-        ? `https://${process.env.S3_BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${p.thumbnailKey}`
+        ? (process.env.CLOUDFRONT_DOMAIN
+            ? `https://${process.env.CLOUDFRONT_DOMAIN}/${p.thumbnailKey}`
+            : `https://${process.env.S3_BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${p.thumbnailKey}`)
         : `/api/uploads/previews/${p.thumbnailKey}`
     ),
   }));

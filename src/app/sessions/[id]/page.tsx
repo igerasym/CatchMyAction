@@ -85,7 +85,9 @@ export default async function SessionPage({
   const isLocal = !process.env.AWS_REGION || process.env.USE_LOCAL_STORAGE === "true";
   const previewBaseUrl = isLocal
     ? "/api/uploads/previews/"
-    : `https://${process.env.S3_BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/`;
+    : (process.env.CLOUDFRONT_DOMAIN
+        ? `https://${process.env.CLOUDFRONT_DOMAIN}/`
+        : `https://${process.env.S3_BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/`);
 
   const photos = firstPage.map((p) => ({
     ...p,
