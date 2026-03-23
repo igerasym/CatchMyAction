@@ -127,7 +127,13 @@ export default function MyPhotosPage() {
 
       {photos.length === 0 ? (
         <div className="text-center py-16">
-          <div className="text-5xl mb-4">📷</div>
+          <div className="flex justify-center mb-4">
+            <div className="w-16 h-16 rounded-2xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
+              <svg className="w-8 h-8 text-ocean-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="2" y="4" width="20" height="16" rx="2" /><circle cx="8.5" cy="10.5" r="2" /><path d="M2 16l5-4 3 3 4-5 8 6" />
+              </svg>
+            </div>
+          </div>
           <p className="text-white/40 mb-4">No photos yet</p>
           <p className="text-xs text-white/20 mb-4">Use Find Me on a session or buy photos to see them here</p>
           <Link href="/sessions"
