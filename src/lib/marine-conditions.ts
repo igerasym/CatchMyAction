@@ -1,6 +1,6 @@
 /** Fetch marine conditions from Open-Meteo (free, no API key) */
 
-const WATER_SPORTS = ["surf", "kite", "windsurf", "bodyboard", "sup", "wakeboard"];
+const WATER_SPORTS = ["surf", "kite", "windsurf", "bodyboard", "sup", "wakeboard", "kayak", "diving"];
 
 export function isWaterSport(sportType: string): boolean {
   return WATER_SPORTS.includes(sportType.toLowerCase());

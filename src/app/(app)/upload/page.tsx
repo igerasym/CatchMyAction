@@ -297,11 +297,22 @@ export default function UploadPage() {
               <option value="surf">🏄 Surf</option>
               <option value="kite">🪁 Kite</option>
               <option value="windsurf">🏄‍♂️ Windsurf</option>
+              <option value="wakeboard">🏄‍♂️ Wakeboard</option>
               <option value="skate">🛹 Skate</option>
               <option value="mtb">🚵 MTB</option>
               <option value="moto">🏍️ Moto</option>
               <option value="ski">⛷️ Ski</option>
               <option value="snowboard">🏂 Snowboard</option>
+              <option value="marathon">🏃 Marathon / Running</option>
+              <option value="triathlon">🏊 Triathlon</option>
+              <option value="cycling">🚴 Cycling</option>
+              <option value="climbing">🧗 Climbing</option>
+              <option value="crossfit">🏋️ CrossFit</option>
+              <option value="parkour">🤸 Parkour / Freerunning</option>
+              <option value="kayak">🛶 Kayak / Canoe</option>
+              <option value="diving">🤿 Diving</option>
+              <option value="paragliding">🪂 Paragliding</option>
+              <option value="bmx">🚲 BMX</option>
               <option value="other">📸 Other</option>
             </select>
           </div>

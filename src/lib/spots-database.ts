@@ -346,24 +346,163 @@ export const ACTION_SPOTS: ActionSpot[] = [
   // MAJOR CITIES (for urban action sports)
   // ═══════════════════════════════════════════
 
-  { name: "Berlin", region: "Berlin", country: "Germany", lat: 52.5200, lng: 13.4050, sports: ["skate", "mtb"] },
-  { name: "Munich", region: "Bavaria", country: "Germany", lat: 48.1351, lng: 11.5820, sports: ["skate", "mtb", "surf"] },
-  { name: "Amsterdam", region: "North Holland", country: "Netherlands", lat: 52.3676, lng: 4.9041, sports: ["skate"] },
-  { name: "Prague", region: "Bohemia", country: "Czech Republic", lat: 50.0755, lng: 14.4378, sports: ["skate"] },
-  { name: "Vienna", region: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738, sports: ["skate"] },
-  { name: "Lisbon", region: "Lisboa", country: "Portugal", lat: 38.7223, lng: -9.1393, sports: ["skate", "surf"] },
-  { name: "Tokyo", region: "Kantō", country: "Japan", lat: 35.6762, lng: 139.6503, sports: ["skate"] },
-  { name: "Seoul", region: "Seoul", country: "South Korea", lat: 37.5665, lng: 126.9780, sports: ["skate"] },
-  { name: "Los Angeles", region: "California", country: "USA", lat: 34.0522, lng: -118.2437, sports: ["skate", "surf"] },
-  { name: "New York City", region: "New York", country: "USA", lat: 40.7128, lng: -74.0060, sports: ["skate"] },
-  { name: "São Paulo", region: "São Paulo", country: "Brazil", lat: -23.5505, lng: -46.6333, sports: ["skate"] },
-  { name: "Melbourne", region: "Victoria", country: "Australia", lat: -37.8136, lng: 144.9631, sports: ["skate", "surf"] },
-  { name: "Cape Town", region: "Western Cape", country: "South Africa", lat: -33.9249, lng: 18.4241, sports: ["surf", "kite", "mtb"] },
-  { name: "Dubai", region: "Dubai", country: "UAE", lat: 25.2048, lng: 55.2708, sports: ["skate", "kite"] },
-  { name: "Kyiv", region: "Kyiv", country: "Ukraine", lat: 50.4501, lng: 30.5234, sports: ["skate"] },
-  { name: "Warsaw", region: "Masovia", country: "Poland", lat: 52.2297, lng: 21.0122, sports: ["skate"] },
-  { name: "Stockholm", region: "Stockholm", country: "Sweden", lat: 59.3293, lng: 18.0686, sports: ["skate"] },
-  { name: "Helsinki", region: "Uusimaa", country: "Finland", lat: 60.1699, lng: 24.9384, sports: ["skate"] },
+  { name: "Berlin", region: "Berlin", country: "Germany", lat: 52.5200, lng: 13.4050, sports: ["skate", "mtb", "marathon"] },
+  { name: "Munich", region: "Bavaria", country: "Germany", lat: 48.1351, lng: 11.5820, sports: ["skate", "mtb", "surf", "marathon"] },
+  { name: "Amsterdam", region: "North Holland", country: "Netherlands", lat: 52.3676, lng: 4.9041, sports: ["skate", "marathon", "cycling"] },
+  { name: "Prague", region: "Bohemia", country: "Czech Republic", lat: 50.0755, lng: 14.4378, sports: ["skate", "marathon"] },
+  { name: "Vienna", region: "Vienna", country: "Austria", lat: 48.2082, lng: 16.3738, sports: ["skate", "marathon"] },
+  { name: "Lisbon", region: "Lisboa", country: "Portugal", lat: 38.7223, lng: -9.1393, sports: ["skate", "surf", "marathon"] },
+  { name: "Tokyo", region: "Kantō", country: "Japan", lat: 35.6762, lng: 139.6503, sports: ["skate", "marathon"] },
+  { name: "Seoul", region: "Seoul", country: "South Korea", lat: 37.5665, lng: 126.9780, sports: ["skate", "marathon"] },
+  { name: "Los Angeles", region: "California", country: "USA", lat: 34.0522, lng: -118.2437, sports: ["skate", "surf", "marathon"] },
+  { name: "New York City", region: "New York", country: "USA", lat: 40.7128, lng: -74.0060, sports: ["skate", "marathon", "triathlon"] },
+  { name: "São Paulo", region: "São Paulo", country: "Brazil", lat: -23.5505, lng: -46.6333, sports: ["skate", "marathon"] },
+  { name: "Melbourne", region: "Victoria", country: "Australia", lat: -37.8136, lng: 144.9631, sports: ["skate", "surf", "marathon", "cycling"] },
+  { name: "Cape Town", region: "Western Cape", country: "South Africa", lat: -33.9249, lng: 18.4241, sports: ["surf", "kite", "mtb", "marathon", "cycling"] },
+  { name: "Dubai", region: "Dubai", country: "UAE", lat: 25.2048, lng: 55.2708, sports: ["skate", "kite", "marathon", "triathlon", "crossfit"] },
+  { name: "Kyiv", region: "Kyiv", country: "Ukraine", lat: 50.4501, lng: 30.5234, sports: ["skate", "marathon"] },
+  { name: "Warsaw", region: "Masovia", country: "Poland", lat: 52.2297, lng: 21.0122, sports: ["skate", "marathon"] },
+  { name: "Stockholm", region: "Stockholm", country: "Sweden", lat: 59.3293, lng: 18.0686, sports: ["skate", "marathon"] },
+  { name: "Helsinki", region: "Uusimaa", country: "Finland", lat: 60.1699, lng: 24.9384, sports: ["skate", "marathon"] },
+
+  // ═══════════════════════════════════════════
+  // MARATHON & RUNNING
+  // ═══════════════════════════════════════════
+
+  { name: "Boston Marathon", region: "Massachusetts", country: "USA", lat: 42.3496, lng: -71.0785, sports: ["marathon"] },
+  { name: "New York City Marathon", region: "New York", country: "USA", lat: 40.7686, lng: -73.9812, sports: ["marathon"] },
+  { name: "Chicago Marathon", region: "Illinois", country: "USA", lat: 41.8742, lng: -87.6246, sports: ["marathon"] },
+  { name: "London Marathon", region: "London", country: "UK", lat: 51.4769, lng: -0.0005, sports: ["marathon"] },
+  { name: "Berlin Marathon", region: "Berlin", country: "Germany", lat: 52.5145, lng: 13.3501, sports: ["marathon"] },
+  { name: "Tokyo Marathon", region: "Tokyo", country: "Japan", lat: 35.6895, lng: 139.6917, sports: ["marathon"] },
+  { name: "Paris Marathon", region: "Paris", country: "France", lat: 48.8738, lng: 2.2950, sports: ["marathon"] },
+  { name: "Valencia Marathon", region: "Valencia", country: "Spain", lat: 39.4528, lng: -0.3476, sports: ["marathon"] },
+  { name: "Amsterdam Marathon", region: "Amsterdam", country: "Netherlands", lat: 52.3590, lng: 4.9080, sports: ["marathon"] },
+  { name: "Dubai Marathon", region: "Dubai", country: "UAE", lat: 25.0880, lng: 55.1400, sports: ["marathon"] },
+  { name: "Sydney Marathon", region: "Sydney", country: "Australia", lat: -33.8568, lng: 151.2153, sports: ["marathon"] },
+  { name: "Athens Marathon", region: "Athens", country: "Greece", lat: 37.9838, lng: 23.7275, sports: ["marathon"] },
+  { name: "Comrades Marathon", region: "KwaZulu-Natal", country: "South Africa", lat: -29.8587, lng: 31.0218, sports: ["marathon"] },
+  { name: "Ultra-Trail du Mont-Blanc", region: "Chamonix", country: "France", lat: 45.9237, lng: 6.8694, sports: ["marathon"] },
+  { name: "Western States 100", region: "California", country: "USA", lat: 39.1268, lng: -120.9542, sports: ["marathon"] },
+  { name: "Kyiv Marathon", region: "Kyiv", country: "Ukraine", lat: 50.4501, lng: 30.5234, sports: ["marathon"] },
+  { name: "Warsaw Marathon", region: "Warsaw", country: "Poland", lat: 52.2297, lng: 21.0122, sports: ["marathon"] },
+  { name: "Prague Marathon", region: "Prague", country: "Czech Republic", lat: 50.0880, lng: 14.4208, sports: ["marathon"] },
+  { name: "Istanbul Marathon", region: "Istanbul", country: "Turkey", lat: 41.0082, lng: 28.9784, sports: ["marathon"] },
+  { name: "Rio de Janeiro Marathon", region: "Rio de Janeiro", country: "Brazil", lat: -22.9068, lng: -43.1729, sports: ["marathon"] },
+
+  // ═══════════════════════════════════════════
+  // TRIATHLON
+  // ═══════════════════════════════════════════
+
+  { name: "Ironman Hawaii (Kona)", region: "Big Island", country: "Hawaii", lat: 19.6400, lng: -155.9969, sports: ["triathlon"] },
+  { name: "Ironman Nice", region: "Nice", country: "France", lat: 43.7102, lng: 7.2620, sports: ["triathlon"] },
+  { name: "Ironman Frankfurt", region: "Hesse", country: "Germany", lat: 50.1109, lng: 8.6821, sports: ["triathlon"] },
+  { name: "Ironman Barcelona", region: "Catalonia", country: "Spain", lat: 41.3874, lng: 2.1686, sports: ["triathlon"] },
+  { name: "Ironman Lanzarote", region: "Canary Islands", country: "Spain", lat: 28.9638, lng: -13.5477, sports: ["triathlon"] },
+  { name: "Ironman Cairns", region: "Queensland", country: "Australia", lat: -16.9186, lng: 145.7781, sports: ["triathlon"] },
+  { name: "Ironman South Africa", region: "Eastern Cape", country: "South Africa", lat: -33.9608, lng: 25.6022, sports: ["triathlon"] },
+  { name: "Challenge Roth", region: "Bavaria", country: "Germany", lat: 49.2458, lng: 11.0908, sports: ["triathlon"] },
+  { name: "Ironman 70.3 Dubai", region: "Dubai", country: "UAE", lat: 25.0657, lng: 55.1713, sports: ["triathlon"] },
+  { name: "Ironman New Zealand (Taupō)", region: "Waikato", country: "New Zealand", lat: -38.6857, lng: 176.0702, sports: ["triathlon"] },
+  { name: "ITU World Triathlon Abu Dhabi", region: "Abu Dhabi", country: "UAE", lat: 24.4539, lng: 54.3773, sports: ["triathlon"] },
+  { name: "Escape from Alcatraz Triathlon", region: "San Francisco", country: "USA", lat: 37.8267, lng: -122.4233, sports: ["triathlon"] },
+
+  // ═══════════════════════════════════════════
+  // CYCLING (Road & Track)
+  // ═══════════════════════════════════════════
+
+  { name: "Alpe d'Huez", region: "Isère", country: "France", lat: 45.0917, lng: 6.0694, sports: ["cycling"] },
+  { name: "Mont Ventoux", region: "Vaucluse", country: "France", lat: 44.1742, lng: 5.2789, sports: ["cycling"] },
+  { name: "Stelvio Pass", region: "South Tyrol", country: "Italy", lat: 46.5286, lng: 10.4531, sports: ["cycling"] },
+  { name: "Sa Calobra", region: "Mallorca", country: "Spain", lat: 39.8500, lng: 2.8000, sports: ["cycling"] },
+  { name: "Flanders (Ronde)", region: "Flanders", country: "Belgium", lat: 50.8503, lng: 3.7250, sports: ["cycling"] },
+  { name: "Roubaix Velodrome", region: "Nord", country: "France", lat: 50.6942, lng: 3.1746, sports: ["cycling"] },
+  { name: "Girona", region: "Catalonia", country: "Spain", lat: 41.9794, lng: 2.8214, sports: ["cycling"] },
+  { name: "Lake Como", region: "Lombardy", country: "Italy", lat: 45.9870, lng: 9.2572, sports: ["cycling"] },
+  { name: "Boulder", region: "Colorado", country: "USA", lat: 40.0150, lng: -105.2705, sports: ["cycling", "marathon"] },
+
+  // ═══════════════════════════════════════════
+  // CLIMBING
+  // ═══════════════════════════════════════════
+
+  { name: "Yosemite (El Capitan)", region: "California", country: "USA", lat: 37.7340, lng: -119.6370, sports: ["climbing"] },
+  { name: "Joshua Tree", region: "California", country: "USA", lat: 33.8734, lng: -115.9010, sports: ["climbing"] },
+  { name: "Red River Gorge", region: "Kentucky", country: "USA", lat: 37.7833, lng: -83.6167, sports: ["climbing"] },
+  { name: "Smith Rock", region: "Oregon", country: "USA", lat: 44.3682, lng: -121.1426, sports: ["climbing"] },
+  { name: "Fontainebleau", region: "Île-de-France", country: "France", lat: 48.3905, lng: 2.6444, sports: ["climbing"] },
+  { name: "Kalymnos", region: "Dodecanese", country: "Greece", lat: 36.9833, lng: 26.9833, sports: ["climbing"] },
+  { name: "Siurana", region: "Catalonia", country: "Spain", lat: 41.2500, lng: 0.9333, sports: ["climbing"] },
+  { name: "Arco", region: "Trentino", country: "Italy", lat: 45.9186, lng: 10.8861, sports: ["climbing"] },
+  { name: "Railay Beach", region: "Krabi", country: "Thailand", lat: 8.0117, lng: 98.8383, sports: ["climbing"] },
+  { name: "Tonsai Beach", region: "Krabi", country: "Thailand", lat: 8.0083, lng: 98.8333, sports: ["climbing"] },
+  { name: "Frankenjura", region: "Bavaria", country: "Germany", lat: 49.7167, lng: 11.3833, sports: ["climbing"] },
+  { name: "Squamish (The Chief)", region: "British Columbia", country: "Canada", lat: 49.6833, lng: -123.1500, sports: ["climbing"] },
+  { name: "Grampians", region: "Victoria", country: "Australia", lat: -37.1500, lng: 142.5167, sports: ["climbing"] },
+  { name: "Yangshuo", region: "Guangxi", country: "China", lat: 24.7736, lng: 110.4897, sports: ["climbing"] },
+
+  // ═══════════════════════════════════════════
+  // WAKEBOARD / CABLE PARKS
+  // ═══════════════════════════════════════════
+
+  { name: "Mastercraft Pro Wakeboard (Orlando)", region: "Florida", country: "USA", lat: 28.3922, lng: -81.2962, sports: ["wakeboard"] },
+  { name: "Hip Notics Cable Park", region: "Antalya", country: "Turkey", lat: 36.8969, lng: 30.6897, sports: ["wakeboard"] },
+  { name: "Camsur Watersports Complex", region: "Camarines Sur", country: "Philippines", lat: 13.6250, lng: 123.1833, sports: ["wakeboard"] },
+  { name: "Liquid Leisure", region: "Windsor", country: "UK", lat: 51.4500, lng: -0.5667, sports: ["wakeboard"] },
+  { name: "Wasserski Langenfeld", region: "North Rhine-Westphalia", country: "Germany", lat: 51.1167, lng: 6.9500, sports: ["wakeboard"] },
+  { name: "Bali Wake Park", region: "Bali", country: "Indonesia", lat: -8.6500, lng: 115.2167, sports: ["wakeboard"] },
+  { name: "Anthem Wakepark", region: "Cavite", country: "Philippines", lat: 14.2833, lng: 120.9333, sports: ["wakeboard"] },
+
+  // ═══════════════════════════════════════════
+  // CROSSFIT / FITNESS EVENTS
+  // ═══════════════════════════════════════════
+
+  { name: "CrossFit Games (Madison)", region: "Wisconsin", country: "USA", lat: 43.0731, lng: -89.4012, sports: ["crossfit"] },
+  { name: "Dubai CrossFit Championship", region: "Dubai", country: "UAE", lat: 25.2048, lng: 55.2708, sports: ["crossfit"] },
+  { name: "Rogue Invitational", region: "Austin, Texas", country: "USA", lat: 30.2672, lng: -97.7431, sports: ["crossfit"] },
+
+  // ═══════════════════════════════════════════
+  // KAYAK / CANOE / RAFTING
+  // ═══════════════════════════════════════════
+
+  { name: "Futaleufú River", region: "Los Lagos", country: "Chile", lat: -43.1833, lng: -71.8667, sports: ["kayak"] },
+  { name: "Zambezi River (Victoria Falls)", region: "Livingstone", country: "Zambia", lat: -17.9244, lng: 25.8567, sports: ["kayak"] },
+  { name: "Colorado River (Grand Canyon)", region: "Arizona", country: "USA", lat: 36.1069, lng: -112.1129, sports: ["kayak"] },
+  { name: "Soča River", region: "Primorska", country: "Slovenia", lat: 46.3333, lng: 13.5500, sports: ["kayak"] },
+  { name: "Ottawa River", region: "Ontario", country: "Canada", lat: 45.5500, lng: -76.9833, sports: ["kayak"] },
+  { name: "Sjoa River", region: "Innlandet", country: "Norway", lat: 61.6833, lng: 9.3333, sports: ["kayak"] },
+
+  // ═══════════════════════════════════════════
+  // PARAGLIDING
+  // ═══════════════════════════════════════════
+
+  { name: "Ölüdeniz", region: "Muğla", country: "Turkey", lat: 36.5500, lng: 29.1167, sports: ["paragliding"] },
+  { name: "Interlaken", region: "Bern", country: "Switzerland", lat: 46.6863, lng: 7.8632, sports: ["paragliding"] },
+  { name: "Pokhara", region: "Gandaki", country: "Nepal", lat: 28.2096, lng: 83.9856, sports: ["paragliding"] },
+  { name: "Bir Billing", region: "Himachal Pradesh", country: "India", lat: 31.8833, lng: 76.7167, sports: ["paragliding"] },
+  { name: "Bassano del Grappa", region: "Veneto", country: "Italy", lat: 45.7667, lng: 11.7333, sports: ["paragliding"] },
+  { name: "San Gil", region: "Santander", country: "Colombia", lat: 6.5569, lng: -73.1361, sports: ["paragliding"] },
+
+  // ═══════════════════════════════════════════
+  // BMX
+  // ═══════════════════════════════════════════
+
+  { name: "Pumptrack Zürich", region: "Zürich", country: "Switzerland", lat: 47.3769, lng: 8.5417, sports: ["bmx"] },
+  { name: "Ray's MTB Indoor Park", region: "Cleveland, Ohio", country: "USA", lat: 41.4993, lng: -81.6944, sports: ["bmx", "mtb"] },
+  { name: "Adrenaline Alley", region: "Corby", country: "UK", lat: 52.4917, lng: -0.6833, sports: ["bmx", "skate"] },
+  { name: "Leszno BMX Track", region: "Greater Poland", country: "Poland", lat: 51.8417, lng: 16.5750, sports: ["bmx"] },
+  { name: "Papendal BMX Track", region: "Gelderland", country: "Netherlands", lat: 51.9833, lng: 5.8500, sports: ["bmx"] },
+
+  // ═══════════════════════════════════════════
+  // DIVING
+  // ═══════════════════════════════════════════
+
+  { name: "Great Barrier Reef", region: "Queensland", country: "Australia", lat: -18.2871, lng: 147.6992, sports: ["diving"] },
+  { name: "Blue Hole (Belize)", region: "Belize District", country: "Belize", lat: 17.3156, lng: -87.5347, sports: ["diving"] },
+  { name: "Sipadan Island", region: "Sabah", country: "Malaysia", lat: 4.1147, lng: 118.6292, sports: ["diving"] },
+  { name: "Raja Ampat", region: "West Papua", country: "Indonesia", lat: -0.2333, lng: 130.5167, sports: ["diving"] },
+  { name: "Galápagos Islands", region: "Galápagos", country: "Ecuador", lat: -0.9538, lng: -90.9656, sports: ["diving"] },
+  { name: "Red Sea (Sharm el-Sheikh)", region: "South Sinai", country: "Egypt", lat: 27.9158, lng: 34.3300, sports: ["diving"] },
+  { name: "Cenotes (Tulum)", region: "Quintana Roo", country: "Mexico", lat: 20.2145, lng: -87.4292, sports: ["diving"] },
 ];
 
 // ═══════════════════════════════════════════
