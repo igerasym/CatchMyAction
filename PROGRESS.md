@@ -91,6 +91,7 @@ ssh -i catchmyaction-key.pem ec2-user@35.86.237.14 'docker run --rm --network ap
 - [ ] Notify-me email notifications when photographer publishes session
 
 ### Medium Priority
+- [ ] Photographers directory page (browse by location, portfolios, sport specialties, ratings)
 - [ ] Photographer earnings dashboard (total sales, per-session breakdown, payout history)
 - [ ] Session analytics (views, claims, conversion rate)
 - [ ] CI/CD pipeline (GitHub Actions: test → build → deploy)
