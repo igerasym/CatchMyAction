@@ -63,7 +63,7 @@ export async function indexFacesInPhoto(
           Name: s3Key,
         },
       },
-      ExternalImageId: sanitizeExternalId(photoId),
+      ExternalImageId: photoId,
       DetectionAttributes: ["DEFAULT"],
       MaxFaces: 10,
       QualityFilter: "AUTO",
