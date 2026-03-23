@@ -10,6 +10,10 @@ export const metadata: Metadata = {
   title: "CatchMyAction — Find Yourself in Action",
   description:
     "Browse and purchase high-quality action photography from your sessions.",
+  icons: {
+    icon: "/icon.svg",
+    apple: "/apple-icon.svg",
+  },
 };
 
 export default function RootLayout({
