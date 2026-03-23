@@ -300,6 +300,7 @@ export default function UploadPage() {
       <h1 className="text-2xl font-bold text-white mb-2">Create a Session</h1>
       <p className="text-white/40 mb-6 text-sm">
         {user ? "Fill in the session details to get started." : "Fill in the details — you can sign up in the next step."}
+        {" "}<a href="/guide" className="text-ocean-400 hover:underline">Read the photographer guide →</a>
       </p>
 
       <form onSubmit={handleContinue} className="space-y-4">
