@@ -130,7 +130,7 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
           <div>
             <label className="block text-xs text-white/40 mb-1">Price per Photo ($)</label>
             <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required
-              min="0.50" max="999" step="0.01" className={inputClass} />
+              min="1" max="999" step="0.01" className={inputClass} />
           </div>
           <div>
             <label className="block text-xs text-white/40 mb-1">Description</label>
