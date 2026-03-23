@@ -105,7 +105,7 @@ export async function searchFacesBySelfie(
       return []; // No face detected in selfie
     }
     console.error("Search faces error:", err.message);
-    return [];
+    throw err; // Let the caller handle it
   }
 }
 
