@@ -24,7 +24,10 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
   const [searching, setSearching] = useState(false);
   const [results, setResults] = useState<{ photoId: string; similarity: number }[] | null>(null);
   const [error, setError] = useState("");
+  const [cameraActive, setCameraActive] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
 
   function handleOpen() {
     if (!userId) {
@@ -34,6 +37,49 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
     setOpen(true);
     setResults(null);
     setError("");
+    setCameraActive(false);
+  }
+
+  function handleClose() {
+    stopCamera();
+    setOpen(false);
+  }
+
+  async function startCamera() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play();
+      }
+      setCameraActive(true);
+    } catch {
+      setError("Camera access denied. Try uploading a photo instead.");
+    }
+  }
+
+  function stopCamera() {
+    streamRef.current?.getTracks().forEach((t) => t.stop());
+    streamRef.current = null;
+    setCameraActive(false);
+  }
+
+  async function captureAndSearch() {
+    const video = videoRef.current;
+    if (!video) return;
+    const canvas = document.createElement("canvas");
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    canvas.getContext("2d")!.drawImage(video, 0, 0);
+    stopCamera();
+    canvas.toBlob(async (blob) => {
+      if (!blob) return;
+      const file = new File([blob], "selfie.jpg", { type: "image/jpeg" });
+      await searchWithFile(file);
+    }, "image/jpeg", 0.9);
   }
 
   async function handleFile(e: React.ChangeEvent<HTMLInputElement>) {
@@ -93,7 +139,7 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => !searching && setOpen(false)}>
+    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => !searching && handleClose()}>
       <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
         <h2 className="text-lg font-bold text-white mb-1">Find Your Photos</h2>
         <p className="text-sm text-white/40 mb-5">Upload a selfie and we'll find photos with your face in this session.</p>
@@ -132,11 +178,25 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
                 className="px-4 py-2 border border-white/10 text-white/60 rounded-lg hover:bg-white/5 transition-colors text-sm">
                 Try Again
               </button>
-              <button onClick={() => setOpen(false)}
+              <button onClick={handleClose}
                 className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm">
                 {results.length > 0 ? "View Photos" : "Close"}
               </button>
             </div>
+          </div>
+        ) : cameraActive ? (
+          <div className="space-y-3">
+            <div className="rounded-xl overflow-hidden bg-black">
+              <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-xl" style={{ transform: "scaleX(-1)" }} />
+            </div>
+            <button onClick={captureAndSearch}
+              className="w-full py-3 bg-ocean-500 text-white rounded-xl hover:bg-ocean-400 transition-colors font-medium">
+              <Camera className="w-4 h-4 inline mr-1" /> Capture & Search
+            </button>
+            <button onClick={() => { stopCamera(); }}
+              className="w-full py-2 text-xs text-white/30 hover:text-white/50 transition-colors">
+              Cancel
+            </button>
           </div>
         ) : (
           <div className="space-y-3">
@@ -153,6 +213,12 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
               <input type="file" accept="image/*" capture="user" className="hidden"
                 onChange={handleFile} />
             </label>
+
+            {/* Desktop: webcam */}
+            <button onClick={startCamera}
+              className="hidden sm:block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 transition-colors">
+              <Camera className="w-4 h-4 inline mr-1" /> Use Camera
+            </button>
 
             <p className="text-[11px] text-white/20 text-center">
               Your selfie is sent to our server for face matching and is not stored.
