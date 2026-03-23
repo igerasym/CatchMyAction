@@ -11,9 +11,10 @@ interface Props {
   min?: string;
   max?: string;
   className?: string;
+  id?: string;
 }
 
-export default function DateTimeInput({ type, value, onChange, required, min, max, className }: Props) {
+export default function DateTimeInput({ type, value, onChange, required, min, max, className, id }: Props) {
   const ref = useRef<HTMLInputElement>(null);
   const Icon = type === "date" ? Calendar : Clock;
 
@@ -21,6 +22,7 @@ export default function DateTimeInput({ type, value, onChange, required, min, ma
     <div className="relative">
       <input
         ref={ref}
+        id={id}
         type={type}
         value={value}
         onChange={onChange}

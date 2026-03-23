@@ -37,6 +37,7 @@ export default function SearchForm({
         <label htmlFor="date" className="block text-xs font-medium text-white/40 mb-1">Date</label>
         <DateTimeInput
           type="date"
+          id="date"
           value={date}
           onChange={(e) => setDate(e.target.value)}
           max={new Date().toISOString().split("T")[0]}
