@@ -51,11 +51,13 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
         video: { facingMode: "user", width: { ideal: 640 }, height: { ideal: 480 } },
       });
       streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        videoRef.current.play();
-      }
       setCameraActive(true);
+      // Wait for DOM to render the video element, then attach stream
+      setTimeout(() => {
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+      }, 100);
     } catch {
       setError("Camera access denied. Try uploading a photo instead.");
     }
@@ -187,7 +189,9 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
         ) : cameraActive ? (
           <div className="space-y-3">
             <div className="rounded-xl overflow-hidden bg-black">
-              <video ref={videoRef} autoPlay playsInline muted className="w-full rounded-xl" style={{ transform: "scaleX(-1)" }} />
+              <video ref={videoRef} autoPlay playsInline muted
+                onLoadedMetadata={(e) => (e.target as HTMLVideoElement).play()}
+                className="w-full rounded-xl" style={{ transform: "scaleX(-1)" }} />
             </div>
             <button onClick={captureAndSearch}
               className="w-full py-3 bg-ocean-500 text-white rounded-xl hover:bg-ocean-400 transition-colors font-medium">
