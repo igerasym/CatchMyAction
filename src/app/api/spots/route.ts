@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { ACTION_SPOTS } from "@/lib/spots-database";
 
+export const dynamic = "force-dynamic";
+
 /** GET /api/spots — all known spots (static + from sessions with coordinates) */
 export async function GET() {
   const sessions = await prisma.session.findMany({

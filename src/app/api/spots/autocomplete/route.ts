@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { ACTION_SPOTS } from "@/lib/spots-database";
 
+export const dynamic = "force-dynamic";
+
 /** GET /api/spots/autocomplete?q=pipe — search spots */
 export async function GET(req: NextRequest) {
   const q = new URL(req.url).searchParams.get("q")?.toLowerCase() || "";
