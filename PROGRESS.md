@@ -10,7 +10,8 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 ---
 
 ## Infrastructure (Production)
-- EC2 t4g.micro (ARM64, 1GB RAM + 1GB swap) in us-west-2
+- EC2 t4g.small (ARM64, 2GB RAM + 1GB swap) in us-west-2
+- Elastic IP: 52.39.186.224
 - PostgreSQL 16 in Docker on EC2
 - S3: catchmyaction-originals (private) + catchmyaction-previews (public)
 - CloudFront CDN for photo delivery (d3l9l6cbrqgaa0.cloudfront.net)
@@ -76,10 +77,10 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 ## Deploy Commands
 ```bash
 # Deploy to production
-ssh -i catchmyaction-key.pem ec2-user@35.86.237.14 "cd ~/app && git checkout -- . && git pull && docker-compose -f docker-compose.production.yml build app 2>&1 | tail -5 && docker-compose -f docker-compose.production.yml up -d 2>&1 | tail -3"
+ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 "cd ~/app && git checkout -- . && git pull && docker-compose -f docker-compose.production.yml build app 2>&1 | tail -5 && docker-compose -f docker-compose.production.yml up -d 2>&1 | tail -3"
 
 # DB migration on prod
-ssh -i catchmyaction-key.pem ec2-user@35.86.237.14 'docker run --rm --network app_default -v $(pwd)/app/prisma:/app/prisma -w /app -e DATABASE_URL="postgresql://catchmyaction:CatchMyAction2026!@postgres:5432/catchmyaction?schema=public" node:20-alpine sh -c "apk add --no-cache openssl && npm install -g prisma@5.22.0 && prisma db push --schema /app/prisma/schema.prisma" 2>&1 | tail -10'
+ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network app_default -v $(pwd)/app/prisma:/app/prisma -w /app -e DATABASE_URL="postgresql://catchmyaction:CatchMyAction2026!@postgres:5432/catchmyaction?schema=public" node:20-alpine sh -c "apk add --no-cache openssl && npm install -g prisma@5.22.0 && prisma db push --schema /app/prisma/schema.prisma" 2>&1 | tail -10'
 ```
 
 ## Next Steps
