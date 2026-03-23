@@ -17,35 +17,43 @@ export async function POST() {
     return NextResponse.json({ error: "Please verify your email before connecting Stripe.", needsVerification: true }, { status: 403 });
   }
 
-  let accountId = dbUser.stripeAccountId;
+  try {
+    let accountId = dbUser.stripeAccountId;
 
-  // Create Connect account if doesn't exist
-  if (!accountId) {
-    const account = await stripe.accounts.create({
-      type: "express",
-      email: dbUser.email,
-      metadata: { userId: user.id },
-      capabilities: {
-        card_payments: { requested: true },
-        transfers: { requested: true },
-      },
+    // Create Connect account if doesn't exist
+    if (!accountId) {
+      const account = await stripe.accounts.create({
+        type: "express",
+        email: dbUser.email,
+        metadata: { userId: user.id },
+        capabilities: {
+          card_payments: { requested: true },
+          transfers: { requested: true },
+        },
+      });
+      accountId = account.id;
+      await prisma.user.update({
+        where: { id: user.id },
+        data: { stripeAccountId: accountId },
+      });
+    }
+
+    // Create onboarding link
+    const link = await stripe.accountLinks.create({
+      account: accountId,
+      refresh_url: `${APP_URL}/settings?stripe=refresh`,
+      return_url: `${APP_URL}/settings?stripe=success`,
+      type: "account_onboarding",
     });
-    accountId = account.id;
-    await prisma.user.update({
-      where: { id: user.id },
-      data: { stripeAccountId: accountId },
-    });
+
+    return NextResponse.json({ url: link.url });
+  } catch (err: any) {
+    console.error("Stripe Connect error:", err.message);
+    const msg = err.message?.includes("signed up for Connect")
+      ? "Stripe Connect is not yet enabled. The platform admin needs to activate it."
+      : err.message || "Failed to connect Stripe";
+    return NextResponse.json({ error: msg }, { status: 500 });
   }
-
-  // Create onboarding link
-  const link = await stripe.accountLinks.create({
-    account: accountId,
-    refresh_url: `${APP_URL}/settings?stripe=refresh`,
-    return_url: `${APP_URL}/settings?stripe=success`,
-    type: "account_onboarding",
-  });
-
-  return NextResponse.json({ url: link.url });
 }
 
 /** GET /api/stripe/connect — check Connect account status */
