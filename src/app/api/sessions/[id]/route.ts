@@ -39,14 +39,17 @@ export async function PATCH(
   const body = await req.json();
   const { title, location, date, startTime, endTime, description, published, coverPhotoId, pricePerPhoto } = body;
 
-  // Block publishing if email not verified
+  // Block publishing if email not verified (skip for free sessions)
   if (published === true) {
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { emailVerified: true } }) as any;
-    if (!dbUser?.emailVerified) {
-      return NextResponse.json({
-        error: "Please verify your email before publishing. Check Settings → Profile.",
-        needsVerification: true,
-      }, { status: 403 });
+    const session = await prisma.session.findUnique({ where: { id: params.id }, select: { pricePerPhoto: true } });
+    if (session && session.pricePerPhoto > 0) {
+      const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { emailVerified: true } }) as any;
+      if (!dbUser?.emailVerified) {
+        return NextResponse.json({
+          error: "Please verify your email before publishing paid sessions. Check Settings → Profile.",
+          needsVerification: true,
+        }, { status: 403 });
+      }
     }
   }
 
