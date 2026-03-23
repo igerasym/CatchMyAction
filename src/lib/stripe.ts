@@ -4,7 +4,7 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
   apiVersion: "2024-04-10",
 });
 
-const PLATFORM_FEE_PERCENT = 20; // 20% platform fee
+const PLATFORM_FEE_PERCENT = 18; // 18% platform fee
 
 /** Create a Stripe Checkout session for a single photo purchase */
 export async function createCheckoutSession(params: {

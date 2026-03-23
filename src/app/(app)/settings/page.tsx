@@ -255,7 +255,7 @@ function StripeConnect() {
           <span className="text-green-400">✓</span>
           <p className="text-sm text-green-400 font-medium">Stripe Connected</p>
         </div>
-        <p className="text-xs text-white/30">Payouts are enabled. You receive 80% of each sale automatically.</p>
+        <p className="text-xs text-white/30">Payouts are enabled. You receive 82% of each sale automatically.</p>
       </div>
     );
   }
@@ -278,7 +278,7 @@ function StripeConnect() {
       <p className="text-sm text-white font-medium mb-2">Get paid for your photos</p>
       <p className="text-xs text-white/30 mb-1">Connect your Stripe account to receive payouts when your photos sell.</p>
       <ul className="text-xs text-white/20 mb-4 space-y-1">
-        <li>• You keep 80% of each sale</li>
+        <li>• You keep 82% of each sale</li>
         <li>• Automatic payouts to your bank account</li>
         <li>• Stripe handles all payment processing securely</li>
         <li>• Takes about 2 minutes to set up</li>
