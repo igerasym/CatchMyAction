@@ -135,8 +135,16 @@ export default function DashboardPage() {
       {stats && !stripeConnected && (
         <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm text-yellow-400 font-medium">Connect Stripe to get paid</p>
-            <p className="text-xs text-white/30 mt-0.5">Athletes can browse your photos, but you won't receive payouts until Stripe is connected.</p>
+            <p className="text-sm text-yellow-400 font-medium">
+              {stats.photosSold > 0
+                ? `You have $${((stats.revenue * 0.82) / 100).toFixed(2)} in earnings — connect Stripe to get paid`
+                : "Connect Stripe to get paid"}
+            </p>
+            <p className="text-xs text-white/30 mt-0.5">
+              {stats.photosSold > 0
+                ? `${stats.photosSold} photo${stats.photosSold > 1 ? "s" : ""} sold. Your earnings are held until you connect Stripe.`
+                : "Athletes can browse your photos, but you won't receive payouts until Stripe is connected."}
+            </p>
           </div>
           <a href="/settings" className="px-4 py-2 bg-yellow-500 text-black text-xs rounded-lg hover:bg-yellow-400 transition-colors font-medium whitespace-nowrap">
             Connect Stripe
