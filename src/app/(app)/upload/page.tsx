@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import SpotAutocomplete from "@/app/components/spot-autocomplete";
 import PasswordInput from "@/app/components/password-input";
+import DateTimeInput from "@/app/components/date-time-input";
 
 const DRAFT_KEY = "catchmyaction_session_draft";
 
@@ -311,17 +312,17 @@ export default function UploadPage() {
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs text-white/40 mb-1">Date</label>
-            <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required
+            <DateTimeInput type="date" value={date} onChange={(e) => setDate(e.target.value)} required
               max={new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]}
               min={`${new Date().getFullYear() - 1}-01-01`} className={inputClass} />
           </div>
           <div>
             <label className="block text-xs text-white/40 mb-1">Start</label>
-            <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required className={inputClass} />
+            <DateTimeInput type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required className={inputClass} />
           </div>
           <div>
             <label className="block text-xs text-white/40 mb-1">End</label>
-            <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
+            <DateTimeInput type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
           </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import { Globe, Map, MapPin, Camera } from "lucide-react";
+import DateTimeInput from "@/app/components/date-time-input";
 
 interface Suggestion {
   label: string;
@@ -101,8 +102,7 @@ export default function SearchBar({ locations }: { locations: string[] }) {
           <label htmlFor="date" className="block text-xs font-medium text-white/40 mb-1">
             Date
           </label>
-          <input
-            id="date"
+          <DateTimeInput
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}

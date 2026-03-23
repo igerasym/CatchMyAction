@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import DateTimeInput from "@/app/components/date-time-input";
 
 interface SpotSuggestion {
   label: string;
@@ -113,17 +114,17 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
           <div className="grid grid-cols-3 gap-2">
             <div>
               <label className="block text-xs text-white/40 mb-1">Date</label>
-              <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required
+              <DateTimeInput type="date" value={date} onChange={(e) => setDate(e.target.value)} required
                 max={new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]}
                 min={`${new Date().getFullYear() - 1}-01-01`} className={inputClass} />
             </div>
             <div>
               <label className="block text-xs text-white/40 mb-1">Start</label>
-              <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required className={inputClass} />
+              <DateTimeInput type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required className={inputClass} />
             </div>
             <div>
               <label className="block text-xs text-white/40 mb-1">End</label>
-              <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
+              <DateTimeInput type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
             </div>
           </div>
           <div>
