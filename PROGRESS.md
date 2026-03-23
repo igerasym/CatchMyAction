@@ -86,9 +86,10 @@ ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network a
 ## Next Steps
 
 ### High Priority
-- [ ] Activate Stripe Connect on Stripe dashboard (dashboard.stripe.com/connect) — required before photographers can connect
-- [ ] SES production access (currently sandbox — blocks real user emails)
-- [ ] Fix face recognition on production (model files loading from CloudFront)
+- [x] Activate Stripe Connect on Stripe dashboard — done, 18% platform fee
+- [ ] SES production access (submitted, awaiting AWS review)
+- [ ] Migrate face recognition from face-api.js to AWS Rekognition (server-side, faster, more accurate, no 12MB model download, ~$0.35/month)
+- [ ] Content moderation: report button on photos + Rekognition auto-scan on upload (~$0.01/100 photos)
 - [ ] Notify-me email notifications when photographer publishes session
 
 ### Medium Priority
