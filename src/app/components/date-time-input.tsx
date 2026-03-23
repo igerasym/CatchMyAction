@@ -27,7 +27,7 @@ export default function DateTimeInput({ type, value, onChange, required, min, ma
         required={required}
         min={min}
         max={max}
-        className={`${className} pr-10 [&::-webkit-calendar-picker-indicator]{opacity:0;position:absolute;right:0;width:100%;height:100%;cursor:pointer}`}
+        className={`${className} pr-10`}
       />
       <button
         type="button"
