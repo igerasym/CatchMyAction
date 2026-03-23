@@ -89,7 +89,7 @@ export async function POST(req: NextRequest) {
         sportType: sport,
         photographerId: user.id,
         ...(coords && { locationLat: coords.lat, locationLng: coords.lng }),
-        ...(pricePerPhoto && pricePerPhoto >= 100 ? { pricePerPhoto } : {}),
+        ...(pricePerPhoto !== undefined && pricePerPhoto >= 0 ? { pricePerPhoto } : {}),
         ...conditions,
       } as any,
     });

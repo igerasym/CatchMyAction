@@ -53,6 +53,10 @@ export async function POST(req: NextRequest) {
   if (session.photoCount >= 200) {
     return NextResponse.json({ error: "Session photo limit reached (200)" }, { status: 400 });
   }
+  // Free sessions limited to 50 photos
+  if (session.pricePerPhoto === 0 && session.photoCount >= 50) {
+    return NextResponse.json({ error: "Free sessions are limited to 50 photos. Set a price to upload more." }, { status: 400 });
+  }
 
   const buffer = Buffer.from(await file.arrayBuffer());
 

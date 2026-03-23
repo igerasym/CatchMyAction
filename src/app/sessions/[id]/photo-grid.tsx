@@ -173,6 +173,33 @@ export default function PhotoGrid({
     return () => observer.disconnect();
   }, [cursor, loading, loadMore]);
 
+  async function handleFreeDownload(photo: Photo) {
+    if (!userId) { router.push("/login"); return; }
+    setPurchasing(true);
+    try {
+      // Create a free "purchase" record
+      const res = await fetch(`/api/photos/${photo.id}/free-download`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId }),
+      });
+      const data = await res.json();
+      if (data.downloadUrl) {
+        setPurchasedIds((prev) => new Set(prev).add(photo.id));
+        const a = document.createElement("a");
+        a.href = data.downloadUrl;
+        a.download = `photo-${photo.id}.jpg`;
+        a.click();
+      } else if (data.error) {
+        alert(data.error);
+      }
+    } catch {
+      alert("Download failed");
+    } finally {
+      setPurchasing(false);
+    }
+  }
+
   async function handlePurchase(photo: Photo) {
     if (!userId) {
       router.push("/login");
@@ -319,7 +346,7 @@ export default function PhotoGrid({
           <div className="max-w-5xl mx-auto flex items-center justify-between">
             <div>
               <p className="text-sm text-white font-medium">{cartCount} photo{cartCount > 1 ? "s" : ""} selected</p>
-              <p className="text-xs text-white/40">${(cartTotal / 100).toFixed(2)} total</p>
+              <p className="text-xs text-white/40">{cartTotal === 0 ? "Free" : `$${(cartTotal / 100).toFixed(2)} total`}</p>
             </div>
             <div className="flex gap-2">
               <button onClick={() => setCartIds(new Set())}
@@ -328,7 +355,7 @@ export default function PhotoGrid({
               </button>
               <button onClick={handleBulkPurchase} disabled={bulkBuying}
                 className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-all text-sm font-medium">
-                {bulkBuying ? "Processing..." : `Buy ${cartCount} Photo${cartCount > 1 ? "s" : ""}`}
+                {bulkBuying ? "Processing..." : cartTotal === 0 ? `Download ${cartCount} Free` : `Buy ${cartCount} Photo${cartCount > 1 ? "s" : ""}`}
               </button>
             </div>
           </div>
@@ -404,6 +431,11 @@ export default function PhotoGrid({
                     <p className="text-sm font-medium text-green-400">✓ Purchased</p>
                     <p className="text-sm text-white/40">{selectedPhoto.width} × {selectedPhoto.height} · Original quality</p>
                   </>
+                ) : selectedPhoto.priceInCents === 0 ? (
+                  <>
+                    <p className="text-lg font-semibold text-green-400">Free</p>
+                    <p className="text-sm text-white/40">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
+                  </>
                 ) : (
                   <>
                     <p className="text-lg font-semibold text-white">${(selectedPhoto.priceInCents / 100).toFixed(2)}</p>
@@ -415,6 +447,11 @@ export default function PhotoGrid({
                 <button onClick={() => handlePurchase(selectedPhoto)} disabled={purchasing}
                   className="px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50">
                   {purchasing ? "..." : "Download HD"}
+                </button>
+              ) : selectedPhoto.priceInCents === 0 ? (
+                <button onClick={() => handleFreeDownload(selectedPhoto)} disabled={purchasing}
+                  className="px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50">
+                  {purchasing ? "..." : "Free Download"}
                 </button>
               ) : (
                 <button onClick={() => handlePurchase(selectedPhoto)} disabled={purchasing}
