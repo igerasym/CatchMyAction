@@ -39,6 +39,7 @@ export default function ManagePhotosPage() {
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [showQR, setShowQR] = useState(false);
+  const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -104,12 +105,10 @@ export default function ManagePhotosPage() {
   }
 
   // --- Upload ---
-  async function handleUpload() {
-    const files = fileRef.current?.files;
-    if (!files || files.length === 0) return;
+  async function uploadFiles(arr: File[]) {
+    if (arr.length === 0) return;
     setUploading(true);
     setUploadErrors([]);
-    const arr = Array.from(files);
     setUploadProgress({ done: 0, total: arr.length });
     for (let i = 0; i < arr.length; i += 3) {
       const batch = arr.slice(i, i + 3);
@@ -137,6 +136,18 @@ export default function ManagePhotosPage() {
     if (fileRef.current) fileRef.current.value = "";
     const sess = await fetch(`/api/sessions/${sessionId}`).then((r) => r.json());
     setSession(sess);
+  }
+
+  function handleUpload() {
+    const files = fileRef.current?.files;
+    if (files) uploadFiles(Array.from(files));
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter((f) => f.type.startsWith("image/"));
+    if (files.length > 0) uploadFiles(files);
   }
 
   if (loading) return <p className="text-center py-12 text-white/40">Loading...</p>;
@@ -229,17 +240,36 @@ export default function ManagePhotosPage() {
 
       {/* Photo grid */}
       {photos.length === 0 ? (
-        <div className="text-center py-16 text-white/30">
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          onClick={() => fileRef.current?.click()}
+          className={`text-center py-16 text-white/30 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+            dragging ? "border-ocean-500 bg-ocean-500/10" : "border-white/10 hover:border-ocean-500/50"
+          }`}
+        >
           <div className="flex justify-center mb-3">
             <div className="w-14 h-14 rounded-2xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
               <svg className="w-7 h-7 text-ocean-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="6" width="18" height="13" rx="2" /><circle cx="12" cy="13" r="3.5" /><path d="M8 6V5a1 1 0 011-1h6a1 1 0 011 1v1" /></svg>
             </div>
           </div>
           <p className="mb-1">No photos yet</p>
-          <p className="text-sm">Click "+ Add Photos" to upload</p>
+          <p className="text-sm">Drag & drop photos here or click to browse</p>
         </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+        <div
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={() => setDragging(false)}
+          onDrop={handleDrop}
+          className={`relative rounded-xl transition-all ${dragging ? "ring-2 ring-ocean-500 ring-offset-2 ring-offset-[#0a0a0a]" : ""}`}
+        >
+          {dragging && (
+            <div className="absolute inset-0 bg-ocean-500/10 border-2 border-dashed border-ocean-500 rounded-xl z-10 flex items-center justify-center">
+              <p className="text-ocean-400 font-medium">Drop photos to upload</p>
+            </div>
+          )}
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
           {photos.map((p) => (
             <div
               key={p.id}
@@ -299,6 +329,7 @@ export default function ManagePhotosPage() {
               </div>
             </div>
           ))}
+        </div>
         </div>
       )}
 

@@ -56,6 +56,7 @@ export default function UploadPage() {
     total: 0, completed: 0, failed: 0, inProgress: false,
   });
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const [dragging, setDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Restore draft from localStorage on mount
@@ -157,14 +158,12 @@ export default function UploadPage() {
   }
 
   // Upload photos
-  async function handleUploadPhotos() {
-    const files = fileInputRef.current?.files;
-    if (!files || files.length === 0 || !sessionId) return;
-    const arr = Array.from(files);
-    setUploadState({ total: arr.length, completed: 0, failed: 0, inProgress: true });
+  async function uploadFiles(files: File[]) {
+    if (files.length === 0 || !sessionId) return;
+    setUploadState({ total: files.length, completed: 0, failed: 0, inProgress: true });
     setUploadErrors([]);
-    for (let i = 0; i < arr.length; i += 3) {
-      const batch = arr.slice(i, i + 3);
+    for (let i = 0; i < files.length; i += 3) {
+      const batch = files.slice(i, i + 3);
       const results = await Promise.allSettled(
         batch.map(async (file) => {
           const fd = new FormData();
@@ -186,6 +185,21 @@ export default function UploadPage() {
     setUploadState((p) => ({ ...p, inProgress: false }));
   }
 
+  async function handleUploadPhotos() {
+    const files = fileInputRef.current?.files;
+    if (!files) return;
+    await uploadFiles(Array.from(files));
+  }
+
+  function handleDrop(e: React.DragEvent) {
+    e.preventDefault();
+    setDragging(false);
+    const files = Array.from(e.dataTransfer.files).filter((f) =>
+      f.type.startsWith("image/")
+    );
+    if (files.length > 0) uploadFiles(files);
+  }
+
   async function handlePublish() {
     if (!sessionId) return;
     await fetch(`/api/sessions/${sessionId}`, {
@@ -205,7 +219,30 @@ export default function UploadPage() {
         <h1 className="text-2xl font-bold text-white mb-2">Upload Photos</h1>
         <p className="text-white/40 mb-6 text-sm">Select up to 200 photos. They will be automatically watermarked.</p>
         <div className="space-y-4">
-          <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="w-full text-white/60" />
+          {/* Drag & Drop Zone */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileInputRef.current?.click()}
+            className={`relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
+              dragging
+                ? "border-ocean-500 bg-ocean-500/10"
+                : "border-white/10 hover:border-ocean-500/50 hover:bg-ocean-500/5"
+            }`}
+          >
+            <svg className="w-10 h-10 mx-auto mb-3 text-white/30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+              <polyline points="17 8 12 3 7 8" />
+              <line x1="12" y1="3" x2="12" y2="15" />
+            </svg>
+            <p className="text-sm text-white/50 mb-1">
+              {dragging ? "Drop photos here" : "Drag & drop photos here"}
+            </p>
+            <p className="text-xs text-white/25">or click to browse · JPEG, PNG, WebP</p>
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden"
+              onChange={handleUploadPhotos} />
+          </div>
           {uploadState.total > 0 && (
             <div className="bg-white/5 border border-white/10 rounded-lg p-3">
               <div className="flex justify-between text-sm text-white/60 mb-1">
@@ -219,10 +256,6 @@ export default function UploadPage() {
             </div>
           )}
           <div className="flex gap-3">
-            <button onClick={handleUploadPhotos} disabled={uploadState.inProgress}
-              className="flex-1 py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors">
-              {uploadState.inProgress ? "Uploading..." : "Upload Photos"}
-            </button>
             {uploadState.completed > 0 && !uploadState.inProgress && (
               <button onClick={handlePublish}
                 className="flex-1 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors">
