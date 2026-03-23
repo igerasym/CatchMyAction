@@ -71,17 +71,23 @@ export function getPreviewUrl(key: string): string {
   return `https://${BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 }
 
-/** Generate a signed download URL */
+/** Generate a signed download URL (forces browser download) */
 export async function getDownloadUrl(
   bucket: string,
   key: string,
-  expiresIn = 300
+  expiresIn = 300,
+  filename?: string
 ): Promise<string> {
   if (IS_LOCAL) {
     return `/api/uploads/${bucket}/${key}`;
   }
 
-  const command = new GetObjectCommand({ Bucket: bucket, Key: key });
+  const dlFilename = filename || key.split("/").pop() || "photo.jpg";
+  const command = new GetObjectCommand({
+    Bucket: bucket,
+    Key: key,
+    ResponseContentDisposition: `attachment; filename="${dlFilename}"`,
+  });
   return getSignedUrl(s3!, command, { expiresIn });
 }
 

@@ -21,13 +21,14 @@ export async function GET(
 
   const photo = await prisma.photo.findUnique({
     where: { id: params.id },
-    select: { originalKey: true },
+    select: { originalKey: true, session: { select: { title: true } } },
   });
   if (!photo) {
     return NextResponse.json({ error: "Photo not found" }, { status: 404 });
   }
 
-  const downloadUrl = await getDownloadUrl(BUCKET_ORIGINALS, photo.originalKey, 300);
+  const filename = `${photo.session.title.replace(/[^a-zA-Z0-9]/g, "-")}-${params.id.slice(-6)}.jpg`;
+  const downloadUrl = await getDownloadUrl(BUCKET_ORIGINALS, photo.originalKey, 300, filename);
 
   // Track download count (for analytics, not limiting)
   await prisma.purchase.update({
