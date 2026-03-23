@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
 
 export default function RegisterPage() {
@@ -72,7 +73,7 @@ export default function RegisterPage() {
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-white/50 mb-1">Password</label>
-          <input id="password" name="password" type="password" required minLength={8} className={inputClass} />
+          <PasswordInput id="password" name="password" required minLength={8} className={inputClass} />
           <p className="text-[11px] text-white/20 mt-1">Min 8 chars, 1 uppercase, 1 lowercase, 1 number</p>
         </div>
         <div>

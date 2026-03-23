@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import PasswordInput from "@/app/components/password-input";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -45,7 +46,7 @@ export default function ResetPasswordPage() {
           {error && <div className="bg-red-500/10 text-red-400 text-sm p-3 rounded-lg border border-red-500/20">{error}</div>}
           <div>
             <label className="block text-sm font-medium text-white/50 mb-1">New Password</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8}
+            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8}
               className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-ocean-500 focus:border-transparent" />
             <p className="text-[11px] text-white/20 mt-1">Min 8 chars, 1 uppercase, 1 lowercase, 1 number</p>
           </div>

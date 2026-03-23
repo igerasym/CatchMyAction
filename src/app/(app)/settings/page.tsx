@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import PasswordInput from "@/app/components/password-input";
 
 interface UserData {
   name: string; bio: string; website: string;
@@ -154,11 +155,11 @@ export default function SettingsPage() {
         <SectionHeader title="Change Password" />
         <div className="space-y-3">
           <Field label="Current Password">
-            <input type="password" value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
+            <PasswordInput value={currentPassword} onChange={(e) => setCurrentPassword(e.target.value)}
               placeholder="Leave blank to keep current" className={inp} />
           </Field>
           <Field label="New Password">
-            <input type="password" value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
+            <PasswordInput value={newPassword} onChange={(e) => setNewPassword(e.target.value)}
               placeholder="Min 8 chars, upper + lower + number" minLength={8} className={inp} />
           </Field>
         </div>
@@ -327,7 +328,7 @@ function UpgradeSection({ userId, update, onSuccess, onError }: {
       <SectionHeader title="Become a Photographer" />
       <p className="text-sm text-white/40 mb-4">Upgrade to create sessions, upload photos, and start selling.</p>
       <form onSubmit={handle} className="space-y-3">
-        <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required
+        <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required
           placeholder="Confirm your password"
           className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent" />
         <label className="flex items-start gap-2 cursor-pointer">
@@ -371,7 +372,7 @@ function DowngradeSection({ userId, update, onSuccess, onError }: {
   return (
     <form onSubmit={handle} className="mt-3 p-3 bg-white/[0.02] border border-white/5 rounded-lg space-y-3">
       <p className="text-xs text-white/40">Your sessions remain but you won't be able to upload new ones.</p>
-      <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Confirm password"
+      <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Confirm password"
         className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent" />
       <div className="flex gap-2">
         <button type="submit" disabled={loading}

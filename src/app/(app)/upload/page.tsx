@@ -4,6 +4,7 @@ import { useSession, signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import SpotAutocomplete from "@/app/components/spot-autocomplete";
+import PasswordInput from "@/app/components/password-input";
 
 const DRAFT_KEY = "catchmyaction_session_draft";
 
@@ -419,7 +420,7 @@ export default function UploadPage() {
               )}
               <input type="email" value={authEmail} onChange={(e) => setAuthEmail(e.target.value)} required
                 placeholder="Email" className={inputClass} />
-              <input type="password" value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required
+              <PasswordInput value={authPassword} onChange={(e) => setAuthPassword(e.target.value)} required
                 placeholder="Password" minLength={6} className={inputClass} />
 
               {authMode === "register" && (

@@ -3,6 +3,7 @@
 import { signIn } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
+import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
 
 export default function LoginPage() {
@@ -56,7 +57,7 @@ export default function LoginPage() {
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-white/50 mb-1">Password</label>
-          <input id="password" name="password" type="password" required autoComplete="current-password"
+          <PasswordInput id="password" name="password" required autoComplete="current-password"
             className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-ocean-500 focus:border-transparent" />
         </div>
         <button type="submit" disabled={loading}
