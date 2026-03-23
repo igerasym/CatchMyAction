@@ -70,13 +70,11 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
         onMatchFound(matchedIds);
 
         // Auto-claim matched photos
-        for (const photoId of matchedIds) {
-          fetch("/api/photos/claim", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ photoId }),
-          }).catch(() => {});
-        }
+        fetch("/api/photos/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoIds: matchedIds }),
+        }).catch(() => {});
       }
     } catch {
       setError("Something went wrong. Try again.");
