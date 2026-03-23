@@ -5,6 +5,7 @@ import { prisma } from "@/lib/db";
 import { putObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS, getPreviewUrl } from "@/lib/s3";
 import { createPreview, createThumbnail, getImageMetadata, extractExif } from "@/lib/image-processing";
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
+import { indexFacesInPhoto, moderateImage } from "@/lib/rekognition";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB — pro cameras shoot big
 const MIN_RESOLUTION = 1200; // px on shortest side
@@ -97,6 +98,15 @@ export async function POST(req: NextRequest) {
 
   // All checks passed — extract EXIF, process and store
   const exif = await extractExif(buffer);
+
+  // Content moderation (Rekognition) — reject prohibited content
+  const moderation = await moderateImage(buffer);
+  if (moderation.flagged) {
+    return NextResponse.json({
+      error: `Photo rejected: prohibited content detected (${moderation.labels.join(", ")})`,
+    }, { status: 400 });
+  }
+
   const photoId = uuid();
   const originalKey = `sessions/${sessionId}/originals/${photoId}.jpg`;
   const previewKey = `sessions/${sessionId}/previews/${photoId}.jpg`;
@@ -112,6 +122,9 @@ export async function POST(req: NextRequest) {
     putObject(BUCKET_PREVIEWS, previewKey, preview.buffer),
     putObject(BUCKET_PREVIEWS, thumbnailKey, thumbnail),
   ]);
+
+  // Index faces in the photo for "Find Me" feature (async, non-blocking)
+  indexFacesInPhoto(sessionId, photoId, originalKey).catch(() => {});
 
   const photo = await prisma.photo.create({
     data: {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
+import { deleteFaceCollection } from "@/lib/rekognition";
 
 /** GET /api/sessions/:id — get session (public) */
 export async function GET(
@@ -93,6 +94,7 @@ export async function DELETE(
 
   // Clean up related data
   await prisma.purchase.deleteMany({ where: { photo: { sessionId: params.id } } });
+  deleteFaceCollection(params.id).catch(() => {}); // Clean up Rekognition collection
   await prisma.session.delete({ where: { id: params.id } });
 
   return NextResponse.json({ deleted: true });
