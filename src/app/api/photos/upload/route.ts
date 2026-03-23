@@ -124,7 +124,9 @@ export async function POST(req: NextRequest) {
   ]);
 
   // Index faces in the photo for "Find Me" feature (async, non-blocking)
-  indexFacesInPhoto(sessionId, photoId, originalKey).catch(() => {});
+  indexFacesInPhoto(sessionId, photoId, originalKey).catch((err) =>
+    console.error("Background face indexing failed:", err.message)
+  );
 
   const photo = await prisma.photo.create({
     data: {
