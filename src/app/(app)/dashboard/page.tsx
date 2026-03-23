@@ -80,11 +80,20 @@ export default function DashboardPage() {
   }
 
   async function handleTogglePublish(id: string, published: boolean) {
-    await fetch(`/api/sessions/${id}`, {
+    const res = await fetch(`/api/sessions/${id}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ published: !published }),
     });
+    const data = await res.json();
+    if (!res.ok) {
+      if (data.needsVerification) {
+        alert("Verify your email to publish sessions.\nGo to Settings → Profile to resend verification.");
+      } else {
+        alert(data.error || "Failed to update");
+      }
+      return;
+    }
     setSessions((prev) =>
       prev.map((s) => (s.id === id ? { ...s, published: !published } : s))
     );

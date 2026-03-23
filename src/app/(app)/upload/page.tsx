@@ -204,11 +204,20 @@ export default function UploadPage() {
 
   async function handlePublish() {
     if (!sessionId) return;
-    await fetch(`/api/sessions/${sessionId}`, {
+    const res = await fetch(`/api/sessions/${sessionId}`, {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ published: true }),
     });
+    if (!res.ok) {
+      const data = await res.json();
+      if (data.needsVerification) {
+        alert("Verify your email to publish sessions.\nGo to Settings → Profile to resend verification.");
+      } else {
+        alert(data.error || "Failed to publish");
+      }
+      return;
+    }
     window.location.href = `/sessions/${sessionId}`;
   }
 
