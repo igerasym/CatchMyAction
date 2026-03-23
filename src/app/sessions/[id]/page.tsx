@@ -6,10 +6,45 @@ import Link from "next/link";
 import PhotoGrid from "./photo-grid";
 import ComingSoon from "./coming-soon";
 import Conditions from "./conditions";
+import type { Metadata } from "next";
 
 export const dynamic = "force-dynamic";
 
 const PAGE_SIZE = 24;
+const BASE_URL = "https://catchmyactions.com";
+
+export async function generateMetadata({ params }: { params: { id: string } }): Promise<Metadata> {
+  const session = await prisma.session.findUnique({
+    where: { id: params.id },
+    include: {
+      photographer: { select: { name: true } },
+      photos: { take: 1, select: { previewKey: true } },
+    },
+  });
+  if (!session) return { title: "Session Not Found" };
+
+  const title = `${session.title} — ${session.location}`;
+  const description = `${session.photoCount} photos by ${session.photographer.name} · ${format(new Date(session.date), "MMM d, yyyy")} · ${session.location}`;
+  const imageUrl = session.photos[0] ? getPreviewUrl(session.photos[0].previewKey) : `${BASE_URL}/hero-bg.jpg`;
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      url: `${BASE_URL}/sessions/${params.id}`,
+      images: [{ url: imageUrl, width: 1200, height: 800, alt: session.title }],
+      type: "article",
+    },
+    twitter: {
+      card: "summary_large_image",
+      title,
+      description,
+      images: [imageUrl],
+    },
+  };
+}
 
 export default async function SessionPage({
   params,
