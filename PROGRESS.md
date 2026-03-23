@@ -85,6 +85,7 @@ ssh -i catchmyaction-key.pem ec2-user@35.86.237.14 'docker run --rm --network ap
 ## Next Steps
 
 ### High Priority
+- [ ] Activate Stripe Connect on Stripe dashboard (dashboard.stripe.com/connect) — required before photographers can connect
 - [ ] SES production access (currently sandbox — blocks real user emails)
 - [ ] Fix face recognition on production (model files loading from CloudFront)
 - [ ] Notify-me email notifications when photographer publishes session
