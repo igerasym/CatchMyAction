@@ -1,4 +1,4 @@
-import { degreesToCompass, metersToFeet } from "@/lib/marine-conditions";
+import { degreesToCompass } from "@/lib/marine-conditions";
 import { IconWave, IconWind } from "@/app/components/icons";
 
 interface Props {
@@ -10,34 +10,37 @@ interface Props {
   waterTemp: number | null;
 }
 
-export default function Conditions(props: Props) {
-  const { waveHeight, wavePeriod, waveDirection, windSpeed, windDirection } = props;
+/** km/h → m/s */
+function kmhToMs(kmh: number): string {
+  return (kmh / 3.6).toFixed(1);
+}
 
-  // Don't render if no data
+export default function Conditions(props: Props) {
+  const { waveHeight, wavePeriod, waveDirection, windSpeed, windDirection, waterTemp } = props;
+
   if (!waveHeight && !windSpeed) return null;
 
   return (
-    <div className="flex flex-wrap gap-3 mt-3">
+    <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-white/40">
       {waveHeight != null && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-ocean-500/10 border border-ocean-500/20 rounded-lg">
-          <IconWave className="w-4 h-4 text-ocean-300" />
-          <span className="text-sm text-ocean-300 font-medium">{metersToFeet(waveHeight)}ft</span>
-          {wavePeriod != null && (
-            <span className="text-xs text-ocean-400/60">@ {wavePeriod.toFixed(0)}s</span>
-          )}
-          {waveDirection != null && (
-            <span className="text-xs text-ocean-400/40">{degreesToCompass(waveDirection)}</span>
-          )}
-        </div>
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded">
+          <IconWave className="w-3.5 h-3.5 text-ocean-400/60" />
+          {waveHeight.toFixed(1)}m
+          {wavePeriod != null && <span className="text-white/25">@ {wavePeriod.toFixed(0)}s</span>}
+          {waveDirection != null && <span className="text-white/20">{degreesToCompass(waveDirection)}</span>}
+        </span>
       )}
       {windSpeed != null && (
-        <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
-          <IconWind className="w-4 h-4 text-white/50" />
-          <span className="text-sm text-white/70 font-medium">{windSpeed.toFixed(0)} km/h</span>
-          {windDirection != null && (
-            <span className="text-xs text-white/40">{degreesToCompass(windDirection)}</span>
-          )}
-        </div>
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded">
+          <IconWind className="w-3.5 h-3.5 text-white/30" />
+          {kmhToMs(windSpeed)} m/s
+          {windDirection != null && <span className="text-white/20">{degreesToCompass(windDirection)}</span>}
+        </span>
+      )}
+      {waterTemp != null && (
+        <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded">
+          {waterTemp.toFixed(0)}°C
+        </span>
       )}
     </div>
   );

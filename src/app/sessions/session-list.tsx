@@ -125,15 +125,15 @@ export default function SessionList({
                 <Camera className="w-3.5 h-3.5 inline mr-0.5" /> {s.photoCount} photos · by {s.photographerName}
               </p>
               {(s.waveHeight || s.windSpeed) && (
-                <div className="flex gap-2 mt-1.5">
+                <div className="flex gap-1.5 mt-1.5 text-[11px] text-white/30">
                   {s.waveHeight != null && (
-                    <span className="text-xs px-2 py-0.5 bg-ocean-500/10 text-ocean-300 rounded">
-                      <Waves className="w-3 h-3 inline mr-0.5" /> {(s.waveHeight * 3.281).toFixed(1)}ft
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white/[0.04] rounded">
+                      <Waves className="w-3 h-3 text-ocean-400/50" /> {s.waveHeight.toFixed(1)}m
                     </span>
                   )}
                   {s.windSpeed != null && (
-                    <span className="text-xs px-2 py-0.5 bg-white/5 text-white/50 rounded">
-                      <Wind className="w-3 h-3 inline mr-0.5" /> {s.windSpeed.toFixed(0)}km/h
+                    <span className="inline-flex items-center gap-0.5 px-1.5 py-0.5 bg-white/[0.04] rounded">
+                      <Wind className="w-3 h-3 text-white/25" /> {(s.windSpeed / 3.6).toFixed(1)} m/s
                     </span>
                   )}
                 </div>
