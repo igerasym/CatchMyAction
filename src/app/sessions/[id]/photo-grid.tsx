@@ -295,9 +295,15 @@ export default function PhotoGrid({
       {photos.length > 0 && (
         <div className="flex items-center justify-end mb-4">
           <FindMe sessionId={sessionId} photos={photos} onMatchFound={(ids) => {
+            console.log("Find Me matched:", ids);
             setMatchedIds(new Set(ids));
             const unpurchased = ids.filter((id: string) => !purchasedIds.has(id));
             setCartIds(new Set(unpurchased));
+            // Scroll to first matched photo
+            setTimeout(() => {
+              const el = document.querySelector('[data-matched="true"]');
+              if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+            }, 300);
           }} />
         </div>
       )}
@@ -310,6 +316,7 @@ export default function PhotoGrid({
           const isInCart = cartIds.has(photo.id);
           return (
             <div key={photo.id} onClick={() => setSelectedPhoto(photo)}
+              data-matched={isMatched ? "true" : undefined}
               className={`relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden transition-all cursor-pointer ${
                 isOwned ? "ring-2 ring-green-500 shadow-lg shadow-green-500/20"
                 : isInCart ? "ring-2 ring-green-500/60"
