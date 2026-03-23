@@ -11,14 +11,14 @@ const BASE_URL = "https://catchmyactions.com";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "CatchMyAction — Find Yourself in Action",
+    default: "CatchMyAction — Find Your Moment",
     template: "%s | CatchMyAction",
   },
   description:
-    "Action sports photo marketplace. Photographers capture it. Athletes find themselves. Buy your HD action shots from surf, skate, MTB, marathon, triathlon and more.",
+    "Action sports photo marketplace. Shot on real sessions. Instantly find yourself and own the moment. Buy HD action shots from surf, skate, MTB, marathon, triathlon and more.",
   keywords: [
     "action sports photography", "surf photos", "skate photos", "marathon photos",
-    "triathlon photos", "MTB photos", "find yourself", "sports photographer",
+    "triathlon photos", "MTB photos", "find your moment", "sports photographer",
     "buy action photos", "face recognition photos",
   ],
   icons: {
@@ -30,23 +30,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: BASE_URL,
     siteName: "CatchMyAction",
-    title: "CatchMyAction — Find Yourself in Action",
+    title: "CatchMyAction — Find Your Moment",
     description:
-      "Photographers capture it. You find it. Make it yours. Browse and purchase HD action sports photography.",
+      "Shot on real sessions. Instantly find yourself and own the moment. Browse and purchase HD action sports photography.",
     images: [
       {
         url: `${BASE_URL}/hero-bg.jpg`,
         width: 1200,
         height: 630,
-        alt: "CatchMyAction — Action Sports Photo Marketplace",
+        alt: "CatchMyAction — Find Your Moment",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "CatchMyAction — Find Yourself in Action",
+    title: "CatchMyAction — Find Your Moment",
     description:
-      "Photographers capture it. You find it. Make it yours. Browse and purchase HD action sports photography.",
+      "Shot on real sessions. Instantly find yourself and own the moment. Browse and purchase HD action sports photography.",
     images: [`${BASE_URL}/hero-bg.jpg`],
   },
   robots: {

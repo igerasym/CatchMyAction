@@ -36,26 +36,26 @@ export default function HeroSection() {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-3xl mx-auto animate-fade-in">
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 leading-tight tracking-tight">
-          Find Yourself
+          Find Your
           <br />
-          <span className="text-ocean-400">in Action</span>
+          <span className="text-ocean-400">Moment</span>
         </h1>
         <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-xl mx-auto leading-relaxed">
-          Photographers capture it. You find it. Make it yours.
+          Shot on real sessions. Instantly find yourself and own the moment.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/sessions"
             className="px-8 py-4 bg-ocean-500 text-white font-semibold rounded-xl hover:bg-ocean-400 transition-all shadow-lg shadow-ocean-500/25 hover:shadow-ocean-400/40 hover:-translate-y-0.5 text-lg"
           >
-            Find Photos
+            Find My Photos
           </Link>
           {showUpload && (
             <Link
               href="/upload"
               className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm border border-white/20 hover:border-white/30 text-lg"
             >
-              Upload Session
+              Upload Photos
             </Link>
           )}
           <a
