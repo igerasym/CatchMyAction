@@ -294,9 +294,9 @@ export default function PhotoGrid({
       {/* Toolbar: Find Me button */}
       {photos.length > 0 && (
         <div className="flex items-center justify-end mb-4">
-          <FindMe photos={photos} onMatchesFound={(ids) => {
-            setMatchedIds(ids);
-            const unpurchased = Array.from(ids).filter((id) => !purchasedIds.has(id));
+          <FindMe sessionId={sessionId} photos={photos} onMatchFound={(ids) => {
+            setMatchedIds(new Set(ids));
+            const unpurchased = ids.filter((id: string) => !purchasedIds.has(id));
             setCartIds(new Set(unpurchased));
           }} />
         </div>
