@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
+import { Globe, Map, MapPin, Camera } from "lucide-react";
 
 interface Suggestion {
   label: string;
@@ -9,11 +10,11 @@ interface Suggestion {
   sub?: string;
 }
 
-const ICONS: Record<string, string> = {
-  country: "🌍",
-  region: "🗺️",
-  spot: "📍",
-  session: "📸",
+const ICONS: Record<string, React.ElementType> = {
+  country: Globe,
+  region: Map,
+  spot: MapPin,
+  session: Camera,
 };
 
 export default function SearchBar({ locations }: { locations: string[] }) {
@@ -85,7 +86,7 @@ export default function SearchBar({ locations }: { locations: string[] }) {
                     onClick={() => { setQuery(s.label); setShowSuggestions(false); }}
                     className="w-full text-left px-3 py-2.5 text-sm hover:bg-white/10 transition-colors flex items-center gap-2.5"
                   >
-                    <span className="text-lg flex-shrink-0">{ICONS[s.type] || "📍"}</span>
+                    {(() => { const Icon = ICONS[s.type] || MapPin; return <Icon className="w-4 h-4 text-ocean-400 flex-shrink-0" />; })()}
                     <span className="flex-1 min-w-0">
                       <span className="text-white">{s.label}</span>
                       {s.sub && <span className="text-white/30 ml-1.5 text-xs">{s.sub}</span>}

@@ -1,4 +1,5 @@
 import { degreesToCompass, metersToFeet } from "@/lib/marine-conditions";
+import { IconWave, IconWind } from "@/app/components/icons";
 
 interface Props {
   waveHeight: number | null;
@@ -19,7 +20,7 @@ export default function Conditions(props: Props) {
     <div className="flex flex-wrap gap-3 mt-3">
       {waveHeight != null && (
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-ocean-500/10 border border-ocean-500/20 rounded-lg">
-          <span className="text-sm">🌊</span>
+          <IconWave className="w-4 h-4 text-ocean-300" />
           <span className="text-sm text-ocean-300 font-medium">{metersToFeet(waveHeight)}ft</span>
           {wavePeriod != null && (
             <span className="text-xs text-ocean-400/60">@ {wavePeriod.toFixed(0)}s</span>
@@ -31,7 +32,7 @@ export default function Conditions(props: Props) {
       )}
       {windSpeed != null && (
         <div className="flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/10 rounded-lg">
-          <span className="text-sm">💨</span>
+          <IconWind className="w-4 h-4 text-white/50" />
           <span className="text-sm text-white/70 font-medium">{windSpeed.toFixed(0)} km/h</span>
           {windDirection != null && (
             <span className="text-xs text-white/40">{degreesToCompass(windDirection)}</span>

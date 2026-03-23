@@ -6,6 +6,7 @@ import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
 import EditSessionModal from "./edit-modal";
+import { FolderOpen, ImageIcon, ShoppingCart, DollarSign, MapPin } from "lucide-react";
 
 interface Session {
   id: string;
@@ -128,10 +129,10 @@ export default function DashboardPage() {
       {/* Stats cards */}
       {stats && (
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-8">
-          <StatCard label="Sessions" value={stats.sessions} icon="📁" />
-          <StatCard label="Photos" value={stats.photos} icon="📸" />
-          <StatCard label="Photos Sold" value={stats.photosSold} icon="💰" />
-          <StatCard label="Revenue" value={`$${(stats.revenue / 100).toFixed(2)}`} icon="💵" />
+          <StatCard label="Sessions" value={stats.sessions} icon={<FolderOpen className="w-5 h-5 text-ocean-400" />} />
+          <StatCard label="Photos" value={stats.photos} icon={<ImageIcon className="w-5 h-5 text-ocean-400" />} />
+          <StatCard label="Photos Sold" value={stats.photosSold} icon={<ShoppingCart className="w-5 h-5 text-ocean-400" />} />
+          <StatCard label="Revenue" value={`$${(stats.revenue / 100).toFixed(2)}`} icon={<DollarSign className="w-5 h-5 text-ocean-400" />} />
         </div>
       )}
 
@@ -204,11 +205,11 @@ export default function DashboardPage() {
   );
 }
 
-function StatCard({ label, value, icon }: { label: string; value: string | number; icon: string }) {
+function StatCard({ label, value, icon }: { label: string; value: string | number; icon: React.ReactNode }) {
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-4">
       <div className="flex items-center gap-2 mb-1">
-        <span className="text-lg">{icon}</span>
+        {icon}
         <span className="text-xs text-white/40">{label}</span>
       </div>
       <p className="text-2xl font-bold text-white">{value}</p>
@@ -229,6 +230,7 @@ function SessionRow({
   onDelete: () => void;
   onTogglePublish: () => void;
 }) {
+  const [showQR, setShowQR] = useState(false);
   const thumbUrl = s.photos[0]?.thumbnailUrl || null;
 
   return (
@@ -239,7 +241,9 @@ function SessionRow({
           {thumbUrl ? (
             <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-white/20">📸</div>
+            <div className="w-full h-full flex items-center justify-center text-white/20">
+              <ImageIcon className="w-5 h-5" />
+            </div>
           )}
         </div>
 
@@ -263,7 +267,7 @@ function SessionRow({
             </span>
           </div>
           <p className="text-xs sm:text-sm text-white/40 truncate">
-            📍 {s.location} · 📸 {s.photoCount} photos
+            <MapPin className="w-3.5 h-3.5 inline mr-0.5" /> {s.location} · <ImageIcon className="w-3.5 h-3.5 inline mr-0.5" /> {s.photoCount} photos
           </p>
         </div>
       </div>
@@ -284,7 +288,7 @@ function SessionRow({
           Edit
         </button>
         <button
-          onClick={() => window.open(`/api/sessions/${s.id}/qr`, "_blank")}
+          onClick={() => setShowQR(true)}
           className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors"
           title="QR Code"
         >
@@ -304,6 +308,39 @@ function SessionRow({
           {deleting ? "..." : "Delete"}
         </button>
       </div>
+
+      {/* QR Code Modal */}
+      {showQR && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-white mb-1">Session QR Code</h2>
+            <p className="text-sm text-white/40 mb-4">Athletes can scan this to find their photos</p>
+            <div className="bg-white rounded-xl p-4 inline-block mb-4">
+              <img src={`/api/sessions/${s.id}/qr`} alt="QR Code" className="w-48 h-48" />
+            </div>
+            <p className="text-xs text-white/30 mb-4 break-all">
+              {typeof window !== "undefined" ? `${window.location.origin}/sessions/${s.id}` : ""}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/sessions/${s.id}`);
+                }}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/60 hover:bg-white/10 transition-colors"
+              >
+                Copy Link
+              </button>
+              <a
+                href={`/api/sessions/${s.id}/qr`}
+                download={`session-${s.id}-qr.svg`}
+                className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm"
+              >
+                Download QR
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

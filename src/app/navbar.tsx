@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Logo from "./components/logo";
+import { LayoutDashboard, UserCircle, Search, Images, Settings, LogOut } from "lucide-react";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -77,20 +78,20 @@ export default function NavBar() {
                   <div className="py-1">
                     {user?.role === "PHOTOGRAPHER" && (
                       <>
-                        <MenuItem href="/dashboard" icon="📊" label="Dashboard" onClick={() => setMenuOpen(false)} />
-                        <MenuItem href={`/photographer/${user?.id}`} icon="👤" label="Public Profile" onClick={() => setMenuOpen(false)} />
+                        <MenuItem href="/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" onClick={() => setMenuOpen(false)} />
+                        <MenuItem href={`/photographer/${user?.id}`} icon={<UserCircle className="w-4 h-4" />} label="Public Profile" onClick={() => setMenuOpen(false)} />
                         <div className="border-t border-white/5 my-1" />
                       </>
                     )}
-                    <MenuItem href="/sessions" icon="🔍" label="Find Photos" onClick={() => setMenuOpen(false)} />
-                    <MenuItem href="/my-photos" icon="🖼️" label="My Actions" onClick={() => setMenuOpen(false)} />
-                    <MenuItem href="/settings" icon="⚙️" label="Settings" onClick={() => setMenuOpen(false)} />
+                    <MenuItem href="/sessions" icon={<Search className="w-4 h-4" />} label="Find Photos" onClick={() => setMenuOpen(false)} />
+                    <MenuItem href="/my-photos" icon={<Images className="w-4 h-4" />} label="My Actions" onClick={() => setMenuOpen(false)} />
+                    <MenuItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" onClick={() => setMenuOpen(false)} />
                     <div className="border-t border-white/5 my-1" />
                     <button
                       onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/" }); }}
                       className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/5 transition-colors flex items-center gap-2.5"
                     >
-                      <span className="w-5 text-center">🚪</span>
+                      <LogOut className="w-4 h-4" />
                       Sign out
                     </button>
                   </div>
@@ -116,14 +117,14 @@ export default function NavBar() {
   );
 }
 
-function MenuItem({ href, icon, label, onClick }: { href: string; icon: string; label: string; onClick: () => void }) {
+function MenuItem({ href, icon, label, onClick }: { href: string; icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
     <Link
       href={href}
       onClick={onClick}
       className="flex items-center gap-2.5 px-4 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition-colors"
     >
-      <span className="w-5 text-center">{icon}</span>
+      <span className="w-5 flex justify-center text-white/50">{icon}</span>
       {label}
     </Link>
   );

@@ -99,11 +99,17 @@ export default function MapInner({
         <div style="min-width:200px;font-family:system-ui">
           <h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">${m.title}</h3>
           <p style="font-size:12px;color:#888;margin:0 0 8px">
-            📍 ${m.location} · 📅 ${format(new Date(m.date), "MMM d, yyyy")}
+            <svg style="display:inline;width:12px;height:12px;vertical-align:-1px;margin-right:2px" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            ${m.location} ·
+            <svg style="display:inline;width:12px;height:12px;vertical-align:-1px;margin:0 2px" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+            ${format(new Date(m.date), "MMM d, yyyy")}
           </p>
           ${thumbsHtml}
           <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12px;color:#888">📸 ${m.photoCount} photos</span>
+            <span style="font-size:12px;color:#888">
+              <svg style="display:inline;width:12px;height:12px;vertical-align:-1px;margin-right:2px" viewBox="0 0 24 24" fill="none" stroke="#888" stroke-width="2"><rect x="3" y="6" width="18" height="13" rx="2"/><circle cx="12" cy="13" r="3.5"/><path d="M8 6V5a1 1 0 011-1h6a1 1 0 011 1v1"/></svg>
+              ${m.photoCount} photos
+            </span>
             <a href="/sessions/${m.id}" style="font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">View Gallery →</a>
           </div>
         </div>

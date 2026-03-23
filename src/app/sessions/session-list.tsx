@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
+import { MapPin, Calendar, Camera, Waves, Wind, ImageIcon } from "lucide-react";
 
 interface SessionItem {
   id: string;
@@ -109,30 +110,30 @@ export default function SessionList({
                   decoding="async"
                 />
               ) : (
-                <div className="w-full h-full flex items-center justify-center text-white/20 text-4xl">
-                  📸
+                <div className="w-full h-full flex items-center justify-center text-white/20">
+                  <ImageIcon className="w-10 h-10" />
                 </div>
               )}
             </div>
             <div className="p-4">
               <h2 className="font-semibold text-lg text-white">{s.title}</h2>
-              <p className="text-sm text-white/40">📍 {s.location}</p>
+              <p className="text-sm text-white/40"><MapPin className="w-3.5 h-3.5 inline mr-0.5" /> {s.location}</p>
               <p className="text-sm text-white/40">
-                📅 {format(new Date(s.date), "MMM d, yyyy")} · {s.startTime}–{s.endTime}
+                <Calendar className="w-3.5 h-3.5 inline mr-0.5" /> {format(new Date(s.date), "MMM d, yyyy")} · {s.startTime}–{s.endTime}
               </p>
               <p className="text-sm text-white/40">
-                📸 {s.photoCount} photos · by {s.photographerName}
+                <Camera className="w-3.5 h-3.5 inline mr-0.5" /> {s.photoCount} photos · by {s.photographerName}
               </p>
               {(s.waveHeight || s.windSpeed) && (
                 <div className="flex gap-2 mt-1.5">
                   {s.waveHeight != null && (
                     <span className="text-xs px-2 py-0.5 bg-ocean-500/10 text-ocean-300 rounded">
-                      🌊 {(s.waveHeight * 3.281).toFixed(1)}ft
+                      <Waves className="w-3 h-3 inline mr-0.5" /> {(s.waveHeight * 3.281).toFixed(1)}ft
                     </span>
                   )}
                   {s.windSpeed != null && (
                     <span className="text-xs px-2 py-0.5 bg-white/5 text-white/50 rounded">
-                      💨 {s.windSpeed.toFixed(0)}km/h
+                      <Wind className="w-3 h-3 inline mr-0.5" /> {s.windSpeed.toFixed(0)}km/h
                     </span>
                   )}
                 </div>

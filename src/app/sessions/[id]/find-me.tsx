@@ -3,6 +3,7 @@
 import { useState, useRef, useCallback, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import * as faceapi from "face-api.js";
+import { Search, Camera, Upload, ScanFace } from "lucide-react";
 
 interface Photo {
   id: string;
@@ -202,7 +203,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
     <>
       <button onClick={handleOpen}
         className="px-4 py-2 bg-gradient-to-r from-purple-600 to-ocean-500 text-white rounded-lg hover:from-purple-500 hover:to-ocean-400 transition-all text-sm font-medium shadow-lg shadow-purple-500/20">
-        🔍 Find Me
+        <Search className="w-4 h-4 inline mr-1" /> Find Me
         <span className="ml-1.5 text-[9px] bg-white/20 px-1.5 py-0.5 rounded-full font-normal">BETA</span>
       </button>
 
@@ -253,7 +254,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
               {step === "input" && !useCamera && (
                 <div className="space-y-3">
                   <label className="block w-full py-10 border-2 border-dashed border-white/10 rounded-xl text-center cursor-pointer hover:border-ocean-500/50 hover:bg-ocean-500/5 transition-all">
-                    <span className="text-3xl block mb-2">📸</span>
+                    <Upload className="w-7 h-7 mx-auto mb-2 text-white/40" />
                     <span className="text-sm text-white/50">Upload a selfie</span>
                     <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
                       onChange={handleFile} disabled={!modelsLoaded} />
@@ -265,14 +266,14 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
                   </div>
                   {/* Mobile: native camera */}
                   <label className="sm:hidden block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 transition-colors text-center cursor-pointer">
-                    📷 Take a Selfie
+                    <Camera className="w-4 h-4 inline mr-1" /> Take a Selfie
                     <input type="file" accept="image/*" capture="user" className="hidden"
                       onChange={handleFile} disabled={!modelsLoaded} />
                   </label>
                   {/* Desktop: webcam */}
                   <button onClick={startCamera} disabled={!modelsLoaded}
                     className="hidden sm:block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 disabled:opacity-30 transition-colors">
-                    📷 Use Camera
+                    <Camera className="w-4 h-4 inline mr-1" /> Use Camera
                   </button>
                   {!modelsLoaded && (
                     <p className="text-xs text-white/20 text-center">Loading AI models...</p>
@@ -287,7 +288,7 @@ export default function FindMe({ photos, onMatchesFound }: Props) {
                     className="w-full rounded-xl bg-black mb-3" style={{ minHeight: "240px" }} />
                   <button onClick={handleCapture}
                     className="w-full py-3 bg-ocean-500 text-white rounded-xl hover:bg-ocean-400 transition-colors font-medium">
-                    📸 Capture & Search
+                    <ScanFace className="w-4 h-4 inline mr-1" /> Capture & Search
                   </button>
                 </div>
               )}

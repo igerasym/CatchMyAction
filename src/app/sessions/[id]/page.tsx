@@ -7,6 +7,7 @@ import PhotoGrid from "./photo-grid";
 import ComingSoon from "./coming-soon";
 import Conditions from "./conditions";
 import type { Metadata } from "next";
+import { IconPin, IconCalendar, IconCamera } from "@/app/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -100,12 +101,12 @@ export default async function SessionPage({
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-white">{session.title}</h1>
         <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/40 mt-1">
-          <span>📍 {session.location}</span>
+          <span><IconPin /> {session.location}</span>
           <span>
-            📅 {format(new Date(session.date), "MMMM d, yyyy")} ·{" "}
+            <IconCalendar /> {format(new Date(session.date), "MMMM d, yyyy")} ·{" "}
             {session.startTime}–{session.endTime}
           </span>
-          <span>📸 {session.photoCount} photos</span>
+          <span><IconCamera /> {session.photoCount} photos</span>
           <Link
             href={`/photographer/${session.photographer.id}`}
             className="text-ocean-400 hover:underline"

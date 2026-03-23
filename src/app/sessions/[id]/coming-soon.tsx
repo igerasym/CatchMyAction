@@ -29,7 +29,13 @@ export default function ComingSoon({ sessionId }: { sessionId: string }) {
 
   return (
     <div className="text-center py-16">
-      <div className="text-6xl mb-4">📷</div>
+      <div className="flex justify-center mb-4">
+        <div className="w-16 h-16 rounded-2xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
+          <svg className="w-8 h-8 text-ocean-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="6" width="18" height="13" rx="2" /><circle cx="12" cy="13" r="3.5" /><path d="M8 6V5a1 1 0 011-1h6a1 1 0 011 1v1" />
+          </svg>
+        </div>
+      </div>
       <h2 className="text-xl font-bold text-white mb-2">Photos Coming Soon</h2>
       <p className="text-white/40 mb-8 max-w-md mx-auto">
         The photographer is still shooting or processing photos.

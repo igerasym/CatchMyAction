@@ -3,6 +3,7 @@ import { getPreviewUrl } from "@/lib/s3";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import { IconPin, IconCalendar, IconCamera } from "@/app/components/icons";
 
 export const dynamic = "force-dynamic";
 
@@ -76,7 +77,7 @@ export default async function PhotographerProfilePage({
             )}
             {photographer.instagram && (
               <a href={`https://instagram.com/${photographer.instagram}`} target="_blank" rel="noopener noreferrer"
-                className="text-xs text-ocean-400 hover:underline">📷 @{photographer.instagram}</a>
+                className="text-xs text-ocean-400 hover:underline"><IconCamera className="inline w-3.5 h-3.5 text-ocean-400 mr-0.5" /> @{photographer.instagram}</a>
             )}
             {photographer.youtube && (
               <a href={`https://youtube.com/@${photographer.youtube}`} target="_blank" rel="noopener noreferrer"
@@ -109,9 +110,9 @@ export default async function PhotographerProfilePage({
                       {s.title}
                     </h2>
                     <p className="text-sm text-white/40">
-                      📍 {s.location} · 📅{" "}
+                      <IconPin className="inline w-3.5 h-3.5 text-white/40 mr-0.5" /> {s.location} · <IconCalendar className="inline w-3.5 h-3.5 text-white/40 mr-0.5" />{" "}
                       {format(new Date(s.date), "MMM d, yyyy")} ·{" "}
-                      {s.startTime}–{s.endTime} · 📸 {s.photoCount} photos
+                      {s.startTime}–{s.endTime} · <IconCamera className="inline w-3.5 h-3.5 text-white/40 mr-0.5" /> {s.photoCount} photos
                     </p>
                   </div>
                   <span className="text-white/20 group-hover:text-ocean-400 transition-colors text-sm">

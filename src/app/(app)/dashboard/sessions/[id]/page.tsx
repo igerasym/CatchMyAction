@@ -154,7 +154,10 @@ export default function ManagePhotosPage() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl font-bold text-white">{session.title}</h1>
-          <p className="text-sm text-white/40">📍 {session.location} · {photos.length} photos</p>
+          <p className="text-sm text-white/40">
+            <svg className="inline w-3.5 h-3.5 mr-0.5 text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+            {session.location} · {photos.length} photos
+          </p>
         </div>
         <div className="flex gap-2">
           <label className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm cursor-pointer">
@@ -227,7 +230,11 @@ export default function ManagePhotosPage() {
       {/* Photo grid */}
       {photos.length === 0 ? (
         <div className="text-center py-16 text-white/30">
-          <p className="text-4xl mb-3">📷</p>
+          <div className="flex justify-center mb-3">
+            <div className="w-14 h-14 rounded-2xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
+              <svg className="w-7 h-7 text-ocean-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="6" width="18" height="13" rx="2" /><circle cx="12" cy="13" r="3.5" /><path d="M8 6V5a1 1 0 011-1h6a1 1 0 011 1v1" /></svg>
+            </div>
+          </div>
           <p className="mb-1">No photos yet</p>
           <p className="text-sm">Click "+ Add Photos" to upload</p>
         </div>
