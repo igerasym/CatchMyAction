@@ -51,3 +51,15 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .leaflet-control {
   z-index: 1 !important;
 }
+
+/* Marker cluster overrides for dark theme */
+.marker-cluster-small,
+.marker-cluster-medium,
+.marker-cluster-large {
+  background: transparent !important;
+}
+.marker-cluster-small div,
+.marker-cluster-medium div,
+.marker-cluster-large div {
+  background: transparent !important;
+}

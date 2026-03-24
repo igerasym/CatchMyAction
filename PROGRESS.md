@@ -4,7 +4,7 @@
 Action sports photo marketplace. Photographers upload sessions, athletes find themselves, buy HD photos.
 
 **Live:** https://catchmyactions.com
-**Tech Stack:** Next.js 14, PostgreSQL, Prisma, Tailwind CSS, Sharp, Stripe Connect, AWS (EC2 + S3 + SES + CloudFront), face-api.js, Lucide Icons
+**Tech Stack:** Next.js 14, PostgreSQL, Prisma, Tailwind CSS, Sharp, Stripe Connect, AWS (EC2 + S3 + SES + CloudFront + Rekognition), Lucide Icons
 **Repo:** git@github.com:igerasym/CatchMyAction.git
 
 ---
@@ -39,12 +39,12 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 11. Photo upload with validation (25MB max, 1200px min, magic bytes, SHA-256 dedup, EXIF extraction)
 12. Watermarked previews + thumbnails (Sharp)
 13. S3 storage + CloudFront CDN delivery
-14. QR codes (modal with copy link + download) + Notify Me for sessions + prominent QR on empty sessions + skip-upload flow
+14. QR codes (modal with copy link + download) + Notify Me for sessions + prominent QR on empty sessions + "Skip upload → Get QR" flow + prominent QR on empty sessions + skip-upload flow
 15. Stripe Connect Express (80/20 split, requires email verification)
 
 ### Athlete Features
 16. Explore page with search, infinite scroll, conditions display
-17. Face recognition "Find Me" (face-api.js, browser-only, privacy-first, BETA)
+17. Face recognition "Find Me" (AWS Rekognition, server-side)
 18. Photo claims ("That's me") with persistent DB storage
 19. My Actions page (purchased + claimed photos, buy/download/unclaim)
 20. Single + bulk photo purchase via Stripe Checkout
@@ -88,7 +88,7 @@ ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network a
 ### High Priority
 - [x] Activate Stripe Connect on Stripe dashboard — done, 18% platform fee
 - [ ] SES production access (submitted, awaiting AWS review)
-- [ ] Migrate face recognition from face-api.js to AWS Rekognition (server-side, faster, more accurate, no 12MB model download, ~$0.35/month)
+- [x] Migrate face recognition from face-api.js to AWS Rekognition (server-side, faster, more accurate, no 12MB model download)
 - [ ] Content moderation: report button on photos + Rekognition auto-scan on upload (~$0.01/100 photos)
 - [ ] Notify-me email notifications when photographer publishes session
 
