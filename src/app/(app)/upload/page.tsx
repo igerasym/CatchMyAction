@@ -315,7 +315,10 @@ export default function UploadPage() {
           <input value={title} onChange={(e) => setTitle(e.target.value)} required
             placeholder="Morning session at Pipeline" className={inputClass} />
         </div>
-        <SpotAutocomplete value={location} onChange={setLocation} label="Location" />
+        <div>
+          <SpotAutocomplete value={location} onChange={setLocation} label="Location" />
+          <p className="text-[11px] text-white/20 mt-1">Pick from suggestions or type any spot name, e.g. "La Cicer, Las Palmas" or "Dreamland, Bali"</p>
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <div>
             <label className="block text-xs text-white/40 mb-1">Date</label>

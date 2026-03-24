@@ -53,10 +53,9 @@ export async function GET(req: NextRequest) {
     }
   });
 
-  // 4. DB session locations (user-created spots)
+  // 4. DB session locations (user-created spots — published or not)
   const dbSessions = await prisma.session.findMany({
     where: {
-      published: true,
       location: { contains: q, mode: "insensitive" },
     },
     select: { location: true },
