@@ -102,10 +102,11 @@ export default function MapInner({
       },
     });
 
+    // Background spots — tiny, very faint, NOT clustered
     backgroundSpots.forEach((s) => {
-      const m = L.circleMarker(s.coords, { radius: 4, color: "transparent", fillColor: "#0ea5e9", fillOpacity: 0.3, weight: 0 })
+      L.circleMarker(s.coords, { radius: 2, color: "transparent", fillColor: "#0ea5e9", fillOpacity: 0.12, weight: 0 })
+        .addTo(map)
         .bindPopup('<div style="font-family:system-ui;min-width:150px"><h3 style="font-weight:600;font-size:13px;margin:0 0 2px;color:#f0f0f0">' + s.name + '</h3><p style="font-size:11px;color:#888;margin:0 0 6px">' + s.region + ', ' + s.country + '</p><p style="font-size:11px;color:#666;margin:0">No sessions yet</p></div>');
-      clusterGroup.addLayer(m);
     });
 
     activeMarkers.forEach((m) => {
