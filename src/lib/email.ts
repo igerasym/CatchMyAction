@@ -1,10 +1,10 @@
-import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
+import { Resend } from "resend";
 
-const ses = process.env.AWS_REGION
-  ? new SESClient({ region: process.env.AWS_REGION })
+const resend = process.env.RESEND_API_KEY
+  ? new Resend(process.env.RESEND_API_KEY)
   : null;
 
-const FROM_EMAIL = process.env.FROM_EMAIL || "noreply@catchmyactions.com";
+const FROM_EMAIL = process.env.FROM_EMAIL || "CatchMyAction <noreply@catchmyactions.com>";
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
 interface EmailParams {
@@ -15,23 +15,19 @@ interface EmailParams {
 }
 
 export async function sendEmail({ to, subject, html, text }: EmailParams): Promise<boolean> {
-  if (!ses) {
+  if (!resend) {
     console.log(`[Email] Would send to ${to}: ${subject}`);
-    return true; // Dev mode — just log
+    return true;
   }
 
   try {
-    await ses.send(new SendEmailCommand({
-      Source: FROM_EMAIL,
-      Destination: { ToAddresses: [to] },
-      Message: {
-        Subject: { Data: subject },
-        Body: {
-          Html: { Data: html },
-          ...(text && { Text: { Data: text } }),
-        },
-      },
-    }));
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to,
+      subject,
+      html,
+      ...(text && { text }),
+    });
     return true;
   } catch (err) {
     console.error("Email send error:", err);
@@ -73,9 +69,29 @@ export async function sendSessionNotification(email: string, sessionTitle: strin
         <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
           View Photos
         </a>
-        <p style="color: #999; font-size: 13px; margin-top: 32px;">— CatchMyActions</p>
+        <p style="color: #999; font-size: 13px; margin-top: 32px;">— CatchMyAction</p>
       </div>
     `,
     text: `Photos for ${sessionTitle} are ready! View them: ${link}`,
+  });
+}
+
+/** Send password reset link */
+export async function sendPasswordResetEmail(email: string, token: string) {
+  const link = `${APP_URL}/reset-password?token=${token}`;
+  return sendEmail({
+    to: email,
+    subject: "Reset your CatchMyActions password",
+    html: `
+      <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
+        <h2 style="color: #333;">Reset your password</h2>
+        <p style="color: #666; line-height: 1.6;">Click the button below to set a new password.</p>
+        <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+          Reset Password
+        </a>
+        <p style="color: #999; font-size: 13px;">This link expires in 1 hour. If you didn't request this, ignore this email.</p>
+      </div>
+    `,
+    text: `Reset your password: ${link}`,
   });
 }
