@@ -116,12 +116,6 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
             />
           </div>
           <button
-            type="submit"
-            className="px-5 py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm font-medium whitespace-nowrap"
-          >
-            Search
-          </button>
-          <button
             type="button"
             onClick={() => {
               if (!navigator.geolocation) return;
