@@ -1,92 +1,52 @@
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
 import { ACTION_SPOTS } from "@/lib/spots-database";
-import SessionList from "./session-list";
-import SearchForm from "./search-form";
+import ExploreView from "./explore-view";
 
 export const dynamic = "force-dynamic";
-
-const PAGE_SIZE = 12;
-
-/** Expand a search query into all matching spot/region/country names */
-function expandLocationQuery(query: string): string[] {
-  const q = query.toLowerCase();
-  const names = new Set<string>();
-
-  // Always include the raw query itself
-  names.add(query);
-
-  ACTION_SPOTS.forEach((s) => {
-    const match =
-      s.name.toLowerCase().includes(q) ||
-      s.region.toLowerCase().includes(q) ||
-      s.country.toLowerCase().includes(q);
-    if (match) {
-      names.add(s.name);
-      names.add(s.region);
-      names.add(`${s.name}, ${s.region}`);
-    }
-  });
-
-  return [...names];
-}
 
 export default async function SessionsPage({
   searchParams,
 }: {
   searchParams: { location?: string; date?: string };
 }) {
-  const where: Record<string, unknown> = { published: true };
-
-  if (searchParams.location) {
-    const expanded = expandLocationQuery(searchParams.location);
-    where.OR = expanded.map((term) => ({
-      location: { contains: term, mode: "insensitive" },
-    }));
-  }
-  if (searchParams.date) {
-    where.date = new Date(searchParams.date);
-  }
-
+  // Fetch all published sessions with coordinates
   const sessionsRaw = await prisma.session.findMany({
-    where,
+    where: { published: true },
     include: {
       photographer: { select: { name: true } },
-      photos: { take: 1, select: { previewKey: true } },
+      photos: { take: 1, select: { previewKey: true, thumbnailKey: true } },
     },
     orderBy: { date: "desc" },
-    take: PAGE_SIZE + 1,
   });
 
-  const hasMore = sessionsRaw.length > PAGE_SIZE;
-  const firstPage = hasMore ? sessionsRaw.slice(0, PAGE_SIZE) : sessionsRaw;
-  const nextCursor = hasMore ? firstPage[firstPage.length - 1].id : null;
-
-  const sessions = firstPage.map((s: typeof firstPage[number]) => ({
+  const sessions = sessionsRaw.map((s) => ({
     id: s.id,
     title: s.title,
     location: s.location,
+    locationLat: (s as any).locationLat as number | null,
+    locationLng: (s as any).locationLng as number | null,
     date: s.date.toISOString(),
     startTime: s.startTime,
     endTime: s.endTime,
     photoCount: s.photoCount,
     photographerName: s.photographer.name,
-    coverUrl: s.photos[0] ? getPreviewUrl(s.photos[0].previewKey) : null,
+    coverUrl: s.photos[0] ? getPreviewUrl(s.photos[0].thumbnailKey || s.photos[0].previewKey) : null,
     sportType: (s as any).sportType || "surf",
     waveHeight: (s as any).waveHeight ?? null,
     windSpeed: (s as any).windSpeed ?? null,
   }));
 
-  return (
-    <div>
-      <SearchForm initialLocation={searchParams.location} initialDate={searchParams.date} />
+  // All spots for map background
+  const allSpots = ACTION_SPOTS.map((s) => ({
+    name: s.name, region: s.region, country: s.country, lat: s.lat, lng: s.lng,
+  }));
 
-      <SessionList
-        initialSessions={sessions}
-        initialCursor={nextCursor}
-        location={searchParams.location}
-        date={searchParams.date}
-      />
-    </div>
+  return (
+    <ExploreView
+      sessions={sessions}
+      allSpots={allSpots}
+      initialLocation={searchParams.location}
+    />
   );
 }
