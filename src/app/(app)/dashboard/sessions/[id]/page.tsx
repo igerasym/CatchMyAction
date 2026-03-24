@@ -24,11 +24,10 @@ interface SessionData {
 }
 
 export default function ManagePhotosPage() {
-  const { data: authSession, status } = useSession();
+  const { status } = useSession();
   const router = useRouter();
   const params = useParams();
   const sessionId = params.id as string;
-  const user = authSession?.user as any;
 
   const [session, setSession] = useState<SessionData | null>(null);
   const [photos, setPhotos] = useState<Photo[]>([]);
@@ -240,22 +239,57 @@ export default function ManagePhotosPage() {
 
       {/* Photo grid */}
       {photos.length === 0 ? (
-        <div
-          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
-          onDragLeave={() => setDragging(false)}
-          onDrop={handleDrop}
-          onClick={() => fileRef.current?.click()}
-          className={`text-center py-16 text-white/30 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
-            dragging ? "border-ocean-500 bg-ocean-500/10" : "border-white/10 hover:border-ocean-500/50"
-          }`}
-        >
-          <div className="flex justify-center mb-3">
-            <div className="w-14 h-14 rounded-2xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
-              <svg className="w-7 h-7 text-ocean-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="6" width="18" height="13" rx="2" /><circle cx="12" cy="13" r="3.5" /><path d="M8 6V5a1 1 0 011-1h6a1 1 0 011 1v1" /></svg>
+        <div className="space-y-6">
+          {/* QR Code — prominent when no photos */}
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-8 text-center">
+            <h2 className="text-lg font-bold text-white mb-2">Share with Athletes</h2>
+            <p className="text-sm text-white/40 mb-5 max-w-md mx-auto">
+              Print or show this QR code at the spot. Athletes scan it to subscribe and get notified when you upload photos.
+            </p>
+            <div className="bg-white rounded-xl p-4 inline-block mb-4">
+              <img src={`/api/sessions/${sessionId}/qr`} alt="QR Code" className="w-48 h-48" />
+            </div>
+            <p className="text-xs text-white/30 mb-4 break-all">
+              {typeof window !== "undefined" ? `${window.location.origin}/sessions/${sessionId}` : ""}
+            </p>
+            <div className="flex gap-2 justify-center">
+              <button
+                onClick={() => {
+                  const link = `${window.location.origin}/sessions/${sessionId}`;
+                  navigator.clipboard.writeText(link);
+                }}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/60 hover:bg-white/10 transition-colors"
+              >
+                Copy Link
+              </button>
+              <a
+                href={`/api/sessions/${sessionId}/qr`}
+                download={`session-${sessionId}-qr.svg`}
+                className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm"
+              >
+                Download QR
+              </a>
             </div>
           </div>
-          <p className="mb-1">No photos yet</p>
-          <p className="text-sm">Drag & drop photos here or click to browse</p>
+
+          {/* Upload zone */}
+          <div
+            onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={handleDrop}
+            onClick={() => fileRef.current?.click()}
+            className={`text-center py-12 text-white/30 border-2 border-dashed rounded-xl cursor-pointer transition-all ${
+              dragging ? "border-ocean-500 bg-ocean-500/10" : "border-white/10 hover:border-ocean-500/50"
+            }`}
+          >
+            <div className="flex justify-center mb-3">
+              <div className="w-14 h-14 rounded-2xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
+                <svg className="w-7 h-7 text-ocean-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="6" width="18" height="13" rx="2" /><circle cx="12" cy="13" r="3.5" /><path d="M8 6V5a1 1 0 011-1h6a1 1 0 011 1v1" /></svg>
+              </div>
+            </div>
+            <p className="mb-1">Upload photos when ready</p>
+            <p className="text-sm">Drag & drop photos here or click to browse</p>
+          </div>
         </div>
       ) : (
         <div

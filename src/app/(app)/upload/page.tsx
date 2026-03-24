@@ -1,7 +1,6 @@
 "use client";
 
 import { useSession, signIn } from "next-auth/react";
-import { useRouter } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import SpotAutocomplete from "@/app/components/spot-autocomplete";
 import PasswordInput from "@/app/components/password-input";
@@ -28,7 +27,6 @@ interface UploadState {
 
 export default function UploadPage() {
   const { data: session } = useSession();
-  const router = useRouter();
   const user = session?.user as any;
 
   // Session form state — available to everyone
@@ -275,7 +273,6 @@ export default function UploadPage() {
             )}
           </div>
 
-          {/* Skip upload — just get QR */}
           {uploadErrors.length > 0 && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
               <p className="text-xs font-medium text-red-400 mb-1">Some photos were rejected:</p>
@@ -287,14 +284,14 @@ export default function UploadPage() {
             </div>
           )}
 
-          {uploadState.completed === 0 && !uploadState.inProgress && (
+          {/* Skip upload — go to manage page with QR */}
+          {!uploadState.inProgress && (
             <div className="text-center pt-4 border-t border-white/5">
-              <p className="text-xs text-white/30 mb-2">Want to upload photos later?</p>
               <button
                 onClick={() => window.location.href = `/dashboard/sessions/${sessionId}`}
-                className="text-sm text-ocean-400 hover:underline"
+                className="px-5 py-2.5 border border-white/10 text-white/60 rounded-lg hover:bg-white/10 transition-colors text-sm"
               >
-                Skip → Get QR Code for athletes
+                {uploadState.completed > 0 ? "Manage Session →" : "Skip — Upload Later & Get QR Code"}
               </button>
             </div>
           )}
