@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Logo from "./components/logo";
-import { LayoutDashboard, UserCircle, Search, Images, Settings, LogOut, BookOpen } from "lucide-react";
+import { LayoutDashboard, UserCircle, Images, Settings, LogOut, BookOpen } from "lucide-react";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -84,7 +84,6 @@ export default function NavBar() {
                         <div className="border-t border-white/5 my-1" />
                       </>
                     )}
-                    <MenuItem href="/sessions" icon={<Search className="w-4 h-4" />} label="Find Photos" onClick={() => setMenuOpen(false)} />
                     <MenuItem href="/my-photos" icon={<Images className="w-4 h-4" />} label="My Actions" onClick={() => setMenuOpen(false)} />
                     <MenuItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" onClick={() => setMenuOpen(false)} />
                     <div className="border-t border-white/5 my-1" />
