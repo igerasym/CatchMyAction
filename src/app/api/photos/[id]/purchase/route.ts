@@ -52,6 +52,9 @@ export async function POST(
         select: { stripeAccountId: true },
       });
 
+      // Only split payment if photographer has a fully set up Connect account
+      const connectId = photographer?.stripeAccountId || null;
+
       const checkoutSession = await createCheckoutSession({
         photoId: photo.id,
         photoPreviewUrl: `${baseUrl}/api/uploads/previews/${photo.previewKey}`,
@@ -60,11 +63,30 @@ export async function POST(
         userId,
         successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}`,
         cancelUrl: `${baseUrl}/sessions/${photo.session.id}`,
-        photographerStripeAccountId: photographer?.stripeAccountId,
+        photographerStripeAccountId: connectId,
       });
 
       return NextResponse.json({ checkoutUrl: checkoutSession.url });
     } catch (err: any) {
+      // If Connect transfer fails, retry without split (charge to platform only)
+      if (err?.code === "insufficient_capabilities_for_transfer") {
+        try {
+          const checkoutSession = await createCheckoutSession({
+            photoId: photo.id,
+            photoPreviewUrl: `${baseUrl}/api/uploads/previews/${photo.previewKey}`,
+            sessionTitle: photo.session.title,
+            priceInCents: photo.priceInCents,
+            userId,
+            successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}`,
+            cancelUrl: `${baseUrl}/sessions/${photo.session.id}`,
+            photographerStripeAccountId: null, // no split — platform collects all
+          });
+          return NextResponse.json({ checkoutUrl: checkoutSession.url });
+        } catch (retryErr: any) {
+          console.error("Stripe checkout retry error:", retryErr);
+          return NextResponse.json({ error: "Payment failed" }, { status: 500 });
+        }
+      }
       console.error("Stripe checkout error:", err);
       return NextResponse.json({ error: "Payment failed" }, { status: 500 });
     }
