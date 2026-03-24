@@ -47,6 +47,12 @@ export default function PhotoGrid({
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
+  const [reportingPhoto, setReportingPhoto] = useState<string | null>(null);
+  const [reportEmail, setReportEmail] = useState("");
+  const [reportReason, setReportReason] = useState("thats_me");
+  const [reportDetails, setReportDetails] = useState("");
+  const [reportSent, setReportSent] = useState(false);
+  const [reportLoading, setReportLoading] = useState(false);
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -284,6 +290,28 @@ export default function PhotoGrid({
     });
   }
 
+  async function handleReport() {
+    if (!reportingPhoto || !reportEmail) return;
+    setReportLoading(true);
+    try {
+      await fetch("/api/photos/report", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ photoId: reportingPhoto, email: reportEmail, reason: reportReason, details: reportDetails }),
+      });
+      setReportSent(true);
+    } catch { /* */ }
+    finally { setReportLoading(false); }
+  }
+
+  function openReport(photoId: string) {
+    setReportingPhoto(photoId);
+    setReportSent(false);
+    setReportEmail(session?.user?.email || "");
+    setReportReason("thats_me");
+    setReportDetails("");
+  }
+
   const cartTotal = photos
     .filter((p) => cartIds.has(p.id) && !purchasedIds.has(p.id))
     .reduce((sum, p) => sum + p.priceInCents, 0);
@@ -467,10 +495,68 @@ export default function PhotoGrid({
                 </button>
               )}
             </div>
+            <div className="px-4 pb-3">
+              <button onClick={() => { openReport(selectedPhoto.id); setSelectedPhoto(null); }}
+                className="text-xs text-white/20 hover:text-white/40 transition-colors">
+                Report this photo
+              </button>
+            </div>
           </div>
         </div>
         );
       })()}
+
+      {/* Report modal */}
+      {reportingPhoto && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setReportingPhoto(null)}>
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+            {reportSent ? (
+              <div className="text-center py-4">
+                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
+                  <span className="text-green-400 text-xl">✓</span>
+                </div>
+                <p className="text-white font-medium mb-1">Report submitted</p>
+                <p className="text-sm text-white/40 mb-4">We&apos;ll review this within 48 hours and notify you by email.</p>
+                <button onClick={() => setReportingPhoto(null)} className="px-4 py-2 bg-ocean-500 text-white rounded-lg text-sm">Close</button>
+              </div>
+            ) : (
+              <>
+                <h2 className="text-lg font-bold text-white mb-1">Report Photo</h2>
+                <p className="text-sm text-white/40 mb-4">Request removal of this photo from the platform.</p>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Reason</label>
+                    <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}
+                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm">
+                      <option value="thats_me">That&apos;s me — I want my photo removed</option>
+                      <option value="inappropriate">Inappropriate content</option>
+                      <option value="copyright">Copyright violation</option>
+                      <option value="other">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Your email</label>
+                    <input type="email" value={reportEmail} onChange={(e) => setReportEmail(e.target.value)} required
+                      placeholder="your@email.com" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-white/25" />
+                  </div>
+                  <div>
+                    <label className="block text-xs text-white/40 mb-1">Details (optional)</label>
+                    <textarea value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} rows={2}
+                      placeholder="Any additional context..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-white/25" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setReportingPhoto(null)} className="flex-1 py-2 border border-white/10 text-white/50 rounded-lg text-sm hover:bg-white/5">Cancel</button>
+                    <button onClick={handleReport} disabled={reportLoading || !reportEmail}
+                      className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-500 disabled:opacity-40">
+                      {reportLoading ? "..." : "Submit Report"}
+                    </button>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }

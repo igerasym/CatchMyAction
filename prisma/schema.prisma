@@ -94,6 +94,7 @@ model Photo {
   session   Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   purchases Purchase[]
   claims    PhotoClaim[]
+  reports   PhotoReport[]
 
   @@index([sessionId])
 }
@@ -140,4 +141,19 @@ model PhotoClaim {
 
   @@unique([userId, photoId])
   @@index([userId])
+}
+
+model PhotoReport {
+  id        String   @id @default(cuid())
+  photoId   String
+  email     String
+  reason    String   // "thats_me", "inappropriate", "copyright", "other"
+  details   String?
+  status    String   @default("pending") // pending, reviewed, removed, dismissed
+  createdAt DateTime @default(now())
+
+  photo Photo @relation(fields: [photoId], references: [id], onDelete: Cascade)
+
+  @@index([photoId])
+  @@index([status])
 }
