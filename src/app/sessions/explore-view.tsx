@@ -41,6 +41,7 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
   const [selectedLocation, setSelectedLocation] = useState(initialLocation || "");
   const [searchInput, setSearchInput] = useState(initialLocation || "");
   const [MapComponent, setMapComponent] = useState<React.ComponentType<any> | null>(null);
+  const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
 
   useEffect(() => {
     // @ts-ignore — dynamic import for client-only map component
@@ -101,14 +102,16 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
             onClick={() => {
               if (!navigator.geolocation) return;
               navigator.geolocation.getCurrentPosition((pos) => {
+                const { latitude, longitude } = pos.coords;
                 // Find nearest spot
                 let nearest = allSpots[0];
                 let minDist = Infinity;
                 allSpots.forEach((s) => {
-                  const d = Math.pow(s.lat - pos.coords.latitude, 2) + Math.pow(s.lng - pos.coords.longitude, 2);
+                  const d = Math.pow(s.lat - latitude, 2) + Math.pow(s.lng - longitude, 2);
                   if (d < minDist) { minDist = d; nearest = s; }
                 });
                 if (nearest) handleSpotSelect(nearest.name);
+                setFlyTo({ lat: latitude, lng: longitude, zoom: 8 });
               });
             }}
             className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white/50 hover:bg-white/10 hover:text-white/70 transition-colors whitespace-nowrap flex items-center gap-1.5"
@@ -129,6 +132,7 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
               allSpots={allSpots}
               onSpotClick={handleSpotSelect}
               selectedLocation={selectedLocation}
+              flyTo={flyTo}
             />
           ) : (
             <div className="w-full h-full bg-[#0d1117] flex items-center justify-center">

@@ -32,9 +32,10 @@ interface Props {
   allSpots: Spot[];
   onSpotClick: (location: string) => void;
   selectedLocation: string;
+  flyTo?: { lat: number; lng: number; zoom: number } | null;
 }
 
-export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLocation }: Props) {
+export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLocation, flyTo }: Props) {
   const mapRef = useRef<HTMLDivElement>(null);
   const mapInstance = useRef<L.Map | null>(null);
 
@@ -138,6 +139,13 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLoc
 
     return () => { map.remove(); mapInstance.current = null; };
   }, [markers, allSpots, onSpotClick]);
+
+  // Fly to location when triggered
+  useEffect(() => {
+    if (flyTo && mapInstance.current) {
+      mapInstance.current.flyTo([flyTo.lat, flyTo.lng], flyTo.zoom, { duration: 1.5 });
+    }
+  }, [flyTo]);
 
   return <div ref={mapRef} className="w-full h-full" style={{ background: "#0d1117" }} />;
 }
