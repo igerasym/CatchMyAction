@@ -351,7 +351,7 @@ export default function PhotoGrid({
                 : isMatched ? "ring-2 ring-purple-500 shadow-lg shadow-purple-500/20"
                 : "hover:ring-2 hover:ring-ocean-500"
               }`}>
-              <img src={isOwned && originalUrls[photo.id] ? originalUrls[photo.id] : photo.thumbnailUrl}
+              <img src={photo.thumbnailUrl}
                 alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" crossOrigin="anonymous" />
 
               {/* Checkbox for unpurchased */}
@@ -447,8 +447,7 @@ export default function PhotoGrid({
           <div className="bg-[#1a1a2e] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto border border-white/10"
             onClick={(e) => e.stopPropagation()}>
             <div className="relative">
-              <img src={purchasedIds.has(selectedPhoto.id) && originalUrls[selectedPhoto.id]
-                  ? originalUrls[selectedPhoto.id] : selectedPhoto.previewUrl}
+              <img src={selectedPhoto.previewUrl}
                 alt="" className="w-full rounded-t-xl" crossOrigin="anonymous" />
               <button onClick={() => setSelectedPhoto(null)}
                 className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70">
