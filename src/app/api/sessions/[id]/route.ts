@@ -40,16 +40,8 @@ export async function PATCH(
   const body = await req.json();
   const { title, location, date, startTime, endTime, description, published, coverPhotoId, pricePerPhoto } = body;
 
-  // Block publishing if email not verified
-  if (published === true) {
-    const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { emailVerified: true } }) as any;
-    if (!dbUser?.emailVerified) {
-      return NextResponse.json({
-        error: "Verify your email to publish sessions. Go to Settings → Profile to resend verification.",
-        needsVerification: true,
-      }, { status: 403 });
-    }
-  }
+  // Email verification check — soft nudge, not blocking
+  // Will be enforced once SES production access is granted
 
   try {
     const session = await prisma.session.update({
