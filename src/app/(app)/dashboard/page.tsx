@@ -47,7 +47,8 @@ export default function DashboardPage() {
   const [editSession, setEditSession] = useState<Session | null>(null);
   const [deleting, setDeleting] = useState<string | null>(null);
   const [stats, setStats] = useState<Stats | null>(null);
-  const [stripeConnected, setStripeConnected] = useState(true); // assume true until checked
+  const [stripeConnected, setStripeConnected] = useState(true);
+  const [stripeStatus, setStripeStatus] = useState<"none" | "incomplete" | "active">("active");
   const [period, setPeriod] = useState("all");
 
   useEffect(() => {
@@ -67,7 +68,11 @@ export default function DashboardPage() {
       .catch(() => {});
     fetch("/api/stripe/connect")
       .then((r) => r.json())
-      .then((data) => setStripeConnected(!!data.connected))
+      .then((data) => {
+        const connected = !!data.connected && !!data.chargesEnabled;
+        setStripeConnected(connected);
+        setStripeStatus(data.connected ? (data.chargesEnabled ? "active" : "incomplete") : "none");
+      })
       .catch(() => {});
   }, [user?.id, period]);
 
@@ -146,17 +151,17 @@ export default function DashboardPage() {
           <div>
             <p className="text-sm text-yellow-400 font-medium">
               {stats.photosSold > 0
-                ? `You have $${((stats.revenue * 0.82) / 100).toFixed(2)} in earnings — connect Stripe to get paid`
-                : "Connect Stripe to get paid"}
+                ? `You have $${((stats.revenue * 0.82) / 100).toFixed(2)} in earnings — ${stripeStatus === "incomplete" ? "complete Stripe setup" : "connect Stripe"} to get paid`
+                : stripeStatus === "incomplete" ? "Complete your Stripe setup to receive payouts" : "Connect Stripe to get paid"}
             </p>
             <p className="text-xs text-white/30 mt-0.5">
               {stats.photosSold > 0
-                ? `${stats.photosSold} photo${stats.photosSold > 1 ? "s" : ""} sold. Your earnings are held until you connect Stripe.`
-                : "Athletes can browse your photos, but you won't receive payouts until Stripe is connected."}
+                ? `${stats.photosSold} photo${stats.photosSold > 1 ? "s" : ""} sold. Your earnings are held until ${stripeStatus === "incomplete" ? "setup is complete" : "you connect Stripe"}.`
+                : stripeStatus === "incomplete" ? "Stripe needs more information to enable payouts." : "Athletes can browse your photos, but you won't receive payouts until Stripe is connected."}
             </p>
           </div>
           <a href="/settings" className="px-4 py-2 bg-yellow-500 text-black text-xs rounded-lg hover:bg-yellow-400 transition-colors font-medium whitespace-nowrap">
-            Connect Stripe
+            {stripeStatus === "incomplete" ? "Complete Setup" : "Connect Stripe"}
           </a>
         </div>
       )}
