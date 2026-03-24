@@ -75,8 +75,8 @@ export async function PATCH(
       });
     }
 
-    // Notify subscribers when session is published for the first time
-    if (wasUnpublished && published === true) {
+    // Notify subscribers when session is published with photos
+    if (wasUnpublished && published === true && session.photoCount > 0) {
       const subscribers = await prisma.sessionNotification.findMany({
         where: { sessionId: params.id, notified: false },
         select: { id: true, email: true },
