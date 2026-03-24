@@ -48,12 +48,29 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
     import("./explore-map").then((mod: any) => setMapComponent(() => mod.default));
   }, []);
 
-  // Filter sessions by selected location
+  // Expand search query to match all spots in a region/country
+  function expandQuery(query: string): string[] {
+    const q = query.toLowerCase();
+    const names = new Set<string>();
+    names.add(query);
+    allSpots.forEach((s) => {
+      if (s.name.toLowerCase().includes(q) || s.region.toLowerCase().includes(q) || s.country.toLowerCase().includes(q)) {
+        names.add(s.name.toLowerCase());
+        names.add(s.region.toLowerCase());
+      }
+    });
+    return [...names];
+  }
+
+  // Filter sessions by selected location (expanded to region/country)
   const filteredSessions = useMemo(() => {
     if (!selectedLocation) return [];
-    const q = selectedLocation.toLowerCase();
-    return sessions.filter((s) => s.location.toLowerCase().includes(q));
-  }, [sessions, selectedLocation]);
+    const expanded = expandQuery(selectedLocation);
+    return sessions.filter((s) => {
+      const loc = s.location.toLowerCase();
+      return expanded.some((term) => loc.includes(term));
+    });
+  }, [sessions, selectedLocation, allSpots]);
 
   // Map markers — sessions with coordinates
   const markers = useMemo(() =>
@@ -85,7 +102,7 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
     <div className="-mx-4 -mt-6">
       {/* Search bar + My Location — above map */}
       <div className="px-4 pt-4 pb-3">
-        <div className="max-w-3xl mx-auto flex gap-2 items-end">
+        <form onSubmit={(e) => { e.preventDefault(); setSelectedLocation(searchInput); }} className="max-w-3xl mx-auto flex gap-2 items-end">
           <div className="flex-1">
             <SpotAutocomplete
               value={searchInput}
@@ -120,7 +137,7 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
             Near Me
           </button>
-        </div>
+        </form>
       </div>
 
       {/* Map section */}
