@@ -361,10 +361,20 @@ export default function UploadPage() {
           <div>
             <label className="block text-xs text-white/40 mb-1">Price per Photo ($)</label>
             <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required
-              min="0" max="999" step="0.01" className={inputClass} placeholder="0 for free" />
+              min="0" max="999" step="0.01" className={inputClass} placeholder="0 for free"
+              disabled={parseFloat(price) === 0 && price === "0"} />
           </div>
           <div className="flex items-end pb-0.5">
-            <p className="text-xs text-white/20">{parseFloat(price) === 0 ? "Free session — max 50 photos" : "Suggested: $5–$15"}</p>
+            <label className="flex items-center gap-2 cursor-pointer">
+              <input type="checkbox" checked={parseFloat(price) === 0}
+                onChange={(e) => setPrice(e.target.checked ? "0" : "9.99")}
+                className="rounded border-white/20 bg-white/5 text-ocean-500 focus:ring-ocean-500" />
+              <span className="text-xs text-white/40">Free session</span>
+            </label>
+            {parseFloat(price) === 0
+              ? <span className="text-xs text-white/20 ml-2">Max 50 photos</span>
+              : <span className="text-xs text-white/20 ml-2">Suggested: $5–$15</span>
+            }
           </div>
         </div>
         <div>
