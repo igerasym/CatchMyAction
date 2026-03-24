@@ -60,7 +60,7 @@ export default function SettingsPage() {
     const data = await res.json();
     setSaving(false);
     if (!res.ok) setMessage({ type: "err", text: data.error });
-    else { setMessage({ type: "ok", text: "Settings saved" }); setCurrentPassword(""); setNewPassword(""); await update(); window.location.reload(); }
+    else { setMessage({ type: "ok", text: "Settings saved" }); setCurrentPassword(""); setNewPassword(""); window.location.reload(); }
   }
 
   if (status !== "authenticated") return <p className="text-center py-12 text-white/40">Loading...</p>;
