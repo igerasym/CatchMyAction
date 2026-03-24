@@ -89,6 +89,7 @@ export default function MapInner({
       maxClusterRadius: 50,
       spiderfyOnMaxZoom: true,
       showCoverageOnHover: false,
+      zoomToBoundsOnClick: false,
       iconCreateFunction(cluster: any) {
         const count = cluster.getChildCount();
         let px = 36;
@@ -100,6 +101,12 @@ export default function MapInner({
           iconSize: L.point(px, px),
         });
       },
+    });
+
+    // Click cluster → zoom in fast (jump +3 levels or to bounds)
+    clusterGroup.on("clusterclick", (e: any) => {
+      const bounds = e.layer.getBounds();
+      map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
     });
 
     // Background spots — tiny, very faint, NOT clustered
