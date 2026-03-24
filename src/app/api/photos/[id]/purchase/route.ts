@@ -69,7 +69,7 @@ export async function POST(
       return NextResponse.json({ checkoutUrl: checkoutSession.url });
     } catch (err: any) {
       // If Connect transfer fails, retry without split (charge to platform only)
-      if (err?.code === "insufficient_capabilities_for_transfer") {
+      if (err?.code === "insufficient_capabilities_for_transfer" || err?.code === "resource_missing") {
         try {
           const checkoutSession = await createCheckoutSession({
             photoId: photo.id,
