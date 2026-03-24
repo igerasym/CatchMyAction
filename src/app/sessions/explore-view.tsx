@@ -82,9 +82,47 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
 
   return (
     <div className="-mx-4 -mt-6">
+      {/* Search bar + My Location — above map */}
+      <div className="px-4 pt-4 pb-3">
+        <div className="max-w-3xl mx-auto flex gap-2 items-end">
+          <div className="flex-1">
+            <SpotAutocomplete
+              value={searchInput}
+              onChange={(val) => {
+                setSearchInput(val);
+                setSelectedLocation(val);
+              }}
+              label=""
+              placeholder="Search spot, region, or country..."
+              required={false}
+            />
+          </div>
+          <button
+            onClick={() => {
+              if (!navigator.geolocation) return;
+              navigator.geolocation.getCurrentPosition((pos) => {
+                // Find nearest spot
+                let nearest = allSpots[0];
+                let minDist = Infinity;
+                allSpots.forEach((s) => {
+                  const d = Math.pow(s.lat - pos.coords.latitude, 2) + Math.pow(s.lng - pos.coords.longitude, 2);
+                  if (d < minDist) { minDist = d; nearest = s; }
+                });
+                if (nearest) handleSpotSelect(nearest.name);
+              });
+            }}
+            className="px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-sm text-white/50 hover:bg-white/10 hover:text-white/70 transition-colors whitespace-nowrap flex items-center gap-1.5"
+            title="Find sessions near me"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg>
+            Near Me
+          </button>
+        </div>
+      </div>
+
       {/* Map section */}
-      <div className="relative">
-        <div className="rounded-none overflow-hidden" style={{ height: "50vh", minHeight: 350 }}>
+      <div>
+        <div className="overflow-hidden" style={{ height: "45vh", minHeight: 320 }}>
           {MapComponent ? (
             <MapComponent
               markers={markers}
@@ -97,22 +135,6 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
               <div className="text-ocean-400 animate-pulse">Loading map...</div>
             </div>
           )}
-        </div>
-
-        {/* Search overlay on map */}
-        <div className="absolute top-4 left-4 right-4 z-[2] max-w-lg">
-          <div className="bg-[#1a1a2e]/95 backdrop-blur-lg border border-white/10 rounded-xl p-3 shadow-2xl">
-            <SpotAutocomplete
-              value={searchInput}
-              onChange={(val) => {
-                setSearchInput(val);
-                setSelectedLocation(val);
-              }}
-              label=""
-              placeholder="Search spot, region, or country..."
-              required={false}
-            />
-          </div>
         </div>
       </div>
 
