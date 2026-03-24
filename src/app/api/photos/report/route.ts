@@ -25,6 +25,7 @@ export async function POST(req: NextRequest) {
     where: { id: photoId },
     select: {
       id: true,
+      previewKey: true,
       session: {
         select: {
           id: true,
@@ -42,10 +43,14 @@ export async function POST(req: NextRequest) {
     data: { photoId, email, reason, details: details || null },
   });
 
-  // Notify photographer
+  // Notify photographer with photo preview
   const p = photo.session.photographer;
   const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
   const manageLink = `${APP_URL}/dashboard/sessions/${photo.session.id}`;
+  const photoLink = `${APP_URL}/sessions/${photo.session.id}`;
+  const previewUrl = process.env.CLOUDFRONT_DOMAIN
+    ? `https://${process.env.CLOUDFRONT_DOMAIN}/${photo.previewKey}`
+    : `${APP_URL}/api/uploads/previews/${photo.previewKey}`;
   sendEmail({
     to: p.email,
     subject: `Photo removal request — ${photo.session.title}`,
@@ -53,6 +58,10 @@ export async function POST(req: NextRequest) {
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
         <h2 style="color: #333;">Photo Removal Request</h2>
         <p style="color: #666; line-height: 1.6;">Someone has requested removal of a photo from your session <strong>${photo.session.title}</strong>.</p>
+        <div style="margin: 16px 0; border-radius: 8px; overflow: hidden;">
+          <img src="${previewUrl}" alt="Reported photo" style="width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid #eee;" />
+        </div>
+        <p style="color: #666; font-size: 13px; margin-bottom: 12px;">Photo ID: ${photoId}</p>
         <p style="color: #666;"><strong>Reason:</strong> ${REASON_LABELS[reason] || reason}</p>
         ${details ? '<p style="color: #666;"><strong>Details:</strong> ' + details + '</p>' : ''}
         <p style="color: #666;"><strong>Reporter:</strong> ${email}</p>
