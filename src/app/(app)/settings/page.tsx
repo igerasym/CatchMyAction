@@ -77,12 +77,13 @@ export default function SettingsPage() {
         }`}>{message.text}</div>
       )}
 
+      {/* Avatar — outside form to prevent form submit interference */}
+      <div className="flex justify-center mb-8">
+        <AvatarUpload userId={user.id} userName={form.name} currentUrl={form.avatarUrl}
+          onUploaded={async (url) => { setForm((p) => ({ ...p, avatarUrl: url })); await update(); }} />
+      </div>
+
       <form onSubmit={handleSave} className="space-y-8">
-        {/* Avatar — top */}
-        <div className="flex justify-center">
-          <AvatarUpload userId={user.id} userName={form.name} currentUrl={form.avatarUrl}
-            onUploaded={async (url) => { setForm((p) => ({ ...p, avatarUrl: url })); await update(); }} />
-        </div>
 
         {/* Profile */}
         <SectionHeader title="Profile" />
@@ -398,15 +399,32 @@ function AvatarUpload({ userId, userName, currentUrl, onUploaded }: {
     if (!file) return;
     setPreview(URL.createObjectURL(file));
     setUploading(true);
+
+    // Resize client-side to avoid body size limits (cover fit to 512x512)
+    const resized = await new Promise<Blob>((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = 512;
+        canvas.height = 512;
+        const ctx = canvas.getContext("2d")!;
+        // Cover fit: scale to fill, crop center
+        const scale = Math.max(512 / img.width, 512 / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        ctx.drawImage(img, (512 - w) / 2, (512 - h) / 2, w, h);
+        canvas.toBlob((b) => resolve(b!), "image/jpeg", 0.85);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+
     const fd = new FormData();
-    fd.append("file", file);
-    fd.append("userId", userId);
+    fd.append("file", new File([resized], "avatar.jpg", { type: "image/jpeg" }));
     const res = await fetch("/api/user/avatar", { method: "POST", body: fd });
     const data = await res.json();
     setUploading(false);
     if (data.avatarUrl) {
-      // Cache-bust: append timestamp so browser loads new image
-      onUploaded(data.avatarUrl + "?t=" + Date.now());
+      onUploaded(data.avatarUrl);
     }
   }
 
