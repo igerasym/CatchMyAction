@@ -4,7 +4,7 @@
 Action sports photo marketplace. Photographers upload sessions, athletes find themselves, buy HD photos.
 
 **Live:** https://catchmyactions.com
-**Tech Stack:** Next.js 14, PostgreSQL, Prisma, Tailwind CSS, Sharp, Stripe Connect, AWS (EC2 + S3 + SES + CloudFront + Rekognition), Lucide Icons
+**Tech Stack:** Next.js 14, PostgreSQL, Prisma, Tailwind CSS, Sharp, Stripe Connect, AWS (EC2 + S3 + CloudFront + Rekognition), Resend (email), Lucide Icons
 **Repo:** git@github.com:igerasym/CatchMyAction.git
 
 ---
@@ -19,7 +19,7 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 - Cloudflare DNS + SSL + CDN (catchmyactions.com + www)
 - IAM role for EC2 → S3 + SES access (no hardcoded keys)
 - Docker Compose for app + PostgreSQL
-- SES configured with domain verification + DKIM (sandbox mode)
+- SES configured with domain verification + DKIM (denied production access — switched to Resend)
 
 ## Completed Features
 
@@ -39,22 +39,22 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 11. Photo upload with validation (25MB max, 1200px min, magic bytes, SHA-256 dedup, EXIF extraction)
 12. Watermarked previews + thumbnails (Sharp)
 13. S3 storage + CloudFront CDN delivery
-14. QR codes (modal with copy link + download) + Notify Me for sessions + prominent QR on empty sessions + "Skip upload → Get QR" flow + prominent QR on empty sessions + skip-upload flow
-15. Stripe Connect Express (80/20 split, requires email verification)
+14. QR codes (modal with copy link + download) + Notify Me + prominent QR on empty sessions + skip-upload flow
+15. Stripe Connect Express (82/18 split) — live mode, fallback to platform-only when photographer Connect not ready
 
 ### Athlete Features
-16. Explore page with search, infinite scroll, conditions display
+16. Map-first Explore page — select spot on map or search, sessions appear below
 17. Face recognition "Find Me" (AWS Rekognition, server-side)
 18. Photo claims ("That's me") with persistent DB storage
 19. My Actions page (purchased + claimed photos, buy/download/unclaim)
-20. Single + bulk photo purchase via Stripe Checkout
+20. Single + bulk photo purchase via Stripe Checkout (live mode)
 21. Auto-download after purchase redirect
 
 ### Location System
 22. 320 hardcoded action sports spots with verified coordinates across all sport types
 23. Dynamic autocomplete API — searches spots database + user-created locations
 24. Nominatim geocoding fallback for custom locations
-25. Interactive world map with active session markers + background spot dots
+25. Interactive world map — dark tiles, marker clustering, fast zoom, Locate Me button, background spots (faint)
 
 ### UI/UX
 26. Lucide Icons throughout (no emojis — consistent across all devices)
@@ -65,14 +65,16 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 31. Cart checkboxes + sticky purchase bar on session gallery
 32. Settings (avatar, bio, socials, password, role upgrade/downgrade, Stripe Connect, email verification)
 33. Legal pages (Terms, Privacy Policy — GDPR/CCPA/BIPA compliant)
+34. Photo report/takedown system (report button on photos, email notification to photographer, DB tracking)
+35. Email notifications via Resend (session published → notify subscribers, photo report → notify photographer)
 
 ### SEO & Infrastructure
-34. Dynamic sitemap.xml (sessions + photographer profiles)
-35. robots.txt with proper disallow rules
-36. Open Graph + Twitter meta tags (global + per-session with cover photo)
-37. Google Search Console verified
-38. CloudFront CDN with CORS headers policy
-39. www subdomain redirect via Cloudflare
+36. Dynamic sitemap.xml (sessions + photographer profiles)
+37. robots.txt with proper disallow rules
+38. Open Graph + Twitter meta tags (global + per-session with cover photo)
+39. Google Search Console verified
+40. CloudFront CDN with CORS headers policy
+41. www subdomain redirect via Cloudflare
 
 ## Deploy Commands
 ```bash
@@ -87,10 +89,14 @@ ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network a
 
 ### High Priority
 - [x] Activate Stripe Connect on Stripe dashboard — done, 18% platform fee
-- [ ] SES production access (submitted, awaiting AWS review)
-- [x] Migrate face recognition from face-api.js to AWS Rekognition (server-side, faster, more accurate, no 12MB model download)
-- [ ] Content moderation: report button on photos + Rekognition auto-scan on upload (~$0.01/100 photos)
-- [ ] Notify-me email notifications when photographer publishes session
+- [x] Stripe live mode — identity verified, payments working, Connect enabled
+- [x] Migrate face recognition from face-api.js to AWS Rekognition (server-side)
+- [x] Email provider: switched from AWS SES (denied) to Resend
+- [x] Photo report/takedown system with photographer email notification
+- [x] Notify-me email notifications when photographer publishes session (with photos)
+- [x] Map improvements: dark tiles, clustering, fast zoom, Locate Me
+- [x] Map-first Explore page (sessions appear only after selecting a spot)
+- [ ] Content moderation: Rekognition auto-scan on upload (~$0.01/100 photos)
 
 ### Medium Priority
 - [ ] Photographers directory page (browse by location, portfolios, sport specialties, ratings)
@@ -108,5 +114,4 @@ ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network a
 - [ ] Photographer public profile improvements
 
 ## Demo Accounts
-- Photographer: photographer@demo.com / password
-- Athlete: surfer@demo.com / password
+Demo accounts removed — live mode with real Stripe payments.
