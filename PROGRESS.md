@@ -39,7 +39,7 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 11. Photo upload with validation (25MB max, 1200px min, magic bytes, SHA-256 dedup, EXIF extraction)
 12. Watermarked previews + thumbnails (Sharp)
 13. S3 storage + CloudFront CDN delivery
-14. QR codes (modal with copy link + download) + Notify Me for sessions
+14. QR codes (modal with copy link + download) + Notify Me for sessions + prominent QR on empty sessions + skip-upload flow
 15. Stripe Connect Express (80/20 split, requires email verification)
 
 ### Athlete Features
