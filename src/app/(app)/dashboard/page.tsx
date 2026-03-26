@@ -74,7 +74,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user?.id) return;
-    fetch(`/api/photographer/sessions?userId=${user.id}`)
+    fetch("/api/photographer/sessions")
       .then((r) => r.json())
       .then(setSessions)
       .finally(() => setLoading(false));

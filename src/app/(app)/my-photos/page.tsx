@@ -79,7 +79,7 @@ export default function MyPhotosPage() {
   async function handleDownload(photoId: string) {
     setDownloading(photoId);
     try {
-      const res = await fetch(`/api/photos/${photoId}/download?userId=${user.id}`);
+      const res = await fetch(`/api/photos/${photoId}/download`);
       const data = await res.json();
       if (data.downloadUrl) {
         const a = document.createElement("a");

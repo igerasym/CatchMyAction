@@ -1,16 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getDownloadUrl, BUCKET_ORIGINALS } from "@/lib/s3";
+import { getAuthUser } from "@/lib/auth-helpers";
 
-/** GET /api/photos/:id/download?userId=xxx — get download URL (unlimited) */
+/** GET /api/photos/:id/download — get download URL (authenticated, must have purchased) */
 export async function GET(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const userId = new URL(req.url).searchParams.get("userId");
-  if (!userId) {
-    return NextResponse.json({ error: "userId is required" }, { status: 400 });
-  }
+  const authUser = await getAuthUser();
+  if (authUser instanceof NextResponse) return authUser;
+
+  const userId = authUser.id;
 
   const purchase = await prisma.purchase.findUnique({
     where: { userId_photoId: { userId, photoId: params.id } },
@@ -30,7 +31,7 @@ export async function GET(
   const filename = `${photo.session.title.replace(/[^a-zA-Z0-9]/g, "-")}-${params.id.slice(-6)}.jpg`;
   const downloadUrl = await getDownloadUrl(BUCKET_ORIGINALS, photo.originalKey, 300, filename);
 
-  // Track download count (for analytics, not limiting)
+  // Track download count
   await prisma.purchase.update({
     where: { id: purchase.id },
     data: { downloadCount: { increment: 1 } },

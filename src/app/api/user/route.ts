@@ -1,26 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
+import { getAuthUser } from "@/lib/auth-helpers";
 
-/** GET /api/user?id=xxx */
+/** GET /api/user?id=xxx — public profile fields only, or full profile if own user */
 export async function GET(req: NextRequest) {
   const id = new URL(req.url).searchParams.get("id");
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
 
-  const user = await prisma.user.findUnique({
-    where: { id },
-  });
+  // Check if requester is the same user (gets full profile)
+  const authUser = await getAuthUser();
+  const isSelf = !(authUser instanceof NextResponse) && authUser.id === id;
+
+  const user = await prisma.user.findUnique({ where: { id } });
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });
-  const { passwordHash, ...safeUser } = user as any;
-  return NextResponse.json(safeUser);
+
+  if (isSelf) {
+    // Own profile — return everything except passwordHash and verifyToken
+    const { passwordHash, verifyToken, ...safeUser } = user as any;
+    return NextResponse.json(safeUser);
+  }
+
+  // Public profile — only safe fields
+  return NextResponse.json({
+    id: user.id,
+    name: user.name,
+    role: user.role,
+    avatarUrl: user.avatarUrl,
+    bio: user.bio,
+    website: user.website,
+    instagram: user.instagram,
+    youtube: user.youtube,
+    tiktok: user.tiktok,
+    createdAt: user.createdAt,
+  });
 }
 
-/** PATCH /api/user — update profile */
+/** PATCH /api/user — update profile (authenticated, own user only) */
 export async function PATCH(req: NextRequest) {
+  const authUser = await getAuthUser();
+  if (authUser instanceof NextResponse) return authUser;
+
   const body = await req.json();
   const { id, name, email, role, currentPassword, newPassword, bio, website, instagram, youtube, tiktok, avatarUrl } = body;
 
   if (!id) return NextResponse.json({ error: "id required" }, { status: 400 });
+
+  // Verify the authenticated user is updating their own profile
+  if (authUser.id !== id) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
 
   const user = await prisma.user.findUnique({ where: { id } }) as any;
   if (!user) return NextResponse.json({ error: "Not found" }, { status: 404 });

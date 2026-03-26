@@ -1,16 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
+import { getAuthUser } from "@/lib/auth-helpers";
 
-/** GET /api/photographer/sessions?userId=xxx */
+/** GET /api/photographer/sessions — own sessions (authenticated) */
 export async function GET(req: NextRequest) {
-  const userId = new URL(req.url).searchParams.get("userId");
-  if (!userId) {
-    return NextResponse.json({ error: "userId required" }, { status: 400 });
-  }
+  const authUser = await getAuthUser();
+  if (authUser instanceof NextResponse) return authUser;
 
+  // Only return sessions owned by the authenticated user
   const sessions = await prisma.session.findMany({
-    where: { photographerId: userId },
+    where: { photographerId: authUser.id },
     include: {
       photos: { take: 1, select: { thumbnailKey: true } },
       _count: { select: { photos: true } },

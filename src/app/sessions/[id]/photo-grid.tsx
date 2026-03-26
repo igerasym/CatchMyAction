@@ -92,7 +92,7 @@ export default function PhotoGrid({
         const data = await res.json();
         if (data.purchased) {
           setPurchasedIds((prev) => new Set(prev).add(purchasedPhotoId!));
-          const dlRes = await fetch(`/api/photos/${purchasedPhotoId}/download?userId=${userId}`);
+          const dlRes = await fetch(`/api/photos/${purchasedPhotoId}/download`);
           const dlData = await dlRes.json();
           if (dlData.downloadUrl) {
             const a = document.createElement("a");
@@ -223,7 +223,7 @@ export default function PhotoGrid({
       // Already purchased — download directly
       if (data.alreadyPurchased) {
         setPurchasedIds((prev) => new Set(prev).add(photo.id));
-        const dlRes = await fetch(`/api/photos/${photo.id}/download?userId=${userId}`);
+        const dlRes = await fetch(`/api/photos/${photo.id}/download`);
         const dlData = await dlRes.json();
         if (dlData.downloadUrl) window.open(dlData.downloadUrl, "_blank");
         return;
@@ -238,7 +238,7 @@ export default function PhotoGrid({
       // Mock purchase (dev mode) — download directly
       if (data.purchased) {
         setPurchasedIds((prev) => new Set(prev).add(photo.id));
-        const dlRes = await fetch(`/api/photos/${photo.id}/download?userId=${userId}`);
+        const dlRes = await fetch(`/api/photos/${photo.id}/download`);
         const dlData = await dlRes.json();
         if (dlData.downloadUrl) window.open(dlData.downloadUrl, "_blank");
         return;
