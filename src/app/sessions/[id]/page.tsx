@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -62,6 +64,16 @@ export default async function SessionPage({
   });
 
   if (!session) notFound();
+
+  // Increment view count — skip if viewer is the photographer
+  const authSession = await getServerSession(authOptions);
+  const viewerId = (authSession?.user as any)?.id;
+  if (viewerId !== session.photographerId) {
+    prisma.session.update({
+      where: { id: params.id },
+      data: { viewCount: { increment: 1 } },
+    }).catch(() => {});
+  }
 
   // First page of photos (server-side)
   const photosRaw = await prisma.photo.findMany({

@@ -100,7 +100,7 @@ ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network a
 
 ### Medium Priority
 - [ ] Photographers directory page (browse by location, portfolios, sport specialties, ratings)
-- [ ] Photographer earnings dashboard (total sales, per-session breakdown, payout history)
+- [x] Photographer earnings dashboard (total/net/gross, revenue chart, per-session breakdown, transactions, Stripe status)
 - [ ] Session analytics (views, claims, conversion rate)
 - [ ] CI/CD pipeline (GitHub Actions: test → build → deploy)
 - [ ] Photo download: serve unwatermarked original from private S3 on verified purchase

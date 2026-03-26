@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
     ...(dateFilter && { createdAt: { gte: dateFilter } }),
   };
 
-  const [sessionCount, photoCount, sales, recentSales] = await Promise.all([
+  const [sessionCount, photoCount, sales, recentSales, viewsAgg] = await Promise.all([
     prisma.session.count({ where: { photographerId: userId } }),
     prisma.photo.count({
       where: { session: { photographerId: userId } },
@@ -57,6 +57,10 @@ export async function GET(req: NextRequest) {
         user: { select: { name: true } },
       },
     }),
+    (prisma.session.aggregate as any)({
+      where: { photographerId: userId },
+      _sum: { viewCount: true },
+    }),
   ]);
 
   return NextResponse.json({
@@ -64,6 +68,7 @@ export async function GET(req: NextRequest) {
     photos: photoCount,
     photosSold: sales._count,
     revenue: sales._sum.amountInCents || 0,
+    totalViews: viewsAgg?._sum?.viewCount || 0,
     recentSales: recentSales.map((s) => ({
       id: s.id,
       amount: s.amountInCents,

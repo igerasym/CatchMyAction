@@ -48,6 +48,7 @@ model Session {
   sportType       String   @default("surf") // surf, kite, windsurf, skate, mtb, other
   coverPhotoId    String?
   photoCount      Int      @default(0)
+  viewCount       Int      @default(0)
   pricePerPhoto   Int      @default(999) // cents, $9.99
   // Marine conditions (auto-fetched for water sports)
   waveHeight      Float?   // meters
