@@ -160,8 +160,13 @@ export default function UploadPage() {
   // Upload photos
   async function uploadFiles(files: File[]) {
     if (files.length === 0 || !sessionId) return;
-    setUploadState({ total: files.length, completed: 0, failed: 0, inProgress: true });
-    setUploadErrors([]);
+    // Accumulate — don't reset previous successful uploads
+    setUploadState((p) => ({
+      total: p.total + files.length,
+      completed: p.completed,
+      failed: p.failed,
+      inProgress: true,
+    }));
     for (let i = 0; i < files.length; i += 3) {
       const batch = files.slice(i, i + 3);
       const results = await Promise.allSettled(
@@ -216,7 +221,7 @@ export default function UploadPage() {
       }
       return;
     }
-    window.location.href = `/sessions/${sessionId}`;
+    window.location.href = `/dashboard/sessions/${sessionId}`;
   }
 
   const inputClass = "w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent placeholder-white/25";
@@ -254,13 +259,17 @@ export default function UploadPage() {
           </div>
           {uploadState.total > 0 && (
             <div className="bg-white/5 border border-white/10 rounded-lg p-3">
-              <div className="flex justify-between text-sm text-white/60 mb-1">
-                <span>{uploadState.completed} / {uploadState.total} uploaded</span>
-                {uploadState.failed > 0 && <span className="text-red-400">{uploadState.failed} failed</span>}
+              <div className="flex justify-between text-sm mb-1">
+                <span className="text-green-400">{uploadState.completed} uploaded successfully</span>
+                {uploadState.failed > 0 && <span className="text-red-400">{uploadState.failed} rejected</span>}
+              </div>
+              <div className="flex justify-between text-xs text-white/30 mb-1.5">
+                <span>{uploadState.completed + uploadState.failed} / {uploadState.total} processed</span>
+                {uploadState.inProgress && <span className="text-ocean-400">uploading...</span>}
               </div>
               <div className="w-full bg-white/10 rounded-full h-1.5">
                 <div className="bg-ocean-500 h-1.5 rounded-full transition-all"
-                  style={{ width: `${(uploadState.completed / uploadState.total) * 100}%` }} />
+                  style={{ width: `${((uploadState.completed + uploadState.failed) / uploadState.total) * 100}%` }} />
               </div>
             </div>
           )}
@@ -268,14 +277,14 @@ export default function UploadPage() {
             {uploadState.completed > 0 && !uploadState.inProgress && (
               <button onClick={handlePublish}
                 className="flex-1 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors">
-                Publish Session
+                Publish Session ({uploadState.completed} photos)
               </button>
             )}
           </div>
 
           {uploadErrors.length > 0 && (
             <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-3">
-              <p className="text-xs font-medium text-red-400 mb-1">Some photos were rejected:</p>
+              <p className="text-xs font-medium text-red-400 mb-1">{uploadErrors.length} photo{uploadErrors.length > 1 ? "s" : ""} rejected (others uploaded fine):</p>
               <ul className="text-xs text-red-400/80 space-y-0.5">
                 {uploadErrors.map((err, i) => (
                   <li key={i}>• {err}</li>
