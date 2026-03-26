@@ -43,6 +43,9 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
   const [MapComponent, setMapComponent] = useState<React.ComponentType<any> | null>(null);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
 
+  // Scroll to top on mount
+  useEffect(() => { window.scrollTo(0, 0); }, []);
+
   useEffect(() => {
     // @ts-ignore — dynamic import for client-only map component
     import("./explore-map").then((mod: any) => setMapComponent(() => mod.default));
