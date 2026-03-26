@@ -62,13 +62,21 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
     return [...names];
   }
 
-  // Filter sessions by selected location (expanded to region/country)
+  // Filter sessions by selected location (expanded to region/country + direct text match)
   const filteredSessions = useMemo(() => {
     if (!selectedLocation) return [];
+    const q = selectedLocation.toLowerCase();
     const expanded = expandQuery(selectedLocation);
     return sessions.filter((s) => {
       const loc = s.location.toLowerCase();
-      return expanded.some((term) => loc.includes(term));
+      // Match via expanded spots database
+      if (expanded.some((term) => loc.includes(term))) return true;
+      // Direct text match on session location (handles custom/user-typed locations)
+      if (loc.includes(q)) return true;
+      // Also check if session location contains any word from the query
+      const words = q.split(/[\s,]+/).filter((w) => w.length > 2);
+      if (words.some((w) => loc.includes(w))) return true;
+      return false;
     });
   }, [sessions, selectedLocation, allSpots]);
 

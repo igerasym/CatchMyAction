@@ -171,14 +171,22 @@ export async function moderateImage(
       .filter((l) => l.Confidence && l.Confidence >= 70)
       .map((l) => l.Name || "Unknown");
 
-    // Block explicit content categories
+    // Block explicit content — allow shirtless athletes (normal for action sports)
     const blockedCategories = [
-      "explicit nudity", "nudity", "graphic violence",
-      "violence", "drugs", "tobacco",
+      "explicit nudity", "sexual activity", "graphic violence",
+      "drugs", "tobacco", "graphic female nudity", "graphic male nudity",
+      "sexual situations",
     ];
-    const flagged = labels.some((l) =>
-      blockedCategories.some((b) => l.toLowerCase().includes(b))
-    );
+    // Explicitly allow these (common in action sports photos)
+    const allowedLabels = [
+      "exposed male nipple", "barechested male", "male swimwear",
+      "female swimwear", "revealing clothes",
+    ];
+    const flagged = labels.some((l) => {
+      const lower = l.toLowerCase();
+      if (allowedLabels.some((a) => lower.includes(a))) return false;
+      return blockedCategories.some((b) => lower.includes(b));
+    });
 
     return { flagged, labels };
   } catch (err: any) {

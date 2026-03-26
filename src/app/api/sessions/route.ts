@@ -94,7 +94,10 @@ export async function POST(req: NextRequest) {
       } as any,
     });
 
-    return NextResponse.json(session, { status: 201 });
+    return NextResponse.json({
+      ...session,
+      ...(coords ? {} : { locationWarning: "We couldn't find this location on the map. Your session won't appear in map search. Check the spelling or edit later." }),
+    }, { status: 201 });
   } catch (err: any) {
     console.error("Session create error:", err);
     return NextResponse.json({ error: err.message || "Failed to create session" }, { status: 500 });

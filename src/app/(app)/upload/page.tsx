@@ -57,6 +57,7 @@ export default function UploadPage() {
   });
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [dragging, setDragging] = useState(false);
+  const [locationWarning, setLocationWarning] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Restore draft from localStorage on mount
@@ -92,6 +93,9 @@ export default function UploadPage() {
     if (data.id) {
       localStorage.removeItem(DRAFT_KEY);
       setSessionId(data.id);
+      if (data.locationWarning) {
+        setLocationWarning(data.locationWarning);
+      }
     } else {
       alert(data.error || "Failed to create session");
     }
@@ -232,6 +236,11 @@ export default function UploadPage() {
       <div className="max-w-lg mx-auto">
         <h1 className="text-2xl font-bold text-white mb-2">Upload Photos</h1>
         <p className="text-white/40 mb-6 text-sm">Select up to 200 photos. They will be automatically watermarked.</p>
+        {locationWarning && (
+          <div className="mb-4 p-3 bg-yellow-500/10 border border-yellow-500/20 rounded-lg text-sm text-yellow-400">
+            ⚠ {locationWarning}
+          </div>
+        )}
         <div className="space-y-4">
           {/* Drag & Drop Zone */}
           <div
