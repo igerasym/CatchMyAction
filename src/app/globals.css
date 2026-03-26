@@ -63,3 +63,15 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .marker-cluster-large div {
   background: transparent !important;
 }
+
+/* Subtle map attribution — required by OSM/CARTO terms */
+.leaflet-control-attribution {
+  font-size: 9px !important;
+  background: rgba(0, 0, 0, 0.3) !important;
+  color: rgba(255, 255, 255, 0.25) !important;
+  padding: 1px 5px !important;
+  border-radius: 4px 0 0 0 !important;
+}
+.leaflet-control-attribution a {
+  color: rgba(255, 255, 255, 0.3) !important;
+}
