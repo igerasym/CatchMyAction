@@ -20,16 +20,16 @@ interface SpotInfo {
   lng: number;
 }
 
-function getMarkerColor(dateStr: string): "blue" | "green" | "gray" {
+function getMarkerColor(_dateStr: string): "blue" {
+  return "blue";
+}
+
+function isRecent(dateStr: string): boolean {
   const d = new Date(dateStr);
   const now = new Date();
-  // Compare by calendar days, not 24h windows
-  const sessionDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
-  const diffDays = Math.floor((today - sessionDay) / (1000 * 60 * 60 * 24));
-  if (diffDays <= 0) return "blue";
-  if (diffDays <= 7) return "green";
-  return "gray";
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const diffDays = Math.floor((today.getTime() - new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime()) / 86400000);
+  return diffDays <= 7;
 }
 
 export default function SpotMap({
@@ -61,10 +61,17 @@ export default function SpotMap({
   const activeMarkers = useMemo(
     () =>
       activeSessions
+        .filter((s) => {
+          // Only show sessions from last 7 days on homepage map
+          const d = new Date(s.date);
+          const now = new Date();
+          return (now.getTime() - d.getTime()) < 7 * 86400000;
+        })
         .map((s) => ({
           ...s,
           coords: getCoordsForSpot(s.location),
           color: getMarkerColor(s.date),
+          recent: true,
           type: "active" as const,
         }))
         .filter((s) => s.coords !== null),
@@ -96,12 +103,7 @@ export default function SpotMap({
           Action Spots Worldwide
         </h2>
         <p className="text-white/40 text-center mb-6 text-sm">
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-blue-500 mr-1" />
-          Today
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-green-500 ml-3 mr-1" />
-          This week
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-gray-500 ml-3 mr-1" />
-          Older
+          Click a spot to explore sessions
         </p>
         <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
           {MapComponent ? (

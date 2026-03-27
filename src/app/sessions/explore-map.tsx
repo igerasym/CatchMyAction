@@ -91,12 +91,16 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLoc
       showCoverageOnHover: false,
       zoomToBoundsOnClick: false,
       iconCreateFunction(cluster: any) {
-        const count = cluster.getChildCount();
+        // Sum session counts from all child markers
+        let total = 0;
+        cluster.getAllChildMarkers().forEach((m: any) => {
+          total += m.options.sessionCount || 1;
+        });
         let px = 36;
-        if (count > 20) px = 48;
-        else if (count > 5) px = 42;
+        if (total > 20) px = 48;
+        else if (total > 5) px = 42;
         return L.divIcon({
-          html: '<div style="background:rgba(14,165,233,0.7);color:#fff;border-radius:50%;width:' + px + 'px;height:' + px + 'px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid rgba(56,189,248,0.5);font-family:system-ui">' + count + '</div>',
+          html: '<div style="background:rgba(14,165,233,0.7);color:#fff;border-radius:50%;width:' + px + 'px;height:' + px + 'px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid rgba(56,189,248,0.5);font-family:system-ui">' + total + '</div>',
           className: "",
           iconSize: L.point(px, px),
         });
@@ -104,7 +108,15 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLoc
     });
 
     clusterGroup.on("clusterclick", (e: any) => {
-      map.fitBounds(e.layer.getBounds(), { padding: [40, 40], maxZoom: 14 });
+      const currentZoom = map.getZoom();
+      const bounds = e.layer.getBounds();
+      const targetZoom = map.getBoundsZoom(bounds, false, L.point(40, 40));
+      // Only zoom in, never out
+      if (targetZoom > currentZoom) {
+        map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+      } else {
+        e.layer.spiderfy();
+      }
     });
 
     // Background spots — tiny dots
@@ -116,21 +128,54 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLoc
         .on("click", () => onSpotClick(s.name));
     });
 
-    // Active session markers
+    // Group markers by location (same coords = same spot)
+    const spotGroups = new Map<string, typeof markers>();
     markers.forEach((m) => {
-      const radius = Math.min(8 + m.photoCount / 10, 18);
-      const marker = L.circleMarker([m.lat, m.lng], {
-        radius, color: "#38bdf8", fillColor: "#38bdf8", fillOpacity: 0.6, weight: 2,
-      });
-      marker.bindPopup(
-        '<div style="font-family:system-ui;min-width:180px">' +
-        '<h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">' + m.title + '</h3>' +
-        '<p style="font-size:12px;color:#888;margin:0 0 6px">' + m.location + ' · ' + format(new Date(m.date), "MMM d") + '</p>' +
-        '<p style="font-size:12px;color:#888;margin:0 0 8px">' + m.photoCount + ' photos</p>' +
-        '<a href="/sessions/' + m.id + '" style="font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">View Gallery →</a>' +
-        '</div>'
-      );
-      marker.on("click", () => onSpotClick(m.location));
+      const key = `${m.lat.toFixed(3)},${m.lng.toFixed(3)}`;
+      if (!spotGroups.has(key)) spotGroups.set(key, []);
+      spotGroups.get(key)!.push(m);
+    });
+
+    spotGroups.forEach((sessions) => {
+      const first = sessions[0];
+      const totalPhotos = sessions.reduce((sum, s) => sum + s.photoCount, 0);
+      const radius = Math.min(8 + totalPhotos / 10, 18);
+
+      let popup: string;
+      if (sessions.length === 1) {
+        popup = '<div style="font-family:system-ui;min-width:180px">' +
+          '<h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">' + first.title + '</h3>' +
+          '<p style="font-size:12px;color:#888;margin:0 0 6px">' + first.location + ' · ' + format(new Date(first.date), "MMM d") + '</p>' +
+          '<p style="font-size:12px;color:#888;margin:0 0 8px">' + first.photoCount + ' photos</p>' +
+          '<a href="/sessions/' + first.id + '" style="font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">View Gallery →</a></div>';
+      } else {
+        const list = sessions.slice(0, 5).map((s) =>
+          '<a href="/sessions/' + s.id + '" style="display:block;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-decoration:none">' +
+          '<span style="font-size:13px;color:#f0f0f0">' + s.title + '</span>' +
+          '<span style="font-size:11px;color:#888;display:block">' + format(new Date(s.date), "MMM d") + ' · ' + s.photoCount + ' photos</span></a>'
+        ).join("");
+        const more = sessions.length > 5 ? '<p style="font-size:11px;color:#666;padding-top:4px">+' + (sessions.length - 5) + ' more</p>' : "";
+        popup = '<div style="font-family:system-ui;min-width:200px;max-height:280px;overflow-y:auto">' +
+          '<h3 style="font-weight:600;font-size:14px;margin:0 0 2px;color:#f0f0f0">' + first.location + '</h3>' +
+          '<p style="font-size:12px;color:#888;margin:0 0 8px">' + sessions.length + ' sessions · ' + totalPhotos + ' photos</p>' +
+          list + more + '</div>';
+      }
+
+      const marker = sessions.length > 1
+        ? L.marker([first.lat, first.lng], {
+            icon: L.divIcon({
+              html: '<div style="background:rgba(14,165,233,0.8);color:#fff;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;border:2px solid rgba(56,189,248,0.5);font-family:system-ui">' + sessions.length + '</div>',
+              className: "",
+              iconSize: L.point(28, 28),
+              iconAnchor: L.point(14, 14),
+            }),
+            sessionCount: sessions.length,
+          } as any).bindPopup(popup)
+        : L.circleMarker([first.lat, first.lng], {
+            radius, color: "#38bdf8", fillColor: "#38bdf8", fillOpacity: 0.6, weight: 2,
+            sessionCount: 1,
+          } as any).bindPopup(popup);
+      marker.on("click", () => onSpotClick(first.location));
       clusterGroup.addLayer(marker);
     });
 

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { format } from "date-fns";
 import Link from "next/link";
 import { MapPin, Calendar, Camera, Waves, Wind, ImageIcon, X } from "lucide-react";
@@ -43,8 +43,23 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
   const [MapComponent, setMapComponent] = useState<React.ComponentType<any> | null>(null);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
 
-  // Scroll to top on mount
-  useEffect(() => { window.scrollTo(0, 0); }, []);
+  // Scroll to top on mount + fly to initial location
+  useEffect(() => {
+    window.scrollTo(0, 0);
+    if (initialLocation) {
+      // Find coordinates for the initial location
+      const spot = allSpots.find((s) => s.name.toLowerCase() === initialLocation.toLowerCase());
+      if (spot) {
+        setFlyTo({ lat: spot.lat, lng: spot.lng, zoom: 10 });
+      } else {
+        // Try matching from sessions
+        const session = sessions.find((s) => s.location.toLowerCase().includes(initialLocation.toLowerCase()));
+        if (session?.locationLat && session?.locationLng) {
+          setFlyTo({ lat: session.locationLat, lng: session.locationLng, zoom: 10 });
+        }
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // @ts-ignore — dynamic import for client-only map component
@@ -65,11 +80,12 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
     return [...names];
   }
 
-  // Filter sessions by selected location (expanded to region/country + direct text match)
+  // Filter sessions by selected location, sorted by date (newest first)
   const filteredSessions = useMemo(() => {
     if (!selectedLocation) return [];
     const q = selectedLocation.toLowerCase();
     const expanded = expandQuery(selectedLocation);
+
     return sessions.filter((s) => {
       const loc = s.location.toLowerCase();
       // Match via expanded spots database
@@ -99,10 +115,10 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
     [sessions]
   );
 
-  function handleSpotSelect(location: string) {
+  const handleSpotSelect = useCallback((location: string) => {
     setSelectedLocation(location);
     setSearchInput(location);
-  }
+  }, []);
 
   function clearSelection() {
     setSelectedLocation("");

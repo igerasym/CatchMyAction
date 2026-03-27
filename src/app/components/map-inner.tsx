@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
-import { format } from "date-fns";
 
 if (typeof window !== "undefined") {
   (window as any).L = L;
@@ -18,6 +17,7 @@ interface ActiveMarker {
   thumbnails: string[];
   coords: [number, number];
   color: "blue" | "green" | "gray";
+  recent?: boolean;
   type: "active";
 }
 
@@ -129,30 +129,26 @@ export default function MapInner({
       const radius = Math.min(6 + sessions.length * 2, 14);
 
       let popup: string;
-      if (sessions.length === 1) {
-        const m = first;
-        const thumbs = m.thumbnails.length > 0
-          ? '<div style="display:flex;gap:4px;margin-bottom:8px">' + m.thumbnails.map((url: string) => '<img src="' + url + '" style="width:56px;height:40px;object-fit:cover;border-radius:4px" loading="lazy" />').join("") + '</div>'
-          : "";
-        popup = '<div style="min-width:200px;font-family:system-ui"><h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">' + m.title + '</h3><p style="font-size:12px;color:#888;margin:0 0 8px">' + m.location + ' · ' + format(new Date(m.date), "MMM d, yyyy") + '</p>' + thumbs + '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#888">' + m.photoCount + ' photos</span><a href="/sessions/' + m.id + '" style="font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">View Gallery →</a></div></div>';
-      } else {
-        const totalPhotos = sessions.reduce((sum, s) => sum + s.photoCount, 0);
-        const sessionList = sessions.slice(0, 5).map((s) =>
-          '<a href="/sessions/' + s.id + '" style="display:block;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-decoration:none">' +
-          '<span style="font-size:13px;color:#f0f0f0;font-weight:500">' + s.title + '</span>' +
-          '<span style="font-size:11px;color:#888;display:block">' + format(new Date(s.date), "MMM d") + ' · ' + s.photoCount + ' photos</span></a>'
-        ).join("");
-        const more = sessions.length > 5 ? '<p style="font-size:11px;color:#888;padding-top:4px">+' + (sessions.length - 5) + ' more sessions</p>' : "";
-        popup = '<div style="min-width:220px;max-height:300px;overflow-y:auto;font-family:system-ui">' +
-          '<h3 style="font-weight:600;font-size:14px;margin:0 0 2px;color:#f0f0f0">' + first.location + '</h3>' +
-          '<p style="font-size:12px;color:#888;margin:0 0 8px">' + sessions.length + ' sessions · ' + totalPhotos + ' photos</p>' +
-          sessionList + more +
-          '<a href="/sessions?location=' + encodeURIComponent(first.location) + '" style="display:block;margin-top:8px;font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">Explore all →</a></div>';
-      }
+      const exploreUrl = '/sessions?location=' + encodeURIComponent(first.location);
 
-      const marker = L.circleMarker(first.coords, {
-        radius, color: COLORS[first.color], fillColor: COLORS[first.color], fillOpacity: 0.6, weight: 2,
-      }).bindPopup(popup);
+      const hasRecent = sessions.some((s) => s.recent);
+      let marker;
+      if (hasRecent) {
+        marker = L.marker(first.coords, {
+          icon: L.divIcon({
+            html: '<div style="background:#22c55e;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;position:relative;cursor:pointer">NEW<div style="position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid #22c55e"></div></div>',
+            className: "",
+            iconSize: L.point(32, 20),
+            iconAnchor: L.point(16, 20),
+          }),
+        });
+      } else {
+        marker = L.circleMarker(first.coords, {
+          radius, color: COLORS[first.color], fillColor: COLORS[first.color], fillOpacity: 0.6, weight: 2,
+        });
+      }
+      marker.on("click", () => { window.location.href = exploreUrl; });
+      (marker.options as any).sessionCount = sessions.length;
       clusterGroup.addLayer(marker);
     });
 
