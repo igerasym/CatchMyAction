@@ -3,6 +3,7 @@
 import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { toastSuccess, toastError, toastWarning } from "@/lib/toast";
 import PasswordInput from "@/app/components/password-input";
 
 interface UserData {
@@ -63,7 +64,13 @@ export default function SettingsPage() {
     else { setMessage({ type: "ok", text: "Settings saved" }); setCurrentPassword(""); setNewPassword(""); window.location.reload(); }
   }
 
-  if (status !== "authenticated") return <p className="text-center py-12 text-white/40">Loading...</p>;
+  if (status !== "authenticated") return (
+    <div className="max-w-lg mx-auto mt-8 space-y-6">
+      <div className="h-8 w-32 bg-white/5 rounded animate-pulse" />
+      <div className="flex justify-center"><div className="w-20 h-20 rounded-full bg-white/5 animate-pulse" /></div>
+      {[...Array(4)].map((_, i) => <div key={i} className="h-12 bg-white/5 rounded-lg animate-pulse" />)}
+    </div>
+  );
 
   const inp = "w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent placeholder-white/20";
 
@@ -101,8 +108,8 @@ export default function SettingsPage() {
                 <button type="button" onClick={async () => {
                   const res = await fetch("/api/auth/resend-verification", { method: "POST" });
                   const data = await res.json();
-                  if (data.sent) alert("Verification email sent! Check your inbox.");
-                  else if (data.already) { alert("Email already verified!"); setVerified(true); }
+                  if (data.sent) toastSuccess("Verification email sent! Check your inbox.");
+                  else if (data.already) { toastSuccess("Email already verified!"); setVerified(true); }
                 }} className="text-[11px] text-ocean-400 hover:underline">
                   Resend verification
                 </button>
@@ -206,10 +213,10 @@ export default function SettingsPage() {
             });
             const data = await res.json();
             if (data.deleted) {
-              alert("Account deleted.");
+              toastSuccess("Account deleted.");
               window.location.href = "/";
             } else {
-              alert(data.error || "Failed to delete account");
+              toastError(data.error || "Failed to delete account");
             }
           }}
           className="px-4 py-2 text-xs border border-red-500/30 text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"

@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
+import { toastError } from "@/lib/toast";
 
 const FindMe = dynamic(() => import("./find-me"), { ssr: false });
 
@@ -47,6 +48,7 @@ export default function PhotoGrid({
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
+  const [purchaseSuccess, setPurchaseSuccess] = useState<{ count: number; downloadUrl?: string } | null>(null);
   const [reportingPhoto, setReportingPhoto] = useState<string | null>(null);
   const [reportEmail, setReportEmail] = useState("");
   const [reportReason, setReportReason] = useState("thats_me");
@@ -95,6 +97,7 @@ export default function PhotoGrid({
           const dlRes = await fetch(`/api/photos/${purchasedPhotoId}/download`);
           const dlData = await dlRes.json();
           if (dlData.downloadUrl) {
+            setPurchaseSuccess({ count: 1, downloadUrl: dlData.downloadUrl });
             const a = document.createElement("a");
             a.href = dlData.downloadUrl;
             a.download = `photo-${purchasedPhotoId}.jpg`;
@@ -131,6 +134,7 @@ export default function PhotoGrid({
             ids.forEach((id) => next.add(id));
             return next;
           });
+          setPurchaseSuccess({ count: ids.length });
           return;
         }
         await new Promise((r) => setTimeout(r, 1500));
@@ -197,10 +201,10 @@ export default function PhotoGrid({
         a.download = `photo-${photo.id}.jpg`;
         a.click();
       } else if (data.error) {
-        alert(data.error);
+        toastError(data.error);
       }
     } catch {
-      alert("Download failed");
+      toastError("Download failed");
     } finally {
       setPurchasing(false);
     }
@@ -244,9 +248,9 @@ export default function PhotoGrid({
         return;
       }
 
-      alert(data.error || "Something went wrong");
+      toastError(data.error || "Something went wrong");
     } catch {
-      alert("Failed to purchase");
+      toastError("Failed to purchase");
     } finally {
       setPurchasing(false);
     }
@@ -276,7 +280,7 @@ export default function PhotoGrid({
         setCartIds(new Set());
       }
     } catch {
-      alert("Purchase failed");
+      toastError("Purchase failed");
     } finally {
       setBulkBuying(false);
     }
@@ -319,6 +323,37 @@ export default function PhotoGrid({
 
   return (
     <>
+      {/* Purchase success banner */}
+      {purchaseSuccess && (
+        <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center justify-between gap-4 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
+              <span className="text-green-400 text-lg">✓</span>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-white">
+                {purchaseSuccess.count === 1 ? "Photo purchased!" : `${purchaseSuccess.count} photos purchased!`}
+              </p>
+              <p className="text-xs text-white/40">
+                {purchaseSuccess.downloadUrl ? "Your download should start automatically." : "Photos are now in My Actions."}
+              </p>
+            </div>
+          </div>
+          <div className="flex gap-2 flex-shrink-0">
+            {purchaseSuccess.downloadUrl && (
+              <a href={purchaseSuccess.downloadUrl} download
+                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors text-xs">
+                Download Again
+              </a>
+            )}
+            <button onClick={() => setPurchaseSuccess(null)}
+              className="px-3 py-1.5 border border-white/10 text-white/50 rounded-lg hover:bg-white/5 transition-colors text-xs">
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Toolbar: Find Me button */}
       {photos.length > 0 && (
         <div className="flex items-center justify-end mb-4">

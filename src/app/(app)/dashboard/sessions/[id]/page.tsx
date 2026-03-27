@@ -149,7 +149,18 @@ export default function ManagePhotosPage() {
     if (files.length > 0) uploadFiles(files);
   }
 
-  if (loading) return <p className="text-center py-12 text-white/40">Loading...</p>;
+  if (loading) return (
+    <div>
+      <div className="h-5 w-16 bg-white/5 rounded animate-pulse mb-4" />
+      <div className="flex justify-between mb-6">
+        <div><div className="h-6 w-48 bg-white/5 rounded animate-pulse mb-2" /><div className="h-4 w-32 bg-white/5 rounded animate-pulse" /></div>
+        <div className="flex gap-2"><div className="h-9 w-28 bg-white/5 rounded-lg animate-pulse" /><div className="h-9 w-20 bg-white/5 rounded-lg animate-pulse" /></div>
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-2">
+        {[...Array(12)].map((_, i) => <div key={i} className="aspect-[4/3] bg-white/5 rounded-lg animate-pulse" />)}
+      </div>
+    </div>
+  );
   if (!session) return <p className="text-center py-12 text-red-400">Session not found</p>;
 
   const isCover = (id: string) => session.coverPhotoId === id;

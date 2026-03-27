@@ -9,6 +9,7 @@ import {
   FolderOpen, ImageIcon, ShoppingCart, DollarSign, MapPin,
   TrendingUp, Camera, Eye,
 } from "lucide-react";
+import { toastError, toastWarning } from "@/lib/toast";
 
 interface Session {
   id: string;
@@ -78,7 +79,7 @@ export default function DashboardPage() {
       .then((r) => r.json())
       .then(setSessions)
       .finally(() => setLoading(false));
-    fetch("/api/photographer/stats?period=all")
+    fetch("/api/photographer/stats?period=all&t=" + Date.now())
       .then((r) => r.json())
       .then(setStats)
       .catch(() => {});
@@ -107,6 +108,7 @@ export default function DashboardPage() {
     await fetch(`/api/sessions/${id}`, { method: "DELETE" });
     setSessions((prev) => prev.filter((s) => s.id !== id));
     setDeleting(null);
+    refreshStats();
   }
 
   async function handleTogglePublish(id: string, published: boolean) {
@@ -117,11 +119,16 @@ export default function DashboardPage() {
     });
     const data = await res.json();
     if (!res.ok) {
-      if (data.needsVerification) alert("Verify your email to publish sessions.\nGo to Settings → Profile to resend verification.");
-      else alert(data.error || "Failed to update");
+      if (data.needsVerification) toastWarning("Verify your email to publish sessions. Go to Settings → Profile.");
+      else toastError(data.error || "Failed to update");
       return;
     }
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, published: !published } : s)));
+    refreshStats();
+  }
+
+  function refreshStats() {
+    fetch(`/api/photographer/stats?period=all&t=${Date.now()}`).then((r) => r.json()).then(setStats).catch(() => {});
   }
 
   async function handleSaveEdit(id: string, data: Record<string, any>) {
@@ -136,7 +143,17 @@ export default function DashboardPage() {
   }
 
   if (status !== "authenticated" || user?.role !== "PHOTOGRAPHER") {
-    return <p className="text-center py-12 text-white/40">Loading...</p>;
+    return (
+      <div className="space-y-6">
+        <div className="flex gap-2"><div className="h-10 w-32 bg-white/5 rounded-lg animate-pulse" /><div className="ml-auto h-10 w-32 bg-white/5 rounded-lg animate-pulse" /></div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[...Array(5)].map((_, i) => <div key={i} className="bg-white/5 border border-white/10 rounded-xl h-20 animate-pulse" />)}
+        </div>
+        <div className="space-y-3">
+          {[...Array(3)].map((_, i) => <div key={i} className="bg-white/5 border border-white/10 rounded-xl h-24 animate-pulse" />)}
+        </div>
+      </div>
+    );
   }
 
   const published = sessions.filter((s) => s.published).length;

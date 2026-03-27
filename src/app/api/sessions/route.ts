@@ -48,6 +48,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  // Validate start time is before end time
+  if (startTime >= endTime) {
+    return NextResponse.json({ error: "Start time must be before end time" }, { status: 400 });
+  }
+
   // Validate date range
   const dateObj = new Date(date);
   const now = new Date();

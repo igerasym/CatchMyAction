@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import SpotAutocomplete from "@/app/components/spot-autocomplete";
 import PasswordInput from "@/app/components/password-input";
 import DateTimeInput from "@/app/components/date-time-input";
+import { toastError, toastWarning } from "@/lib/toast";
 
 const DRAFT_KEY = "catchmyaction_session_draft";
 
@@ -38,6 +39,7 @@ export default function UploadPage() {
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("9.99");
   const [sportType, setSportType] = useState("surf");
+  const [formError, setFormError] = useState("");
 
   // Auth modal
   const [showAuth, setShowAuth] = useState(false);
@@ -97,14 +99,20 @@ export default function UploadPage() {
         setLocationWarning(data.locationWarning);
       }
     } else {
-      alert(data.error || "Failed to create session");
+      setFormError(data.error || "Failed to create session");
     }
   }
 
   // Handle "Continue" — check auth, show modal or create session
   async function handleContinue(e: React.FormEvent) {
     e.preventDefault();
+    setFormError("");
     saveDraft();
+
+    if (startTime >= endTime) {
+      setFormError("Start time must be before end time");
+      return;
+    }
 
     if (user && user.role === "PHOTOGRAPHER") {
       await createSession();
@@ -219,13 +227,13 @@ export default function UploadPage() {
     if (!res.ok) {
       const data = await res.json();
       if (data.needsVerification) {
-        alert("Verify your email to publish sessions.\nGo to Settings → Profile to resend verification.");
+        toastWarning("Verify your email to publish sessions. Go to Settings → Profile.");
       } else {
-        alert(data.error || "Failed to publish");
+        toastError(data.error || "Failed to publish");
       }
       return;
     }
-    window.location.href = `/dashboard/sessions/${sessionId}`;
+    window.location.href = "/dashboard";
   }
 
   const inputClass = "w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent placeholder-white/25";
@@ -403,6 +411,9 @@ export default function UploadPage() {
           <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2}
             placeholder="4-6ft, offshore winds..." className={inputClass} />
         </div>
+        {formError && (
+          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm text-red-400">{formError}</div>
+        )}
         <button type="submit"
           className="w-full py-3 bg-ocean-500 text-white font-medium rounded-lg hover:bg-ocean-400 transition-colors">
           {user ? "Create Session" : "Continue →"}

@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import { toastError } from "@/lib/toast";
 
 interface MyPhoto {
   id: string;
@@ -103,7 +104,7 @@ export default function MyPhotosPage() {
       const data = await res.json();
       if (data.checkoutUrl) window.location.href = data.checkoutUrl;
       else if (data.purchased || data.alreadyPurchased) handleDownload(photoId);
-    } catch { alert("Purchase failed"); }
+    } catch { toastError("Purchase failed"); }
     finally { setBuying(null); }
   }
 
@@ -117,7 +118,16 @@ export default function MyPhotosPage() {
   }
 
   if (status === "loading" || loading) {
-    return <p className="text-center py-12 text-white/40">Loading...</p>;
+    return (
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="h-8 w-40 bg-white/5 rounded animate-pulse mb-6" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="aspect-[4/3] bg-white/5 rounded-xl animate-pulse" />
+          ))}
+        </div>
+      </div>
+    );
   }
 
   return (
