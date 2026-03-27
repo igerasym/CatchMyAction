@@ -7,7 +7,7 @@ import StatsCounter from "./components/stats-counter";
 import HowItWorks from "./components/how-it-works";
 import Footer from "./components/footer";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60; // ISR: cache homepage, regenerate every 60 seconds
 
 export default async function HomePage() {
   const [sessions, totalPhotos, totalPhotographers, totalPurchases] =

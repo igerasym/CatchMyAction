@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({
       ...session,
-      ...(coords ? {} : { locationWarning: "We couldn't find this location on the map. Your session won't appear in map search. Check the spelling or edit later." }),
+      needsLocation: !coords,
     }, { status: 201 });
   } catch (err: any) {
     console.error("Session create error:", err);

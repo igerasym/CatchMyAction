@@ -181,6 +181,12 @@ export default function ManagePhotosPage() {
           </p>
         </div>
         <div className="flex gap-2">
+          <button
+            onClick={() => window.location.href = "/dashboard"}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors text-sm"
+          >
+            Done
+          </button>
           <label className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm cursor-pointer">
             + Add Photos
             <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden" onChange={handleUpload} />

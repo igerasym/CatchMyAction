@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 import { deleteFaceCollection } from "@/lib/rekognition";
 import { sendSessionNotification } from "@/lib/email";
+import { geocodeLocation } from "@/lib/geocode";
 
 /** GET /api/sessions/:id — get session (public) */
 export async function GET(
@@ -39,7 +40,7 @@ export async function PATCH(
   }
 
   const body = await req.json();
-  const { title, location, date, startTime, endTime, description, published, coverPhotoId, pricePerPhoto } = body;
+  const { title, location, date, startTime, endTime, description, published, coverPhotoId, pricePerPhoto, locationLat, locationLng } = body;
 
   // Email verification check — soft nudge, not blocking
   // Will be enforced once SES production access is granted
@@ -51,6 +52,15 @@ export async function PATCH(
     if (wasDraft) {
       const current = await prisma.session.findUnique({ where: { id: params.id }, select: { published: true } });
       wasUnpublished = current ? !current.published : false;
+    }
+
+    // Re-geocode if location changed
+    let coordsUpdate = {};
+    if (location) {
+      const coords = await geocodeLocation(location);
+      coordsUpdate = coords
+        ? { locationLat: coords.lat, locationLng: coords.lng }
+        : { locationLat: null, locationLng: null };
     }
 
     const session = await prisma.session.update({
@@ -65,6 +75,9 @@ export async function PATCH(
         ...(published !== undefined && { published }),
         ...(coverPhotoId !== undefined && { coverPhotoId }),
         ...(pricePerPhoto !== undefined && { pricePerPhoto }),
+        ...(locationLat !== undefined && { locationLat }),
+        ...(locationLng !== undefined && { locationLng }),
+        ...coordsUpdate,
       },
     });
 
@@ -92,7 +105,9 @@ export async function PATCH(
       }
     }
 
-    return NextResponse.json(session);
+    // Flag if location was changed but couldn't be geocoded
+    const needsLocation = location && !coordsUpdate.locationLat && !locationLat;
+    return NextResponse.json({ ...session, needsLocation });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Update failed" }, { status: 500 });
   }

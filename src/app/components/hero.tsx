@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession } from "next-auth/react";
 
 export default function HeroSection() {
@@ -10,10 +11,15 @@ export default function HeroSection() {
 
   return (
     <section className="relative h-[85vh] min-h-[500px] sm:h-[90vh] sm:min-h-[600px] flex items-center justify-center overflow-hidden -mt-14">
-      {/* Background image */}
-      <div
-        className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-        style={{ backgroundImage: "url('/hero-bg.jpg')" }}
+      {/* Background image — optimized */}
+      <Image
+        src="/hero-bg.jpg"
+        alt="Action sports photography"
+        fill
+        priority
+        className="object-cover object-center"
+        sizes="100vw"
+        quality={75}
       />
       {/* Dark gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-[#0a0a0a]" />

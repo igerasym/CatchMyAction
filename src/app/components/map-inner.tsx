@@ -116,13 +116,43 @@ export default function MapInner({
         .bindPopup('<div style="font-family:system-ui;min-width:150px"><h3 style="font-weight:600;font-size:13px;margin:0 0 2px;color:#f0f0f0">' + s.name + '</h3><p style="font-size:11px;color:#888;margin:0 0 6px">' + s.region + ', ' + s.country + '</p><p style="font-size:11px;color:#666;margin:0">No sessions yet</p></div>');
     });
 
+    // Group active markers by location (same coords = same spot)
+    const spotGroups = new Map<string, typeof activeMarkers>();
     activeMarkers.forEach((m) => {
-      const radius = 6;
-      const thumbs = m.thumbnails.length > 0
-        ? '<div style="display:flex;gap:4px;margin-bottom:8px">' + m.thumbnails.map((url) => '<img src="' + url + '" style="width:56px;height:40px;object-fit:cover;border-radius:4px" loading="lazy" />').join("") + '</div>'
-        : "";
-      const popup = '<div style="min-width:200px;font-family:system-ui"><h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">' + m.title + '</h3><p style="font-size:12px;color:#888;margin:0 0 8px">' + m.location + ' · ' + format(new Date(m.date), "MMM d, yyyy") + '</p>' + thumbs + '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#888">' + m.photoCount + ' photos</span><a href="/sessions/' + m.id + '" style="font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">View Gallery →</a></div></div>';
-      const marker = L.circleMarker(m.coords, { radius, color: COLORS[m.color], fillColor: COLORS[m.color], fillOpacity: 0.6, weight: 2 }).bindPopup(popup);
+      const key = `${m.coords[0].toFixed(3)},${m.coords[1].toFixed(3)}`;
+      if (!spotGroups.has(key)) spotGroups.set(key, []);
+      spotGroups.get(key)!.push(m);
+    });
+
+    spotGroups.forEach((sessions, _key) => {
+      const first = sessions[0];
+      const radius = Math.min(6 + sessions.length * 2, 14);
+
+      let popup: string;
+      if (sessions.length === 1) {
+        const m = first;
+        const thumbs = m.thumbnails.length > 0
+          ? '<div style="display:flex;gap:4px;margin-bottom:8px">' + m.thumbnails.map((url: string) => '<img src="' + url + '" style="width:56px;height:40px;object-fit:cover;border-radius:4px" loading="lazy" />').join("") + '</div>'
+          : "";
+        popup = '<div style="min-width:200px;font-family:system-ui"><h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">' + m.title + '</h3><p style="font-size:12px;color:#888;margin:0 0 8px">' + m.location + ' · ' + format(new Date(m.date), "MMM d, yyyy") + '</p>' + thumbs + '<div style="display:flex;justify-content:space-between;align-items:center"><span style="font-size:12px;color:#888">' + m.photoCount + ' photos</span><a href="/sessions/' + m.id + '" style="font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">View Gallery →</a></div></div>';
+      } else {
+        const totalPhotos = sessions.reduce((sum, s) => sum + s.photoCount, 0);
+        const sessionList = sessions.slice(0, 5).map((s) =>
+          '<a href="/sessions/' + s.id + '" style="display:block;padding:6px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-decoration:none">' +
+          '<span style="font-size:13px;color:#f0f0f0;font-weight:500">' + s.title + '</span>' +
+          '<span style="font-size:11px;color:#888;display:block">' + format(new Date(s.date), "MMM d") + ' · ' + s.photoCount + ' photos</span></a>'
+        ).join("");
+        const more = sessions.length > 5 ? '<p style="font-size:11px;color:#888;padding-top:4px">+' + (sessions.length - 5) + ' more sessions</p>' : "";
+        popup = '<div style="min-width:220px;max-height:300px;overflow-y:auto;font-family:system-ui">' +
+          '<h3 style="font-weight:600;font-size:14px;margin:0 0 2px;color:#f0f0f0">' + first.location + '</h3>' +
+          '<p style="font-size:12px;color:#888;margin:0 0 8px">' + sessions.length + ' sessions · ' + totalPhotos + ' photos</p>' +
+          sessionList + more +
+          '<a href="/sessions?location=' + encodeURIComponent(first.location) + '" style="display:block;margin-top:8px;font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">Explore all →</a></div>';
+      }
+
+      const marker = L.circleMarker(first.coords, {
+        radius, color: COLORS[first.color], fillColor: COLORS[first.color], fillOpacity: 0.6, weight: 2,
+      }).bindPopup(popup);
       clusterGroup.addLayer(marker);
     });
 

@@ -5,11 +5,14 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import EditSessionModal from "./edit-modal";
+import dynamic from "next/dynamic";
 import {
   FolderOpen, ImageIcon, ShoppingCart, DollarSign, MapPin,
   TrendingUp, Camera, Eye,
 } from "lucide-react";
-import { toastError, toastWarning } from "@/lib/toast";
+import { toastError, toastWarning, toastSuccess } from "@/lib/toast";
+
+const LocationPicker = dynamic(() => import("@/app/components/location-picker"), { ssr: false });
 
 interface Session {
   id: string;
@@ -67,6 +70,7 @@ export default function DashboardPage() {
   const [stripeConnected, setStripeConnected] = useState(true);
   const [stripeStatus, setStripeStatus] = useState<"none" | "incomplete" | "active">("active");
   const [earningsRange, setEarningsRange] = useState("30");
+  const [locationPickerSession, setLocationPickerSession] = useState<{ id: string; location: string } | null>(null);
 
   useEffect(() => {
     if (status === "unauthenticated") router.push("/login?callbackUrl=/dashboard");
@@ -75,14 +79,17 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!user?.id) return;
-    fetch("/api/photographer/sessions")
-      .then((r) => r.json())
-      .then(setSessions)
-      .finally(() => setLoading(false));
-    fetch("/api/photographer/stats?period=all&t=" + Date.now())
-      .then((r) => r.json())
-      .then(setStats)
-      .catch(() => {});
+    // Load sessions + stats in parallel (fast, local DB)
+    Promise.all([
+      fetch("/api/photographer/sessions").then((r) => r.json()),
+      fetch(`/api/photographer/stats?period=all&t=${Date.now()}`).then((r) => r.json()),
+    ]).then(([sessionsData, statsData]) => {
+      setSessions(sessionsData);
+      setStats(statsData);
+      setLoading(false);
+    }).catch(() => setLoading(false));
+
+    // Stripe status — separate, non-blocking (external API, slower)
     fetch("/api/stripe/connect")
       .then((r) => r.json())
       .then((data) => {
@@ -140,6 +147,9 @@ export default function DashboardPage() {
     const updated = await res.json();
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
     setEditSession(null);
+    if (updated.needsLocation) {
+      setLocationPickerSession({ id, location: data.location || "" });
+    }
   }
 
   if (status !== "authenticated" || user?.role !== "PHOTOGRAPHER") {
@@ -216,6 +226,21 @@ export default function DashboardPage() {
         <EditSessionModal session={editSession}
           onSave={(data) => handleSaveEdit(editSession.id, data)}
           onClose={() => setEditSession(null)} />
+      )}
+
+      {locationPickerSession && (
+        <LocationPicker
+          locationName={locationPickerSession.location}
+          onSelect={async (lat, lng) => {
+            await fetch(`/api/sessions/${locationPickerSession.id}`, {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ locationLat: lat, locationLng: lng }),
+            });
+            setLocationPickerSession(null);
+          }}
+          onClose={() => setLocationPickerSession(null)}
+        />
       )}
     </div>
   );
@@ -512,12 +537,14 @@ function SessionRow({
   onEdit: () => void; onDelete: () => void; onTogglePublish: () => void;
 }) {
   const [showQR, setShowQR] = useState(false);
+  const [showMenu, setShowMenu] = useState(false);
   const thumbUrl = s.photos[0]?.thumbnailUrl || null;
+  const sessionDate = s.date ? new Date(s.date).toLocaleDateString("en", { month: "short", day: "numeric" }) : "";
 
   return (
     <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors">
       <div className="flex items-center gap-4">
-        <div className="w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
+        <Link href={`/dashboard/sessions/${s.id}`} className="w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
           {thumbUrl ? (
             <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
           ) : (
@@ -525,10 +552,10 @@ function SessionRow({
               <ImageIcon className="w-5 h-5" />
             </div>
           )}
-        </div>
+        </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
-            <Link href={`/sessions/${s.id}`}
+            <Link href={`/dashboard/sessions/${s.id}`}
               className="font-medium text-white hover:text-ocean-400 transition-colors truncate text-sm sm:text-base">
               {s.title}
             </Link>
@@ -536,25 +563,53 @@ function SessionRow({
               s.published ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
             }`}>{s.published ? "Live" : "Draft"}</span>
           </div>
-          <p className="text-xs sm:text-sm text-white/40 truncate">
-            <MapPin className="w-3.5 h-3.5 inline mr-0.5" /> {s.location} · {s.photoCount} photos · <Eye className="w-3.5 h-3.5 inline mr-0.5" /> {s.viewCount}
+          <p className="text-xs text-white/40 truncate">
+            <MapPin className="w-3 h-3 inline mr-0.5" /> {s.location} · {sessionDate}
           </p>
+          <div className="flex gap-3 mt-0.5 text-[11px] text-white/25">
+            <span>{s.photoCount} photos</span>
+            <span><Eye className="w-3 h-3 inline mr-0.5" />{s.viewCount} views</span>
+          </div>
+        </div>
+
+        {/* Actions — compact */}
+        <div className="flex items-center gap-1.5 flex-shrink-0">
+          <button onClick={onTogglePublish}
+            className={`px-2.5 py-1.5 text-xs rounded-lg transition-colors ${
+              s.published
+                ? "border border-white/10 text-white/50 hover:bg-white/10"
+                : "bg-green-600/20 text-green-400 border border-green-500/20 hover:bg-green-600/30"
+            }`}>
+            {s.published ? "Unpublish" : "Publish"}
+          </button>
+          <div className="relative">
+            <button onClick={() => setShowMenu(!showMenu)}
+              className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors">
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+            </button>
+            {showMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                <div className="absolute right-0 top-full mt-1 w-40 bg-[#1a1a2e] border border-white/10 rounded-lg shadow-xl z-50 py-1">
+                  <button onClick={() => { onEdit(); setShowMenu(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">Edit Session</button>
+                  <button onClick={() => { setShowQR(true); setShowMenu(false); }}
+                    className="w-full text-left px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">QR Code</button>
+                  <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/sessions/${s.id}`); setShowMenu(false); toastSuccess("Link copied!"); }}
+                    className="w-full text-left px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">Copy Link</button>
+                  <Link href={`/dashboard/sessions/${s.id}`} onClick={() => setShowMenu(false)}
+                    className="block px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">Manage Photos</Link>
+                  <div className="border-t border-white/5 my-1" />
+                  <button onClick={() => { onDelete(); setShowMenu(false); }} disabled={deleting}
+                    className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors">
+                    {deleting ? "Deleting..." : "Delete Session"}</button>
+                </div>
+              </>
+            )}
+          </div>
         </div>
       </div>
-      <div className="flex items-center gap-2 mt-3 flex-wrap">
-        <button onClick={onTogglePublish}
-          className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors">
-          {s.published ? "Unpublish" : "Publish"}</button>
-        <button onClick={onEdit}
-          className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors">Edit</button>
-        <button onClick={() => setShowQR(true)}
-          className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors">QR</button>
-        <Link href={`/dashboard/sessions/${s.id}`}
-          className="px-3 py-1.5 text-xs rounded-lg border border-white/10 text-white/60 hover:bg-white/10 transition-colors">Photos</Link>
-        <button onClick={onDelete} disabled={deleting}
-          className="px-3 py-1.5 text-xs rounded-lg border border-red-500/30 text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors ml-auto">
-          {deleting ? "..." : "Delete"}</button>
-      </div>
+
       {showQR && (
         <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
           <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>

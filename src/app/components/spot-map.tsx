@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useMemo, useRef } from "react";
 import { getCoordsForSpot } from "@/lib/spots-database";
 
 interface ActiveSession {
@@ -23,9 +23,12 @@ interface SpotInfo {
 function getMarkerColor(dateStr: string): "blue" | "green" | "gray" {
   const d = new Date(dateStr);
   const now = new Date();
-  const diff = (now.getTime() - d.getTime()) / (1000 * 60 * 60 * 24);
-  if (diff <= 1) return "blue";
-  if (diff <= 7) return "green";
+  // Compare by calendar days, not 24h windows
+  const sessionDay = new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
+  const diffDays = Math.floor((today - sessionDay) / (1000 * 60 * 60 * 24));
+  if (diffDays <= 0) return "blue";
+  if (diffDays <= 7) return "green";
   return "gray";
 }
 
@@ -37,10 +40,23 @@ export default function SpotMap({
   allSpots: SpotInfo[];
 }) {
   const [MapComponent, setMapComponent] = useState<React.ComponentType<any> | null>(null);
+  const sectionRef = useRef<HTMLElement>(null);
+  const [visible, setVisible] = useState(false);
+
+  // Only load map when section scrolls into view
+  useEffect(() => {
+    if (!sectionRef.current) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) { setVisible(true); observer.disconnect(); } },
+      { rootMargin: "200px" }
+    );
+    observer.observe(sectionRef.current);
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
-    import("./map-inner").then((mod) => setMapComponent(() => mod.default));
-  }, []);
+    if (visible) import("./map-inner").then((mod) => setMapComponent(() => mod.default));
+  }, [visible]);
 
   const activeMarkers = useMemo(
     () =>
@@ -74,7 +90,7 @@ export default function SpotMap({
   );
 
   return (
-    <section className="py-16 px-4">
+    <section ref={sectionRef} className="py-16 px-4">
       <div className="max-w-6xl mx-auto">
         <h2 className="text-2xl font-bold text-center mb-2 text-white">
           Action Spots Worldwide
@@ -86,8 +102,6 @@ export default function SpotMap({
           This week
           <span className="inline-block w-2.5 h-2.5 rounded-full bg-gray-500 ml-3 mr-1" />
           Older
-          <span className="inline-block w-2.5 h-2.5 rounded-full bg-ocean-500/40 ml-3 mr-1" />
-          All spots
         </p>
         <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
           {MapComponent ? (
