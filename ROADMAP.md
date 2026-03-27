@@ -24,11 +24,11 @@
 1. No reason to come back — no notifications, no "new session at your spot" alerts
 2. No social proof — no reviews, no "X people bought from this session"
 3. No sharing — can't share purchased photos to Instagram/social directly
-4. "Find Me" is buried inside individual sessions — should be global
+4. "Find Me" is buried inside individual sessions — should be global (planned)
 
 ### Photographers (supply side)
-1. No earnings visibility — no payout history, no "when do I get paid"
-2. No analytics — session views, conversion rate, Find Me attempts
+1. ~~No earnings visibility~~ ✅ Earnings dashboard with revenue chart, per-session breakdown
+2. ~~No analytics~~ ✅ Session view tracking (partial — views done, conversion funnel pending)
 3. No way to build a following — athletes can't follow photographers
 4. No bulk workflow for pros who shoot multiple sessions per day
 
