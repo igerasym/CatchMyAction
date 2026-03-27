@@ -92,11 +92,11 @@ export default function MapInner({
       zoomToBoundsOnClick: false,
       iconCreateFunction(cluster: any) {
         const count = cluster.getChildCount();
-        let px = 36;
-        if (count > 20) px = 48;
-        else if (count > 5) px = 42;
+        let px = 20;
+        if (count > 20) px = 30;
+        else if (count > 5) px = 25;
         return L.divIcon({
-          html: '<div style="background:rgba(14,165,233,0.7);color:#fff;border-radius:50%;width:' + px + 'px;height:' + px + 'px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;border:2px solid rgba(56,189,248,0.5);font-family:system-ui">' + count + '</div>',
+          html: '<div style="background:rgba(14,165,233,0.6);border-radius:50%;width:' + px + 'px;height:' + px + 'px;border:2px solid rgba(56,189,248,0.4)"></div>',
           className: "",
           iconSize: L.point(px, px),
         });
@@ -117,7 +117,7 @@ export default function MapInner({
     });
 
     activeMarkers.forEach((m) => {
-      const radius = Math.min(8 + m.photoCount / 10, 20);
+      const radius = 6;
       const thumbs = m.thumbnails.length > 0
         ? '<div style="display:flex;gap:4px;margin-bottom:8px">' + m.thumbnails.map((url) => '<img src="' + url + '" style="width:56px;height:40px;object-fit:cover;border-radius:4px" loading="lazy" />').join("") + '</div>'
         : "";
