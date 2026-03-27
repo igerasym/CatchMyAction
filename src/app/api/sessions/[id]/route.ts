@@ -106,7 +106,7 @@ export async function PATCH(
     }
 
     // Flag if location was changed but couldn't be geocoded
-    const needsLocation = location && !coordsUpdate.locationLat && !locationLat;
+    const needsLocation = location && !(coordsUpdate as any).locationLat && !locationLat;
     return NextResponse.json({ ...session, needsLocation });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Update failed" }, { status: 500 });
