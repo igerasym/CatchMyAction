@@ -175,7 +175,10 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLoc
             radius, color: "#38bdf8", fillColor: "#38bdf8", fillOpacity: 0.6, weight: 2,
             sessionCount: 1,
           } as any).bindPopup(popup);
-      marker.on("click", () => onSpotClick(first.location));
+      marker.on("click", () => {
+        marker.openPopup();
+        onSpotClick(first.location);
+      });
       clusterGroup.addLayer(marker);
     });
 

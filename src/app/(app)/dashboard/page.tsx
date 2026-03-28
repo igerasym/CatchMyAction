@@ -272,6 +272,9 @@ function SessionsTab({ stats, sessions, loading, deleting, published, drafts, on
         </div>
       )}
 
+      {/* Photographer QR Code */}
+      <PhotographerQR />
+
       {/* Session list */}
       {loading ? (
         <div className="space-y-3">
@@ -631,5 +634,63 @@ function SessionRow({
         </div>
       )}
     </div>
+  );
+}
+
+function PhotographerQR() {
+  const { data: session } = useSession();
+  const user = session?.user as any;
+  const [showQR, setShowQR] = useState(false);
+
+  if (!user?.id) return null;
+
+  const profileUrl = typeof window !== "undefined"
+    ? `${window.location.origin}/photographer/${user.id}`
+    : "";
+
+  return (
+    <>
+      <div className="mb-6 flex items-center justify-between bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-white rounded-lg p-1 flex-shrink-0">
+            <img src="/api/photographer/qr" alt="QR" className="w-full h-full" />
+          </div>
+          <div>
+            <p className="text-sm text-white/70">Your Profile QR Code</p>
+            <p className="text-[11px] text-white/25">Print it on a t-shirt, sticker, or business card</p>
+          </div>
+        </div>
+        <button onClick={() => setShowQR(true)}
+          className="px-3 py-1.5 text-xs border border-white/10 text-white/50 rounded-lg hover:bg-white/5 transition-colors">
+          View & Download
+        </button>
+      </div>
+
+      {showQR && (
+        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
+          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <h2 className="text-lg font-bold text-white mb-1">Your Profile QR Code</h2>
+            <p className="text-sm text-white/40 mb-4">Athletes scan this to see all your sessions</p>
+            <div className="bg-white rounded-xl p-4 inline-block mb-4">
+              <img src="/api/photographer/qr" alt="QR Code" className="w-48 h-48" />
+            </div>
+            <p className="text-xs text-white/30 mb-4 break-all">{profileUrl}</p>
+            <div className="flex gap-2 justify-center">
+              <button onClick={() => { navigator.clipboard.writeText(profileUrl); toastSuccess("Link copied!"); }}
+                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/60 hover:bg-white/10 transition-colors">
+                Copy Link
+              </button>
+              <a href="/api/photographer/qr" download="my-qr-code.svg"
+                className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm">
+                Download QR
+              </a>
+            </div>
+            <p className="text-[11px] text-white/15 mt-4">
+              Print on t-shirts, stickers, business cards, or show at the spot
+            </p>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
