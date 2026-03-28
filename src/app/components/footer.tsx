@@ -19,9 +19,9 @@ export default function Footer() {
           <a href="/privacy" className="hover:text-white transition-colors">
             Privacy
           </a>
-          <a href="#" className="hover:text-white transition-colors">
+          <Link href="/contact" className="hover:text-white transition-colors">
             Contact
-          </a>
+          </Link>
         </div>
         <p className="text-xs text-white/20">© 2026 CatchMyAction</p>
       </div>
