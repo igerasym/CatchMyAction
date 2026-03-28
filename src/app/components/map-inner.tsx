@@ -136,10 +136,10 @@ export default function MapInner({
       if (hasRecent) {
         marker = L.marker(first.coords, {
           icon: L.divIcon({
-            html: '<div style="background:#22c55e;color:#fff;font-size:9px;font-weight:700;padding:2px 6px;border-radius:4px;white-space:nowrap;position:relative;cursor:pointer">NEW<div style="position:absolute;bottom:-4px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:4px solid transparent;border-right:4px solid transparent;border-top:4px solid #22c55e"></div></div>',
+            html: '<div style="background:#0ea5e9;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;white-space:nowrap;position:relative;cursor:pointer;letter-spacing:1px;box-shadow:0 0 8px rgba(14,165,233,0.5)">NEW<div style="position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid #0ea5e9"></div></div>',
             className: "",
-            iconSize: L.point(32, 20),
-            iconAnchor: L.point(16, 20),
+            iconSize: L.point(40, 24),
+            iconAnchor: L.point(20, 24),
           }),
         });
       } else {
