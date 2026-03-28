@@ -42,34 +42,28 @@ export default function HeroSection() {
       {/* Content */}
       <div className="relative z-10 text-center px-4 max-w-3xl mx-auto animate-fade-in">
         <h1 className="text-4xl sm:text-5xl lg:text-7xl font-bold text-white mb-4 leading-tight tracking-tight">
-          Find Your
+          Find Yourself
           <br />
-          <span className="text-ocean-400">Moment</span>
+          <span className="text-ocean-400">in Action</span>
         </h1>
         <p className="text-lg sm:text-xl text-white/70 mb-10 max-w-xl mx-auto leading-relaxed">
-          Shot on real sessions. Instantly find yourself and own the moment.
+          Photographers shoot. You find yourself. Buy your HD photos.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Link
             href="/sessions"
-            className="px-8 py-4 bg-ocean-500 text-white font-semibold rounded-xl hover:bg-ocean-400 transition-all shadow-lg shadow-ocean-500/25 hover:shadow-ocean-400/40 hover:-translate-y-0.5 text-lg"
+            className="px-10 py-4 bg-ocean-500 text-white font-semibold rounded-xl hover:bg-ocean-400 transition-all shadow-lg shadow-ocean-500/25 hover:shadow-ocean-400/40 hover:-translate-y-0.5 text-lg"
           >
             Find My Photos
           </Link>
           {showUpload && (
             <Link
               href="/upload"
-              className="px-8 py-4 bg-white/10 text-white font-semibold rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm border border-white/20 hover:border-white/30 text-lg"
+              className="px-8 py-4 bg-white/10 text-white/80 font-medium rounded-xl hover:bg-white/20 transition-all backdrop-blur-sm border border-white/20 hover:border-white/30"
             >
-              Upload Photos
+              I'm a Photographer
             </Link>
           )}
-          <a
-            href="#how-it-works"
-            className="px-8 py-4 border border-white/10 text-white/60 font-medium rounded-xl hover:bg-white/5 hover:text-white/80 transition-all text-lg"
-          >
-            How It Works
-          </a>
         </div>
       </div>
     </section>
