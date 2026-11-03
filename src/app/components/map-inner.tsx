@@ -31,7 +31,6 @@ interface BackgroundSpot {
   type: "background";
 }
 
-const COLORS = { blue: "#38bdf8", green: "#4ade80", gray: "#6b7280" };
 
 export default function MapInner({
   activeMarkers,
@@ -71,7 +70,7 @@ export default function MapInner({
       options: { position: "topright" as L.ControlPosition },
       onAdd() {
         const btn = L.DomUtil.create("div", "leaflet-bar leaflet-control");
-        btn.innerHTML = '<a href="#" title="My location" role="button" aria-label="My location" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:#1a1a2e;border:1px solid rgba(255,255,255,0.15);border-radius:4px;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></a>';
+        btn.innerHTML = '<a href="#" title="My location" role="button" aria-label="My location" style="display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:#121315;border:1px solid #383a40;cursor:pointer"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f2ede4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v4M12 18v4M2 12h4M18 12h4"/></svg></a>';
         L.DomEvent.disableClickPropagation(btn);
         btn.querySelector("a")!.addEventListener("click", (e) => {
           e.preventDefault();
@@ -83,7 +82,7 @@ export default function MapInner({
     new LocateControl().addTo(map);
 
     map.on("locationfound", (e: L.LocationEvent) => {
-      L.circleMarker(e.latlng, { radius: 8, color: "#38bdf8", fillColor: "#38bdf8", fillOpacity: 0.4, weight: 2 })
+      L.circleMarker(e.latlng, { radius: 8, color: "#ff4433", fillColor: "#ff4433", fillOpacity: 0.4, weight: 2 })
         .addTo(map).bindPopup("You are here").openPopup();
     });
 
@@ -98,7 +97,7 @@ export default function MapInner({
         if (count > 20) px = 30;
         else if (count > 5) px = 25;
         return L.divIcon({
-          html: '<div style="background:rgba(14,165,233,0.6);border-radius:50%;width:' + px + 'px;height:' + px + 'px;border:2px solid rgba(56,189,248,0.4)"></div>',
+          html: '<div style="background:#ff4433;color:#160806;display:flex;align-items:center;justify-content:center;font:700 11px ui-monospace,monospace;width:' + px + 'px;height:' + px + 'px">' + count + '</div>',
           className: "",
           iconSize: L.point(px, px),
         });
@@ -113,7 +112,7 @@ export default function MapInner({
 
     // Background spots — tiny, very faint, NOT clustered
     backgroundSpots.forEach((s) => {
-      L.circleMarker(s.coords, { radius: 2, color: "transparent", fillColor: "#0ea5e9", fillOpacity: 0.12, weight: 0 })
+      L.circleMarker(s.coords, { radius: 2, color: "transparent", fillColor: "#f2ede4", fillOpacity: 0.14, weight: 0 })
         .addTo(map)
         .bindPopup('<div style="font-family:system-ui;min-width:150px"><h3 style="font-weight:600;font-size:13px;margin:0 0 2px;color:#f0f0f0">' + escapeHtml(s.name) + '</h3><p style="font-size:11px;color:#888;margin:0 0 6px">' + escapeHtml(s.region) + ', ' + escapeHtml(s.country) + '</p><p style="font-size:11px;color:#666;margin:0">No sessions yet</p></div>');
     });
@@ -128,27 +127,28 @@ export default function MapInner({
 
     spotGroups.forEach((sessions, _key) => {
       const first = sessions[0];
-      const radius = Math.min(6 + sessions.length * 2, 14);
 
       let popup: string;
       const exploreUrl = '/sessions?location=' + encodeURIComponent(first.location);
 
-      const hasRecent = sessions.some((s) => s.recent);
-      let marker;
-      if (hasRecent) {
-        marker = L.marker(first.coords, {
-          icon: L.divIcon({
-            html: '<div style="background:#0ea5e9;color:#fff;font-size:10px;font-weight:800;padding:3px 8px;border-radius:6px;white-space:nowrap;position:relative;cursor:pointer;letter-spacing:1px;box-shadow:0 0 8px rgba(14,165,233,0.5)">NEW<div style="position:absolute;bottom:-5px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:5px solid #0ea5e9"></div></div>',
-            className: "",
-            iconSize: L.point(40, 24),
-            iconAnchor: L.point(20, 24),
-          }),
-        });
-      } else {
-        marker = L.circleMarker(first.coords, {
-          radius, color: COLORS[first.color], fillColor: COLORS[first.color], fillOpacity: 0.6, weight: 2,
-        });
-      }
+      const photos = sessions.reduce((n, x) => n + (x.photoCount || 0), 0);
+      // Focus-bracket marker with the spot's photo count (the logo as a map pin)
+      const marker = L.marker(first.coords, {
+        title: first.location,
+        icon: L.divIcon({
+          html:
+            '<div style="position:relative;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-mono),ui-monospace,monospace">' +
+            '<span style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:26px;background:#ff4433;color:#160806;font-weight:700;font-size:12px">' +
+            photos +
+            '</span>' +
+            '<span style="background:rgba(18,19,21,.85);color:#f2ede4;font-size:10px;letter-spacing:.1em;padding:3px 6px;white-space:nowrap;text-transform:uppercase">' +
+            escapeHtml(first.location) +
+            '</span></div>',
+          className: "",
+          iconSize: L.point(34, 26),
+          iconAnchor: L.point(17, 13),
+        }),
+      });
       marker.on("click", () => { window.location.href = exploreUrl; });
       (marker.options as any).sessionCount = sessions.length;
       clusterGroup.addLayer(marker);
@@ -160,5 +160,5 @@ export default function MapInner({
     return () => { map.remove(); mapInstance.current = null; };
   }, [activeMarkers, backgroundSpots]);
 
-  return <div ref={mapRef} className="w-full h-[400px] sm:h-[500px]" style={{ background: "#0d1117" }} />;
+  return <div ref={mapRef} className="w-full h-full min-h-[420px] sm:min-h-[560px]" style={{ background: "#121315" }} />;
 }

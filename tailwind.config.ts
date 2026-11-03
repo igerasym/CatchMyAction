@@ -5,6 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
+        // Viewfinder palette — dark cinematic, warm whites, single REC accent
+        ink: "#121315",
+        char: { DEFAULT: "#1a1b1e", 2: "#222428", 3: "#2b2d32" },
+        line: "#383a40",
+        bone: { DEFAULT: "#f2ede4", 2: "#e6e0d5" },
+        mute: "#b3ada3", // 8.4:1 on char
+        dim: "#948f86", // 5.6:1 on char
+        rec: { DEFAULT: "#ff4433", ink: "#160806" },
         ocean: {
           50: "#f0f9ff",
           100: "#e0f2fe",
@@ -18,6 +26,10 @@ const config: Config = {
           900: "#0c4a6e",
           950: "#082f49",
         },
+      },
+      fontFamily: {
+        sans: ["var(--font-archivo)", "system-ui", "sans-serif"],
+        mono: ["var(--font-mono)", "ui-monospace", "monospace"],
       },
       animation: {
         "fade-in": "fadeIn 0.6s ease-out",

@@ -3,6 +3,7 @@ import "./globals.css";
 import Providers from "./providers";
 import NavBar from "./navbar";
 import ToastBanner from "./components/toast-banner";
+import { archivo, mono } from "./fonts";
 
 export const dynamic = "force-dynamic";
 
@@ -59,9 +60,6 @@ export const metadata: Metadata = {
       "max-snippet": -1,
     },
   },
-  alternates: {
-    canonical: BASE_URL,
-  },
 };
 
 export default function RootLayout({
@@ -70,8 +68,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
-      <body className="bg-[#0a0a0a] text-gray-100 min-h-screen">
+    <html lang="en" className={`dark ${archivo.variable} ${mono.variable}`}>
+      <body className="bg-char text-bone min-h-screen">
         <Providers>
           <NavBar />
           <ToastBanner />

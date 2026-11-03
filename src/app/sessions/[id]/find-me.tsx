@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Search, Camera, Upload, Loader2 } from "lucide-react";
 
@@ -14,10 +14,12 @@ interface Props {
   sessionId: string;
   photos: Photo[];
   onMatchFound: (photoIds: string[]) => void;
+  /** Open the selfie dialog on mount (deep link from the homepage: ?findme=1) */
+  autoOpen?: boolean;
 }
 
-export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
-  const { data: session } = useSession();
+export default function FindMe({ sessionId, photos, onMatchFound, autoOpen }: Props) {
+  const { data: session, status } = useSession();
   const userId = (session?.user as any)?.id;
 
   const [open, setOpen] = useState(false);
@@ -31,7 +33,8 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
 
   function handleOpen() {
     if (!userId) {
-      window.location.href = "/login";
+      // Come back to this session with the selfie dialog open after signing in
+      window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname + "?findme=1")}`;
       return;
     }
     setOpen(true);
@@ -44,6 +47,22 @@ export default function FindMe({ sessionId, photos, onMatchFound }: Props) {
     stopCamera();
     setOpen(false);
   }
+
+  // Deep link from homepage Find Me: open once the auth state is known
+  const autoOpened = useRef(false);
+  useEffect(() => {
+    if (!autoOpen || autoOpened.current || status === "loading") return;
+    autoOpened.current = true;
+    const url = new URL(window.location.href);
+    url.searchParams.delete("findme");
+    window.history.replaceState({}, "", url.pathname + url.search);
+    if (!userId) {
+      window.location.href = `/login?callbackUrl=${encodeURIComponent(url.pathname + "?findme=1")}`;
+      return;
+    }
+    handleOpen();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [autoOpen, status, userId]);
 
   async function startCamera() {
     try {

@@ -1,90 +1,145 @@
+import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
+import { getPreviewUrl } from "@/lib/s3";
 import { ACTION_SPOTS } from "@/lib/spots-database";
-import HeroSection from "./components/hero";
+import Hero from "./components/home/hero";
+import FindMeSection from "./components/home/find-me-section";
+import SessionLog from "./components/home/session-log";
 import SpotMap from "./components/spot-map";
-import SearchBar from "./components/search-bar";
-import StatsCounter from "./components/stats-counter";
-import HowItWorks from "./components/how-it-works";
+import Featured from "./components/home/featured";
+import HowItWorks from "./components/home/how-it-works";
+import PhotographerCta from "./components/home/photographer-cta";
 import Footer from "./components/footer";
 
-export const revalidate = 60; // ISR: cache homepage, regenerate every 60 seconds
+export const revalidate = 60;
+
+export const metadata: Metadata = {
+  alternates: { canonical: "https://catchmyactions.com" },
+};
 
 export default async function HomePage() {
-  const [sessions, totalPhotos, totalPhotographers, totalPurchases] =
-    await Promise.all([
-      prisma.session.findMany({
-        where: { published: true },
-        select: {
-          id: true,
-          title: true,
-          location: true,
-          date: true,
-          photoCount: true,
-          photos: { take: 3, select: { thumbnailKey: true } },
-        },
-        orderBy: { date: "desc" },
-        take: 100,
-      }),
-      prisma.photo.count(),
-      prisma.user.count({ where: { role: "PHOTOGRAPHER" } }),
-      prisma.purchase.count(),
-    ]);
+  const sessions = await prisma.session.findMany({
+    where: { published: true, photoCount: { gt: 0 } },
+    select: {
+      id: true,
+      title: true,
+      location: true,
+      locationLat: true,
+      locationLng: true,
+      sportType: true,
+      date: true,
+      startTime: true,
+      endTime: true,
+      description: true,
+      photoCount: true,
+      pricePerPhoto: true,
+      waveHeight: true,
+      wavePeriod: true,
+      windSpeed: true,
+      coverPhotoId: true,
+      photos: {
+        take: 6,
+        orderBy: { createdAt: "asc" },
+        select: { id: true, thumbnailKey: true, previewKey: true },
+      },
+    },
+    orderBy: { date: "desc" },
+    take: 50,
+  });
 
-  const locations = Array.from(new Set(sessions.map((s) => s.location)));
+  const latest = sessions[0] ?? null;
+  const spotCount = new Set(sessions.map((s) => s.location)).size;
+  const sports = Array.from(new Set(sessions.map((s) => s.sportType)));
 
+  const findMeSessions = sessions.map((s) => ({
+    id: s.id,
+    title: s.title,
+    location: s.location,
+    date: s.date.toISOString(),
+    startTime: s.startTime,
+    endTime: s.endTime,
+    photoCount: s.photoCount,
+    thumbs: s.photos.map((p) => getPreviewUrl(p.thumbnailKey)),
+  }));
+
+  const log = sessions.map((s) => {
+    const cover = s.photos.find((p) => p.id === s.coverPhotoId) ?? s.photos[0];
+    return {
+      id: s.id,
+      title: s.title,
+      location: s.location,
+      sportType: s.sportType,
+      date: s.date.toISOString(),
+      startTime: s.startTime,
+      photoCount: s.photoCount,
+      pricePerPhoto: s.pricePerPhoto,
+      thumb: cover ? getPreviewUrl(cover.thumbnailKey) : null,
+      waveHeight: s.waveHeight,
+      wavePeriod: s.wavePeriod,
+      windSpeed: s.windSpeed,
+    };
+  });
+
+  // Feature the most recent session with enough frames for an editorial spread
+  const featuredSrc = sessions.find((s) => s.photos.length >= 5) ?? sessions.find((s) => s.photos.length >= 3) ?? null;
+  const featured = featuredSrc
+    ? {
+        id: featuredSrc.id,
+        title: featuredSrc.title,
+        location: featuredSrc.location,
+        date: featuredSrc.date.toISOString(),
+        startTime: featuredSrc.startTime,
+        endTime: featuredSrc.endTime,
+        photoCount: featuredSrc.photoCount,
+        description: featuredSrc.description,
+        previews: featuredSrc.photos.slice(0, 5).map((p) => getPreviewUrl(p.previewKey)),
+      }
+    : null;
+
+  // Photographer CTA image: a frame from a different session than the feature, if possible
+  const ctaSrc = sessions.find((s) => s.id !== featured?.id && s.photos.length > 0) ?? latest;
+  const ctaImage = ctaSrc?.photos[0] ? getPreviewUrl(ctaSrc.photos[0].previewKey) : null;
+
+  // Map data (existing SpotMap contract)
   const activeSessions = sessions.map((s) => ({
     id: s.id,
     title: s.title,
     location: s.location,
     date: s.date.toISOString(),
     photoCount: s.photoCount,
-    thumbnails: s.photos.map((p) =>
-      process.env.AWS_REGION && process.env.USE_LOCAL_STORAGE !== "true"
-        ? (process.env.CLOUDFRONT_DOMAIN
-            ? `https://${process.env.CLOUDFRONT_DOMAIN}/${p.thumbnailKey}`
-            : `https://${process.env.S3_BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${p.thumbnailKey}`)
-        : `/api/uploads/previews/${p.thumbnailKey}`
-    ),
+    thumbnails: s.photos.slice(0, 3).map((p) => getPreviewUrl(p.thumbnailKey)),
   }));
-
-  // All known spots for background markers (static + from DB sessions with coordinates)
-  const dbSessions = await (prisma.session.findMany as any)({
-    where: { published: true, locationLat: { not: null } },
-    select: { location: true, locationLat: true, locationLng: true },
-    distinct: ["location"],
-  }) as { location: string; locationLat: number | null; locationLng: number | null }[];
-
   const staticNames = new Set(ACTION_SPOTS.map((s) => s.name.toLowerCase()));
   const allSpots = [
-    ...ACTION_SPOTS.map((s) => ({
-      name: s.name, region: s.region, country: s.country, lat: s.lat, lng: s.lng,
-    })),
-    ...dbSessions
-      .filter((s) => !staticNames.has(s.location.toLowerCase()) && s.locationLat && s.locationLng)
-      .map((s) => ({
-        name: s.location, region: "", country: "", lat: s.locationLat!, lng: s.locationLng!,
-      })),
-  ];
-
-  // Count unique locations that have photos
-  const activeSpotCount = new Set(
-    sessions.filter((s) => s.photoCount > 0).map((s) => s.location)
-  ).size;
-
-  const stats = [
-    { value: totalPhotos, label: "Photos Uploaded", icon: "📸" },
-    { value: activeSpotCount, label: "Active Locations", icon: "🌊" },
-    { value: totalPhotographers, label: "Photographers", icon: "🎯" },
-    { value: totalPurchases, label: "Photos Sold", icon: "⬇️" },
+    ...ACTION_SPOTS.map((s) => ({ name: s.name, region: s.region, country: s.country, lat: s.lat, lng: s.lng })),
+    ...sessions
+      .filter((s) => s.locationLat != null && s.locationLng != null && !staticNames.has(s.location.toLowerCase()))
+      .map((s) => ({ name: s.location, region: "", country: "", lat: s.locationLat!, lng: s.locationLng! })),
   ];
 
   return (
     <div className="min-h-screen">
-      <HeroSection />
-      <SearchBar locations={locations} />
-      <StatsCounter stats={stats} />
-      <SpotMap activeSessions={activeSessions} allSpots={allSpots} />
+      <Hero
+        meta={
+          latest
+            ? {
+                title: latest.title,
+                location: latest.location,
+                date: latest.date.toISOString(),
+                lat: latest.locationLat,
+                lng: latest.locationLng,
+              }
+            : null
+        }
+        sessionCount={sessions.length}
+        spotCount={spotCount}
+      />
+      {findMeSessions.length > 0 && <FindMeSection sessions={findMeSessions} />}
+      <SessionLog sessions={log} sports={sports} />
+      {activeSessions.length > 0 && <SpotMap activeSessions={activeSessions} allSpots={allSpots} />}
+      <Featured session={featured} />
       <HowItWorks />
+      <PhotographerCta image={ctaImage} />
       <Footer />
     </div>
   );

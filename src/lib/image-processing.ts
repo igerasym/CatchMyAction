@@ -1,16 +1,25 @@
 import sharp from "sharp";
 
+/**
+ * Display size after applying EXIF orientation. Orientations 5–8 are rotated 90°/270°,
+ * so the stored width/height are swapped relative to how the photo is meant to be seen.
+ */
+function orientedSize(meta: sharp.Metadata): { width: number; height: number } {
+  const w = meta.width || 0;
+  const h = meta.height || 0;
+  return (meta.orientation ?? 1) >= 5 ? { width: h, height: w } : { width: w, height: h };
+}
+
 /** Create a watermarked preview (max 1200px wide, 60% quality) */
 export async function createPreview(
   inputBuffer: Buffer
 ): Promise<{ buffer: Buffer; width: number; height: number }> {
-  const image = sharp(inputBuffer);
-  const metadata = await image.metadata();
+  // .rotate() with no args applies EXIF orientation (portrait shots were coming out sideways)
+  const image = sharp(inputBuffer).rotate();
+  const size = orientedSize(await sharp(inputBuffer).metadata());
 
-  const width = Math.min(metadata.width || 1200, 1200);
-  const height = Math.round(
-    width * ((metadata.height || 800) / (metadata.width || 1200))
-  );
+  const width = Math.min(size.width || 1200, 1200);
+  const height = Math.round(width * ((size.height || 800) / (size.width || 1200)));
 
   const fontSize = Math.round(width / 18);
   const smallFont = Math.round(fontSize * 0.45);
@@ -87,6 +96,7 @@ export async function createThumbnail(
   inputBuffer: Buffer
 ): Promise<Buffer> {
   return sharp(inputBuffer)
+    .rotate()
     .resize(400, null, { fit: "inside" })
     .jpeg({ quality: 50 })
     .toBuffer();
@@ -97,9 +107,10 @@ export async function getImageMetadata(
   inputBuffer: Buffer
 ): Promise<{ width: number; height: number; size: number }> {
   const metadata = await sharp(inputBuffer).metadata();
+  const { width, height } = orientedSize(metadata);
   return {
-    width: metadata.width || 0,
-    height: metadata.height || 0,
+    width,
+    height,
     size: inputBuffer.length,
   };
 }

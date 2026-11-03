@@ -24,6 +24,7 @@ interface Props {
   initialCursor: string | null;
   purchasedPhotoId?: string;
   bulkPurchasedIds?: string;
+  autoFindMe?: boolean;
 }
 
 export default function PhotoGrid({
@@ -33,6 +34,7 @@ export default function PhotoGrid({
   initialCursor,
   purchasedPhotoId,
   bulkPurchasedIds,
+  autoFindMe,
 }: Props) {
   const { data: session } = useSession();
   const router = useRouter();
@@ -354,7 +356,7 @@ export default function PhotoGrid({
       {/* Toolbar: Find Me button */}
       {photos.length > 0 && (
         <div className="flex items-center justify-end mb-4">
-          <FindMe sessionId={sessionId} photos={photos} onMatchFound={(ids) => {
+          <FindMe sessionId={sessionId} photos={photos} autoOpen={autoFindMe} onMatchFound={(ids) => {
             console.log("Find Me matched:", ids);
             setMatchedIds(new Set(ids));
             const unpurchased = ids.filter((id: string) => !purchasedIds.has(id));

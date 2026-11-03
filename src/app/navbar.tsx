@@ -26,20 +26,22 @@ export default function NavBar() {
   return (
     <nav
       className={`sticky top-0 z-50 transition-colors ${
-        isHome ? "bg-transparent absolute w-full" : "bg-[#111] border-b border-white/10"
+        isHome ? "bg-transparent absolute w-full" : "bg-ink border-b border-line"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between">
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-white">
-          <Logo size={28} />
-          <span className="hidden sm:inline">CatchMyAction</span>
+      <div className="max-w-7xl mx-auto px-5 md:px-8 py-4 flex items-center justify-between">
+        <Link href="/" className="flex items-center gap-2.5 text-bone" aria-label="CatchMyAction home">
+          <Logo size={24} />
+          <span className="hidden sm:inline text-[17px] font-extrabold tracking-tight" style={{ fontStretch: "112%" }}>
+            CatchMyAction
+          </span>
         </Link>
-        <div className="flex items-center gap-3 text-sm">
+        <div className="flex items-center gap-5 text-sm">
           <Link
             href="/sessions"
-            className="text-white/60 hover:text-white transition-colors"
+            className="text-bone/75 hover:text-bone transition-colors"
           >
-            Explore
+            Explore sessions
           </Link>
 
           {status === "loading" ? (
@@ -100,12 +102,12 @@ export default function NavBar() {
             </div>
           ) : (
             <>
-              <Link href="/login" className="text-white/60 hover:text-white transition-colors">
+              <Link href="/login" className="text-bone/75 hover:text-bone transition-colors">
                 Sign in
               </Link>
               <Link
                 href="/register"
-                className="px-3 py-1.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors"
+                className="px-4 py-2 bg-bone text-ink font-bold hover:bg-white transition-colors"
               >
                 Sign up
               </Link>
