@@ -2,6 +2,19 @@ import { NextRequest, NextResponse } from "next/server";
 import bcrypt from "bcryptjs";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
+import { sanitizeHttpUrl } from "@/lib/validation";
+
+/** Normalise a social handle: strip URL prefix and leading @, keep [A-Za-z0-9._-]. */
+function cleanHandle(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const handle = value
+    .trim()
+    .replace(/^https?:\/\/(www\.)?[^/]+\/@?/i, "")
+    .replace(/^@+/, "")
+    .replace(/[^A-Za-z0-9._-]/g, "")
+    .slice(0, 50);
+  return handle || null;
+}
 
 /** GET /api/user?id=xxx — public profile fields only, or full profile if own user */
 export async function GET(req: NextRequest) {
@@ -58,11 +71,20 @@ export async function PATCH(req: NextRequest) {
 
   if (name && name !== user.name) data.name = name;
   if (bio !== undefined && bio !== user.bio) data.bio = bio;
-  if (website !== undefined && website !== user.website) data.website = website;
-  if (instagram !== undefined && instagram !== user.instagram) data.instagram = instagram;
-  if (youtube !== undefined && youtube !== user.youtube) data.youtube = youtube;
-  if (tiktok !== undefined && tiktok !== user.tiktok) data.tiktok = tiktok;
-  if (avatarUrl !== undefined && avatarUrl !== user.avatarUrl) data.avatarUrl = avatarUrl;
+  if (website !== undefined && website !== user.website) {
+    if (website === "" || website === null) {
+      data.website = null;
+    } else {
+      const safe = sanitizeHttpUrl(website);
+      if (!safe) return NextResponse.json({ error: "Website must be a valid http(s) URL" }, { status: 400 });
+      data.website = safe;
+    }
+  }
+  if (instagram !== undefined && instagram !== user.instagram) data.instagram = cleanHandle(instagram);
+  if (youtube !== undefined && youtube !== user.youtube) data.youtube = cleanHandle(youtube);
+  if (tiktok !== undefined && tiktok !== user.tiktok) data.tiktok = cleanHandle(tiktok);
+  // avatarUrl is set only by /api/user/avatar; the client may only clear it
+  if ((avatarUrl === "" || avatarUrl === null) && user.avatarUrl) data.avatarUrl = null;
 
   if (email && email !== user.email) {
     // Email changes disabled

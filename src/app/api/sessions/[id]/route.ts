@@ -4,6 +4,7 @@ import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 import { deleteFaceCollection } from "@/lib/rekognition";
 import { sendSessionNotification } from "@/lib/email";
 import { geocodeLocation } from "@/lib/geocode";
+import { parsePriceCents } from "@/lib/validation";
 
 /** GET /api/sessions/:id — get session (public) */
 export async function GET(
@@ -39,20 +40,54 @@ export async function PATCH(
     return NextResponse.json({ error: "Not your session" }, { status: 403 });
   }
 
-  const body = await req.json();
-  const { title, location, date, startTime, endTime, description, published, coverPhotoId, pricePerPhoto, locationLat, locationLng } = body;
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { title, location, date, startTime, endTime, description, published, coverPhotoId, locationLat, locationLng } = body;
+
+  // Price: only validated/applied when explicitly sent
+  let pricePerPhoto: number | undefined;
+  if (body.pricePerPhoto !== undefined) {
+    const parsed = parsePriceCents(body.pricePerPhoto);
+    if (parsed === null) {
+      return NextResponse.json({ error: "Price must be between $0 and $999" }, { status: 400 });
+    }
+    pricePerPhoto = parsed;
+  }
+  if (published !== undefined && typeof published !== "boolean") {
+    return NextResponse.json({ error: "Invalid published flag" }, { status: 400 });
+  }
+
+  const current = await prisma.session.findUnique({
+    where: { id: params.id },
+    select: { published: true, pricePerPhoto: true, photoCount: true },
+  });
+  if (!current) {
+    return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  }
+  const priceChanged = pricePerPhoto !== undefined && pricePerPhoto !== current.pricePerPhoto;
+  if (priceChanged && pricePerPhoto === 0 && current.photoCount > 50) {
+    return NextResponse.json(
+      { error: "Free sessions are limited to 50 photos. Remove photos or keep a price." },
+      { status: 400 }
+    );
+  }
+  if (coverPhotoId) {
+    const cover = await prisma.photo.findFirst({ where: { id: coverPhotoId, sessionId: params.id }, select: { id: true } });
+    if (!cover) {
+      return NextResponse.json({ error: "Cover photo must belong to this session" }, { status: 400 });
+    }
+  }
 
   // Email verification check — soft nudge, not blocking
   // Will be enforced once SES production access is granted
 
   try {
     // Check if this is a publish action (was unpublished, now publishing)
-    const wasDraft = published === true;
-    let wasUnpublished = false;
-    if (wasDraft) {
-      const current = await prisma.session.findUnique({ where: { id: params.id }, select: { published: true } });
-      wasUnpublished = current ? !current.published : false;
-    }
+    const wasUnpublished = published === true && !current.published;
 
     // Re-geocode if location changed
     let coordsUpdate = {};
@@ -74,14 +109,14 @@ export async function PATCH(
         ...(description !== undefined && { description }),
         ...(published !== undefined && { published }),
         ...(coverPhotoId !== undefined && { coverPhotoId }),
-        ...(pricePerPhoto !== undefined && { pricePerPhoto }),
+        ...(priceChanged && { pricePerPhoto }),
         ...(locationLat !== undefined && { locationLat }),
         ...(locationLng !== undefined && { locationLng }),
         ...coordsUpdate,
       },
     });
 
-    if (pricePerPhoto !== undefined) {
+    if (priceChanged) {
       await prisma.photo.updateMany({
         where: { sessionId: params.id },
         data: { priceInCents: pricePerPhoto },

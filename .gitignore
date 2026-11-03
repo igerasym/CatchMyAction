@@ -3,6 +3,9 @@ node_modules/
 .env
 .env.local
 .env.prod
+.env.production
+.env.*.local
+*.pem
 *.tsbuildinfo
 next-env.d.ts
 public/uploads/

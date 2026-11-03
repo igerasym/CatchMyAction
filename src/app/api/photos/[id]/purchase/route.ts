@@ -1,107 +1,98 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { createCheckoutSession } from "@/lib/stripe";
+import { getAuthUser } from "@/lib/auth-helpers";
+import { getPreviewUrl } from "@/lib/s3";
+import { createPhotoCheckout, getConnectDestination, paymentsMode } from "@/lib/stripe";
 
-/** POST /api/photos/:id/purchase — create Stripe Checkout session or mock purchase */
+/** POST /api/photos/:id/purchase — create a Stripe Checkout session for the signed-in user */
 export async function POST(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const body = await req.json();
-  const { userId } = body;
+  const user = await getAuthUser();
+  if (user instanceof NextResponse) return user;
 
-  if (!userId) {
-    return NextResponse.json({ error: "userId is required" }, { status: 400 });
+  const buyer = await prisma.user.findUnique({
+    where: { id: user.id },
+    select: { emailVerified: true },
+  });
+  if (!buyer) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
-
-  // Check email verification before purchase
-  const buyer = await prisma.user.findUnique({ where: { id: userId }, select: { emailVerified: true } }) as any;
-  if (buyer && !buyer.emailVerified) {
-    return NextResponse.json({ error: "Please verify your email before purchasing. Check your inbox.", needsVerification: true }, { status: 403 });
+  if (!buyer.emailVerified) {
+    return NextResponse.json(
+      { error: "Please verify your email before purchasing. Check your inbox.", needsVerification: true },
+      { status: 403 }
+    );
   }
 
   const photo = await prisma.photo.findUnique({
     where: { id: params.id },
-    include: { session: { select: { title: true, id: true, photographerId: true } } },
+    include: { session: { select: { title: true, id: true, photographerId: true, published: true } } },
   });
-
-  if (!photo) {
+  if (!photo || (!photo.session.published && photo.session.photographerId !== user.id)) {
     return NextResponse.json({ error: "Photo not found" }, { status: 404 });
   }
 
-  // Check if already purchased
   const existing = await prisma.purchase.findUnique({
-    where: { userId_photoId: { userId, photoId: photo.id } },
+    where: { userId_photoId: { userId: user.id, photoId: photo.id } },
   });
-
   if (existing) {
-    return NextResponse.json(
-      { alreadyPurchased: true, purchaseId: existing.id },
-      { status: 200 }
-    );
+    return NextResponse.json({ alreadyPurchased: true, purchaseId: existing.id });
   }
 
+  if (photo.priceInCents <= 0) {
+    return NextResponse.json({ error: "This photo is free — use free download" }, { status: 400 });
+  }
+
+  const mode = paymentsMode();
   const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
-  // If Stripe keys are configured, use real checkout
-  if (process.env.STRIPE_SECRET_KEY && !process.env.STRIPE_SECRET_KEY.startsWith("mock")) {
+  if (mode === "stripe") {
     try {
-      // Get photographer's Stripe Connect account
       const photographer = await prisma.user.findUnique({
         where: { id: photo.session.photographerId },
         select: { stripeAccountId: true },
       });
+      const destination = await getConnectDestination(photographer?.stripeAccountId);
 
-      // Only split payment if photographer has a fully set up Connect account
-      const connectId = photographer?.stripeAccountId || null;
-
-      const checkoutSession = await createCheckoutSession({
-        photoId: photo.id,
-        photoPreviewUrl: `${baseUrl}/api/uploads/previews/${photo.previewKey}`,
-        sessionTitle: photo.session.title,
-        priceInCents: photo.priceInCents,
-        userId,
-        successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}`,
-        cancelUrl: `${baseUrl}/sessions/${photo.session.id}`,
-        photographerStripeAccountId: connectId,
-      });
-
-      return NextResponse.json({ checkoutUrl: checkoutSession.url });
-    } catch (err: any) {
-      // If Connect transfer fails, retry without split (charge to platform only)
-      if (err?.code === "insufficient_capabilities_for_transfer" || err?.code === "resource_missing") {
-        try {
-          const checkoutSession = await createCheckoutSession({
+      const checkoutSession = await createPhotoCheckout({
+        items: [
+          {
             photoId: photo.id,
-            photoPreviewUrl: `${baseUrl}/api/uploads/previews/${photo.previewKey}`,
-            sessionTitle: photo.session.title,
             priceInCents: photo.priceInCents,
-            userId,
-            successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}`,
-            cancelUrl: `${baseUrl}/sessions/${photo.session.id}`,
-            photographerStripeAccountId: null, // no split — platform collects all
-          });
-          return NextResponse.json({ checkoutUrl: checkoutSession.url });
-        } catch (retryErr: any) {
-          console.error("Stripe checkout retry error:", retryErr);
-          return NextResponse.json({ error: "Payment failed" }, { status: 500 });
-        }
-      }
+            name: `Photo — ${photo.session.title}`,
+            imageUrl: absoluteUrl(getPreviewUrl(photo.thumbnailKey || photo.previewKey), baseUrl),
+          },
+        ],
+        userId: user.id,
+        successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}&cs={CHECKOUT_SESSION_ID}`,
+        cancelUrl: `${baseUrl}/sessions/${photo.session.id}?cancelled=1`,
+        photographerAccountId: destination,
+      });
+      return NextResponse.json({ checkoutUrl: checkoutSession.url });
+    } catch (err) {
       console.error("Stripe checkout error:", err);
-      return NextResponse.json({ error: "Payment failed" }, { status: 500 });
+      return NextResponse.json({ error: "Payment failed. Please try again." }, { status: 500 });
     }
   }
 
-  // Fallback: mock purchase for dev without Stripe
-  const purchase = await prisma.purchase.create({
-    data: {
-      userId,
-      photoId: photo.id,
-      amountInCents: photo.priceInCents,
-      stripePaymentId: `mock_pi_${Date.now()}`,
-      stripeSessionId: `mock_cs_${Date.now()}`,
-    },
-  });
+  if (mode === "mock") {
+    const purchase = await prisma.purchase.create({
+      data: {
+        userId: user.id,
+        photoId: photo.id,
+        amountInCents: photo.priceInCents,
+        stripePaymentId: `mock_pi_${Date.now()}_${photo.id}`,
+        stripeSessionId: `mock_cs_${Date.now()}_${photo.id}`,
+      },
+    });
+    return NextResponse.json({ purchased: true, purchaseId: purchase.id });
+  }
 
-  return NextResponse.json({ purchased: true, purchaseId: purchase.id });
+  return NextResponse.json({ error: "Payments are temporarily unavailable" }, { status: 503 });
+}
+
+function absoluteUrl(url: string, baseUrl: string): string {
+  return url.startsWith("http") ? url : `${baseUrl}${url}`;
 }

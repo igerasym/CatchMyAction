@@ -122,6 +122,11 @@ git clone https://github.com/igerasym/CatchMyAction.git app
 cd app
 
 # Create docker-compose for production
+# Generate a random DB password (never commit real credentials)
+PGPASS=$(openssl rand -hex 24)
+echo "POSTGRES_PASSWORD=$PGPASS" > .env   # read by docker-compose for variable substitution
+chmod 600 .env
+
 cat > docker-compose.production.yml << 'EOF'
 version: "3.8"
 services:
@@ -130,7 +135,7 @@ services:
     restart: unless-stopped
     environment:
       POSTGRES_USER: catchmyaction
-      POSTGRES_PASSWORD: CatchMyAction2026!
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: catchmyaction
     volumes:
       - pgdata:/var/lib/postgresql/data
@@ -161,16 +166,16 @@ volumes:
 EOF
 
 # Create env file (will be updated with real values via SSM or manually)
-cat > .env.production << 'ENVEOF'
-DATABASE_URL=postgresql://catchmyaction:CatchMyAction2026!@postgres:5432/catchmyaction?schema=public
+cat > .env.production << ENVEOF
+DATABASE_URL=postgresql://catchmyaction:${PGPASS}@postgres:5432/catchmyaction?schema=public
 NEXTAUTH_SECRET=PLACEHOLDER_WILL_BE_REPLACED
 NEXTAUTH_URL=https://catchmyactions.com
 NEXT_PUBLIC_APP_URL=https://catchmyactions.com
 STRIPE_SECRET_KEY=PLACEHOLDER
 NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY=PLACEHOLDER
 STRIPE_WEBHOOK_SECRET=
-USE_LOCAL_STORAGE=true
 ENVEOF
+chmod 600 .env.production
 
 chown -R ec2-user:ec2-user /home/ec2-user/app
 USERDATA

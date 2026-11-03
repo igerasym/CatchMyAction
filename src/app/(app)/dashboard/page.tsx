@@ -145,6 +145,10 @@ export default function DashboardPage() {
       body: JSON.stringify(data),
     });
     const updated = await res.json();
+    if (!res.ok) {
+      toastError(updated.error || "Failed to save changes");
+      return;
+    }
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, ...updated } : s)));
     setEditSession(null);
     if (updated.needsLocation) {

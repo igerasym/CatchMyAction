@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { isWaterSport, fetchMarineConditions } from "@/lib/marine-conditions";
 import { geocodeLocation } from "@/lib/geocode";
+import { parsePriceCents } from "@/lib/validation";
 
 /** GET /api/sessions — list sessions with optional filters */
 export async function GET(req: NextRequest) {
@@ -42,7 +43,21 @@ export async function POST(req: NextRequest) {
   if (user instanceof NextResponse) return user;
 
   const body = await req.json();
-  const { title, location, date, startTime, endTime, description, pricePerPhoto, sportType } = body;
+  const { title, location, date, startTime, endTime, description, sportType } = body;
+
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { role: true } });
+  if (dbUser?.role !== "PHOTOGRAPHER") {
+    return NextResponse.json({ error: "Only photographers can create sessions" }, { status: 403 });
+  }
+
+  let pricePerPhoto: number | undefined;
+  if (body.pricePerPhoto !== undefined) {
+    const parsed = parsePriceCents(body.pricePerPhoto);
+    if (parsed === null) {
+      return NextResponse.json({ error: "Price must be between $0 and $999" }, { status: 400 });
+    }
+    pricePerPhoto = parsed;
+  }
 
   if (!title || !location || !date || !startTime || !endTime) {
     return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
@@ -94,7 +109,7 @@ export async function POST(req: NextRequest) {
         sportType: sport,
         photographerId: user.id,
         ...(coords && { locationLat: coords.lat, locationLng: coords.lng }),
-        ...(pricePerPhoto !== undefined && pricePerPhoto >= 0 ? { pricePerPhoto } : {}),
+        ...(pricePerPhoto !== undefined ? { pricePerPhoto } : {}),
         ...conditions,
       } as any,
     });

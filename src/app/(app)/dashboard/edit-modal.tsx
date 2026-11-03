@@ -30,7 +30,8 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
   const [startTime, setStartTime] = useState(session.startTime);
   const [endTime, setEndTime] = useState(session.endTime);
   const [description, setDescription] = useState(session.description || "");
-  const [price, setPrice] = useState(((session as any).pricePerPhoto || 999) / 100 + "");
+  const initialPriceCents: number = (session as any).pricePerPhoto ?? 999;
+  const [price, setPrice] = useState(initialPriceCents / 100 + "");
   const [saving, setSaving] = useState(false);
   const [showSpots, setShowSpots] = useState(false);
   const [spotMatches, setSpotMatches] = useState<SpotSuggestion[]>([]);
@@ -61,7 +62,10 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setSaving(true);
-    await onSave({ title, location, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100) });
+    const priceCents = Math.round(parseFloat(price) * 100);
+    const priceUpdate =
+      Number.isFinite(priceCents) && priceCents !== initialPriceCents ? { pricePerPhoto: priceCents } : {};
+    await onSave({ title, location, date, startTime, endTime, description, ...priceUpdate });
     setSaving(false);
   }
 

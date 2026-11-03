@@ -96,14 +96,11 @@ export default function MyPhotosPage() {
     if (!user?.id) { router.push("/login"); return; }
     setBuying(photoId);
     try {
-      const res = await fetch(`/api/photos/${photoId}/purchase`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId: user.id }),
-      });
+      const res = await fetch(`/api/photos/${photoId}/purchase`, { method: "POST" });
       const data = await res.json();
       if (data.checkoutUrl) window.location.href = data.checkoutUrl;
       else if (data.purchased || data.alreadyPurchased) handleDownload(photoId);
+      else toastError(data.error || "Purchase failed");
     } catch { toastError("Purchase failed"); }
     finally { setBuying(null); }
   }

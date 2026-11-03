@@ -97,7 +97,7 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 "cd ~/app && git checkout -- . && git pull && docker-compose -f docker-compose.production.yml build app 2>&1 | tail -5 && docker-compose -f docker-compose.production.yml up -d 2>&1 | tail -3"
 
 # DB migration on prod
-ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network app_default -v $(pwd)/app/prisma:/app/prisma -w /app -e DATABASE_URL="postgresql://catchmyaction:CatchMyAction2026!@postgres:5432/catchmyaction?schema=public" node:20-alpine sh -c "apk add --no-cache openssl && npm install -g prisma@5.22.0 && prisma db push --schema /app/prisma/schema.prisma" 2>&1 | tail -10'
+ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network app_default -v $(pwd)/app/prisma:/app/prisma -w /app -e DATABASE_URL="$(grep ^DATABASE_URL ~/app/.env.production | cut -d= -f2-)" node:20-alpine sh -c "apk add --no-cache openssl && npm install -g prisma@5.22.0 && prisma db push --schema /app/prisma/schema.prisma" 2>&1 | tail -10'
 ```
 
 ## Next Steps

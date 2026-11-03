@@ -4,6 +4,7 @@ import { format } from "date-fns";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { IconPin, IconCalendar, IconCamera } from "@/app/components/icons";
+import { sanitizeHttpUrl } from "@/lib/validation";
 
 export const dynamic = "force-dynamic";
 
@@ -24,6 +25,7 @@ export default async function PhotographerProfilePage({
       youtube: true,
       tiktok: true,
       createdAt: true,
+      role: true,
       sessions: {
         where: { published: true },
         include: {
@@ -34,7 +36,8 @@ export default async function PhotographerProfilePage({
     },
   });
 
-  if (!photographer) notFound();
+  if (!photographer || photographer.role !== "PHOTOGRAPHER") notFound();
+  const websiteUrl = sanitizeHttpUrl(photographer.website);
 
   const totalPhotos = photographer.sessions.reduce(
     (sum, s) => sum + s.photoCount,
@@ -71,8 +74,8 @@ export default async function PhotographerProfilePage({
           </div>
           {/* Social links */}
           <div className="flex flex-wrap gap-3 mt-3">
-            {photographer.website && (
-              <a href={photographer.website} target="_blank" rel="noopener noreferrer"
+            {websiteUrl && (
+              <a href={websiteUrl} target="_blank" rel="noopener noreferrer"
                 className="text-xs text-ocean-400 hover:underline">🌐 Website</a>
             )}
             {photographer.instagram && (

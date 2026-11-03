@@ -20,7 +20,7 @@ export async function POST(
     return NextResponse.json({ error: "Photo not found" }, { status: 404 });
   }
 
-  if (photo.priceInCents !== 0 && photo.session.pricePerPhoto !== 0) {
+  if (photo.priceInCents !== 0) {
     return NextResponse.json({ error: "This photo is not free" }, { status: 400 });
   }
 
