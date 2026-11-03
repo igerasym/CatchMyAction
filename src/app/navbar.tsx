@@ -14,6 +14,16 @@ export default function NavBar() {
   const isHome = pathname === "/";
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const [scrolled, setScrolled] = useState(false);
+
+  // Home: transparent over the hero, solid once the page scrolls
+  useEffect(() => {
+    if (!isHome) return;
+    const onScroll = () => setScrolled(window.scrollY > 40);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [isHome]);
 
   useEffect(() => {
     function handler(e: MouseEvent) {
@@ -25,8 +35,10 @@ export default function NavBar() {
 
   return (
     <nav
-      className={`sticky top-0 z-50 transition-colors ${
-        isHome ? "bg-transparent absolute w-full" : "bg-ink border-b border-line"
+      className={`top-0 z-50 w-full transition-colors duration-300 ${
+        isHome
+          ? `fixed ${scrolled ? "bg-ink/90 backdrop-blur border-b border-line" : "bg-transparent border-b border-transparent"}`
+          : "sticky bg-ink border-b border-line"
       }`}
     >
       <div className="max-w-7xl mx-auto px-5 md:px-8 py-4 flex items-center justify-between">
