@@ -58,6 +58,24 @@ Docker context, so they are passed as build args: `~/app/.env` (compose interpol
 | Date | Commit | By | Notes |
 |------|--------|----|-------|
 | 2026-11-03 | `b5726db` (PR #1) | kiro-agent | Phase 0 hotfixes. First deploy since 2026-03-28. Rollback image `app-app:rollback-757cc47`. |
+| 2026-11-03 | `acb152e` (PR #2) | kiro-agent | CARTO basemaps key (maps showed "API KEY REQUIRED"). |
+| 2026-11-03 | `2d8f5d2` (PR #3) | kiro-agent | Homepage redesign (Viewfinder) + EXIF orientation fix. |
+| 2026-11-03 | `186e3e8` (PR #4) | kiro-agent | Design system on all pages. From here on: auto-deploy (below). |
+
+## Auto-deploy (since 2026-11-03)
+Every merge to `main` goes live automatically within ~5 min + build time (~6 min on t4g.small).
+- Script: `deploy/auto-deploy.sh` (installed on the host as `~/bin/auto-deploy.sh`), run by systemd **user** timer
+  `cma-autodeploy.timer` every 5 min.
+- Flow: `git fetch` → if `origin/main` moved, build `app-app:candidate` from a separate checkout `~/app-build`
+  (live tree untouched) → tag current image `rollback-<sha>` → swap to candidate, restart **app only** → health check
+  `/` and `/api/sessions` (90 s) → on failure roll back automatically. A commit that fails build/health is remembered
+  in `~/.deploy-failed-sha` and not retried until a newer commit lands.
+- Log: `~/deploy.log` (one line per deploy), build output `~/deploy-build.log`.
+  Status: `systemctl --user list-timers cma-autodeploy.timer`, `tail ~/deploy.log`.
+- Pause: `systemctl --user stop cma-autodeploy.timer` · resume: `start`.
+- Not covered: DB schema changes (still manual `prisma db push` — see refactoring plan), changes to the untracked
+  prod config (`.env.production`, `docker-compose.production.yml`, `.env`).
+- If the update script itself changes in git, reinstall it: `git -C ~/app show origin/main:deploy/auto-deploy.sh > ~/bin/auto-deploy.sh`.
 
 ## Agent SSH access
 - Public key `kiro-agent-deploy` (ed25519, `SHA256:1YndMGkhsqCxN8Q20QbXcU12vyH47+wH1sECP5dElqM`) is in
