@@ -23,11 +23,12 @@ export default function PrivacyPage() {
 
       <Section title="3. Biometric Data (Facial Recognition)">
         We take biometric data seriously. When you use our &quot;Find Me&quot; feature:
-        <br />• Facial data is processed only with your explicit opt-in consent
-        <br />• Data is used solely for matching you in session photos
+        <br />• You confirm consent each time before your selfie is compared — nothing is scanned without it
+        <br />• Your selfie is used only for that one search and is not stored
+        <br />• Matches are shown to you first; only the photos you confirm are marked as yours
+        <br />• To find matches, faces in uploaded session photos are indexed by our face-matching provider (AWS Rekognition)
         <br />• Facial data is not sold, shared, or used for advertising
-        <br />• You can delete your biometric data at any time via Settings
-        <br />• We comply with GDPR, CCPA, and BIPA requirements for biometric data
+        <br />• To remove a photo of you, or your matches, use &quot;Report photo&quot; on the photo or contact us — we act within 48 hours
       </Section>
 
       <Section title="4. Data Sharing">
@@ -39,7 +40,7 @@ export default function PrivacyPage() {
 
       <Section title="5. Data Retention">
         Account data is retained while your account is active. Photos are retained as long as the photographer
-        keeps them on the platform. Biometric data is deleted when you opt out or delete your account.
+        keeps them on the platform. Selfies are never stored. Face index data for a session is deleted when the session is deleted, and on request.
         You can request full data deletion by contacting us.
       </Section>
 
