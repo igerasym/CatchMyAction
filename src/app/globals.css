@@ -3,9 +3,106 @@
 @tailwind utilities;
 
 body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background-color: #0a0a0a;
-  color: #e5e5e5;
+  font-family: var(--font-archivo), system-ui, -apple-system, sans-serif;
+  background-color: #1a1b1e;
+  color: #f2ede4;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Viewfinder design primitives ─────────────────────────────── */
+@layer components {
+  /* Wide display headline */
+  .disp {
+    font-stretch: 118%;
+    font-weight: 850;
+    letter-spacing: -0.025em;
+    line-height: 0.9;
+  }
+  /* HUD / data label */
+  .hud {
+    font-family: var(--font-mono), ui-monospace, monospace;
+    font-size: 11.5px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #948f86;
+  }
+  /* Focus-bracket frame — the logo as a system. Put inside a `relative` box. */
+  .brk {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    --c: #f2ede4;
+    --l: 22px;
+    --w: 2px;
+    background:
+      linear-gradient(var(--c) 0 0) 0 0 / var(--l) var(--w),
+      linear-gradient(var(--c) 0 0) 0 0 / var(--w) var(--l),
+      linear-gradient(var(--c) 0 0) 100% 0 / var(--l) var(--w),
+      linear-gradient(var(--c) 0 0) 100% 0 / var(--w) var(--l),
+      linear-gradient(var(--c) 0 0) 0 100% / var(--l) var(--w),
+      linear-gradient(var(--c) 0 0) 0 100% / var(--w) var(--l),
+      linear-gradient(var(--c) 0 0) 100% 100% / var(--l) var(--w),
+      linear-gradient(var(--c) 0 0) 100% 100% / var(--w) var(--l);
+    background-repeat: no-repeat;
+    transition: inset 0.35s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s;
+  }
+  .brk-rec { --c: #ff4433; }
+  .brk-soft { --c: rgba(242, 237, 228, 0.55); }
+  .brk-sm { --l: 12px; }
+  .brk-lg { --l: 56px; --w: 3px; }
+  .brk-hover { opacity: 0; inset: 10px; }
+  .group:hover .brk-hover, .group:focus-visible .brk-hover { opacity: 1; inset: 0; }
+
+  .tag-rec {
+    font-family: var(--font-mono), monospace;
+    font-weight: 700;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    background: #ff4433;
+    color: #160806;
+    padding: 3px 7px 2px;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .tag-ghost {
+    font-family: var(--font-mono), monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    background: rgba(18, 19, 21, 0.78);
+    color: #f2ede4;
+    padding: 3px 7px 2px;
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+  }
+  .rec-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: #ff4433;
+    display: inline-block;
+    box-shadow: 0 0 0 3px rgba(255, 68, 51, 0.18);
+  }
+  .btn-pri, .btn-sec, .btn-rec {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 16px 24px;
+    transition: transform 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .btn-pri { background: #f2ede4; color: #121315; }
+  .btn-pri:hover { background: #fff; transform: translateY(-1px); }
+  .btn-sec { color: #f2ede4; box-shadow: inset 0 0 0 1.5px rgba(242, 237, 228, 0.45); }
+  .btn-sec:hover { box-shadow: inset 0 0 0 1.5px #f2ede4; transform: translateY(-1px); }
+  .btn-rec { background: #ff4433; color: #160806; }
+  .btn-rec:hover { transform: translateY(-1px); }
+  .ticks { height: 10px; background: repeating-linear-gradient(90deg, #383a40 0 1px, transparent 1px 12px); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .blink { animation: blink 1.6s steps(1) infinite; }
+  @keyframes blink { 50% { opacity: 0.15; } }
 }
 
 /* Hide number input spinners */

@@ -10,6 +10,8 @@ interface ActiveSession {
   date: string;
   photoCount: number;
   thumbnails: string[];
+  lat?: number | null;
+  lng?: number | null;
 }
 
 interface SpotInfo {
@@ -61,15 +63,9 @@ export default function SpotMap({
   const activeMarkers = useMemo(
     () =>
       activeSessions
-        .filter((s) => {
-          // Only show sessions from last 7 days on homepage map
-          const d = new Date(s.date);
-          const now = new Date();
-          return (now.getTime() - d.getTime()) < 7 * 86400000;
-        })
         .map((s) => ({
           ...s,
-          coords: getCoordsForSpot(s.location),
+          coords: (s.lat != null && s.lng != null ? [s.lat, s.lng] : getCoordsForSpot(s.location)) as [number, number] | null,
           color: getMarkerColor(s.date),
           recent: true,
           type: "active" as const,
@@ -96,27 +92,58 @@ export default function SpotMap({
     [allSpots, activeNames]
   );
 
+  // Spot index: one row per location, newest upload first
+  const spotIndex = useMemo(() => {
+    const m = new Map<string, { location: string; photos: number; sessions: number; last: string }>();
+    for (const s of activeSessions) {
+      const cur = m.get(s.location) ?? { location: s.location, photos: 0, sessions: 0, last: s.date };
+      cur.photos += s.photoCount;
+      cur.sessions += 1;
+      if (s.date > cur.last) cur.last = s.date;
+      m.set(s.location, cur);
+    }
+    return Array.from(m.values()).sort((a, b) => (a.last < b.last ? 1 : -1));
+  }, [activeSessions]);
+
   return (
-    <section ref={sectionRef} className="py-16 px-4">
-      <div className="max-w-6xl mx-auto">
-        <h2 className="text-2xl font-bold text-center mb-2 text-white">
-          Action Spots Worldwide
+    <section ref={sectionRef} className="grid lg:grid-cols-12 bg-char">
+      <div className="lg:col-span-4 px-5 md:px-12 py-16 lg:py-20">
+        <p className="hud mb-5">Spots</p>
+        <h2 className="disp text-[clamp(34px,4vw,56px)]">
+          {spotIndex.length} {spotIndex.length === 1 ? "spot" : "spots"}.
+          <br />
+          One map<span className="text-rec">.</span>
         </h2>
-        <p className="text-white/40 text-center mb-6 text-sm">
-          Click a spot to explore sessions
-        </p>
-        <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-          {MapComponent ? (
-            <MapComponent
-              activeMarkers={activeMarkers}
-              backgroundSpots={backgroundSpots}
-            />
-          ) : (
-            <div className="w-full h-[400px] sm:h-[500px] bg-[#1a1a2e] flex items-center justify-center">
-              <div className="text-ocean-400 animate-pulse">Loading map...</div>
-            </div>
-          )}
-        </div>
+        <ul className="mt-10 border-t border-line">
+          {spotIndex.map((s) => (
+            <li key={s.location} className="border-b border-line">
+              <a
+                href={`/sessions?location=${encodeURIComponent(s.location)}`}
+                className="flex items-center justify-between gap-4 py-4 hover:text-rec transition-colors"
+              >
+                <span className="min-w-0">
+                  <span className="block font-semibold truncate">{s.location}</span>
+                  <span className="block font-mono text-[10.5px] tracking-[0.12em] text-dim mt-1">
+                    LAST UPLOAD · {new Date(s.last).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).toUpperCase()}
+                  </span>
+                </span>
+                <span className="text-right shrink-0">
+                  <span className="disp text-3xl">{s.photos}</span>
+                  <span className="block font-mono text-[10px] tracking-[0.12em] text-dim">PHOTOS</span>
+                </span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="lg:col-span-8 relative min-h-[420px]">
+        {MapComponent ? (
+          <MapComponent activeMarkers={activeMarkers} backgroundSpots={backgroundSpots} />
+        ) : (
+          <div className="w-full h-[400px] sm:h-[560px] bg-ink flex items-center justify-center">
+            <span className="hud">Loading map…</span>
+          </div>
+        )}
       </div>
     </section>
   );

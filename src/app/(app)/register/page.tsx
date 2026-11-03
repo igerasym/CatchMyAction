@@ -2,7 +2,7 @@
 
 import { signIn } from "next-auth/react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
 
@@ -12,6 +12,12 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [agreed, setAgreed] = useState(false);
+  const [role, setRole] = useState("USER");
+
+  // /register?role=photographer (from the homepage photographer CTA)
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("role") === "photographer") setRole("PHOTOGRAPHER");
+  }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -78,7 +84,7 @@ export default function RegisterPage() {
         </div>
         <div>
           <label htmlFor="role" className="block text-sm font-medium text-white/50 mb-1">I am a...</label>
-          <select id="role" name="role" className={inputClass}>
+          <select id="role" name="role" className={inputClass} value={role} onChange={(e) => setRole(e.target.value)}>
             <option value="USER">Athlete (browse & buy photos)</option>
             <option value="PHOTOGRAPHER">Photographer (upload & sell)</option>
           </select>
