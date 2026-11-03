@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState, useMemo, useRef } from "react";
-import { getCoordsForSpot } from "@/lib/spots-database";
 
 interface ActiveSession {
   id: string;
@@ -65,7 +64,7 @@ export default function SpotMap({
       activeSessions
         .map((s) => ({
           ...s,
-          coords: (s.lat != null && s.lng != null ? [s.lat, s.lng] : getCoordsForSpot(s.location)) as [number, number] | null,
+          coords: (s.lat != null && s.lng != null ? [s.lat, s.lng] : null) as [number, number] | null,
           color: getMarkerColor(s.date),
           recent: true,
           type: "active" as const,

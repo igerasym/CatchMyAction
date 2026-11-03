@@ -1,0 +1,3897 @@
+[
+ {
+  "sourceId": "legacy-hawaii-pipeline",
+  "name": "Pipeline",
+  "region": "North Shore, Oahu",
+  "country": "Hawaii",
+  "lat": 21.6641,
+  "lng": -158.0539,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-sunset-beach",
+  "name": "Sunset Beach",
+  "region": "North Shore, Oahu",
+  "country": "Hawaii",
+  "lat": 21.6783,
+  "lng": -158.0406,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-waimea-bay",
+  "name": "Waimea Bay",
+  "region": "North Shore, Oahu",
+  "country": "Hawaii",
+  "lat": 21.6425,
+  "lng": -158.0656,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-backdoor",
+  "name": "Backdoor",
+  "region": "North Shore, Oahu",
+  "country": "Hawaii",
+  "lat": 21.6644,
+  "lng": -158.0531,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-rocky-point",
+  "name": "Rocky Point",
+  "region": "North Shore, Oahu",
+  "country": "Hawaii",
+  "lat": 21.67,
+  "lng": -158.0478,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-haleiwa",
+  "name": "Haleiwa",
+  "region": "North Shore, Oahu",
+  "country": "Hawaii",
+  "lat": 21.5919,
+  "lng": -158.1036,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-waikiki",
+  "name": "Waikiki",
+  "region": "Honolulu, Oahu",
+  "country": "Hawaii",
+  "lat": 21.2766,
+  "lng": -157.8278,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-jaws-peahi-",
+  "name": "Jaws (Peahi)",
+  "region": "Maui",
+  "country": "Hawaii",
+  "lat": 20.9425,
+  "lng": -156.2858,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-honolua-bay",
+  "name": "Honolua Bay",
+  "region": "Maui",
+  "country": "Hawaii",
+  "lat": 21.0142,
+  "lng": -156.6383,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-mavericks",
+  "name": "Mavericks",
+  "region": "Half Moon Bay",
+  "country": "USA",
+  "lat": 37.4953,
+  "lng": -122.4967,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-trestles",
+  "name": "Trestles",
+  "region": "San Clemente",
+  "country": "USA",
+  "lat": 33.3822,
+  "lng": -117.5886,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-rincon",
+  "name": "Rincon",
+  "region": "Santa Barbara",
+  "country": "USA",
+  "lat": 34.3742,
+  "lng": -119.4761,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-huntington-beach",
+  "name": "Huntington Beach",
+  "region": "Orange County",
+  "country": "USA",
+  "lat": 33.6553,
+  "lng": -117.9988,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-steamer-lane",
+  "name": "Steamer Lane",
+  "region": "Santa Cruz",
+  "country": "USA",
+  "lat": 36.9514,
+  "lng": -122.0264,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-ocean-beach-sf",
+  "name": "Ocean Beach SF",
+  "region": "San Francisco",
+  "country": "USA",
+  "lat": 37.7594,
+  "lng": -122.5107,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-blacks-beach",
+  "name": "Blacks Beach",
+  "region": "San Diego",
+  "country": "USA",
+  "lat": 32.8892,
+  "lng": -117.2531,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-windansea",
+  "name": "Windansea",
+  "region": "La Jolla",
+  "country": "USA",
+  "lat": 32.8306,
+  "lng": -117.2836,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-ventura-point",
+  "name": "Ventura Point",
+  "region": "Ventura",
+  "country": "USA",
+  "lat": 34.2742,
+  "lng": -119.3064,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-outer-banks",
+  "name": "Outer Banks",
+  "region": "North Carolina",
+  "country": "USA",
+  "lat": 35.5585,
+  "lng": -75.4665,
+  "sports": [
+   "surf",
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-cocoa-beach",
+  "name": "Cocoa Beach",
+  "region": "Florida",
+  "country": "USA",
+  "lat": 28.32,
+  "lng": -80.6076,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-sebastian-inlet",
+  "name": "Sebastian Inlet",
+  "region": "Florida",
+  "country": "USA",
+  "lat": 27.8614,
+  "lng": -80.4492,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-montauk",
+  "name": "Montauk",
+  "region": "New York",
+  "country": "USA",
+  "lat": 41.0712,
+  "lng": -71.8981,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-mexico-puerto-escondido",
+  "name": "Puerto Escondido",
+  "region": "Oaxaca",
+  "country": "Mexico",
+  "lat": 15.8608,
+  "lng": -97.0733,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-mexico-sayulita",
+  "name": "Sayulita",
+  "region": "Nayarit",
+  "country": "Mexico",
+  "lat": 20.8692,
+  "lng": -105.4414,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-mexico-todos-santos",
+  "name": "Todos Santos",
+  "region": "Baja California",
+  "country": "Mexico",
+  "lat": 23.45,
+  "lng": -110.2233,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-costa-rica-playa-hermosa",
+  "name": "Playa Hermosa",
+  "region": "Puntarenas",
+  "country": "Costa Rica",
+  "lat": 9.5569,
+  "lng": -84.5803,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-costa-rica-witch-s-rock",
+  "name": "Witch's Rock",
+  "region": "Guanacaste",
+  "country": "Costa Rica",
+  "lat": 10.8333,
+  "lng": -85.8,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-costa-rica-pavones",
+  "name": "Pavones",
+  "region": "Puntarenas",
+  "country": "Costa Rica",
+  "lat": 8.3833,
+  "lng": -83.15,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-portugal-nazare",
+  "name": "Nazaré",
+  "region": "Leiria",
+  "country": "Portugal",
+  "lat": 39.6017,
+  "lng": -9.0714,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-portugal-peniche-supertubos-",
+  "name": "Peniche (Supertubos)",
+  "region": "Leiria",
+  "country": "Portugal",
+  "lat": 39.3433,
+  "lng": -9.3711,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-portugal-ericeira",
+  "name": "Ericeira",
+  "region": "Lisboa",
+  "country": "Portugal",
+  "lat": 38.9667,
+  "lng": -9.4167,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-portugal-sagres",
+  "name": "Sagres",
+  "region": "Algarve",
+  "country": "Portugal",
+  "lat": 37.0086,
+  "lng": -8.9403,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-portugal-costa-da-caparica",
+  "name": "Costa da Caparica",
+  "region": "Setúbal",
+  "country": "Portugal",
+  "lat": 38.6333,
+  "lng": -9.2333,
+  "sports": [
+   "surf",
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-mundaka",
+  "name": "Mundaka",
+  "region": "Basque Country",
+  "country": "Spain",
+  "lat": 43.4072,
+  "lng": -2.6981,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-zarautz",
+  "name": "Zarautz",
+  "region": "Basque Country",
+  "country": "Spain",
+  "lat": 43.2833,
+  "lng": -2.1667,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-somo",
+  "name": "Somo",
+  "region": "Cantabria",
+  "country": "Spain",
+  "lat": 43.45,
+  "lng": -3.75,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-tarifa",
+  "name": "Tarifa",
+  "region": "Cádiz",
+  "country": "Spain",
+  "lat": 36.0143,
+  "lng": -5.6044,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-hossegor",
+  "name": "Hossegor",
+  "region": "Landes",
+  "country": "France",
+  "lat": 43.6667,
+  "lng": -1.4,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-la-graviere",
+  "name": "La Gravière",
+  "region": "Hossegor",
+  "country": "France",
+  "lat": 43.6625,
+  "lng": -1.4431,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-lacanau",
+  "name": "Lacanau",
+  "region": "Gironde",
+  "country": "France",
+  "lat": 44.9833,
+  "lng": -1.2,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-biarritz",
+  "name": "Biarritz",
+  "region": "Pyrénées-Atlantiques",
+  "country": "France",
+  "lat": 43.4833,
+  "lng": -1.5586,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-anglet",
+  "name": "Anglet",
+  "region": "Pyrénées-Atlantiques",
+  "country": "France",
+  "lat": 43.5,
+  "lng": -1.5167,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-fistral-beach",
+  "name": "Fistral Beach",
+  "region": "Newquay",
+  "country": "UK",
+  "lat": 50.4167,
+  "lng": -5.1,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-thurso-east",
+  "name": "Thurso East",
+  "region": "Scotland",
+  "country": "UK",
+  "lat": 58.5933,
+  "lng": -3.5167,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-ireland-bundoran",
+  "name": "Bundoran",
+  "region": "Donegal",
+  "country": "Ireland",
+  "lat": 54.475,
+  "lng": -8.2833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-ireland-mullaghmore",
+  "name": "Mullaghmore",
+  "region": "Sligo",
+  "country": "Ireland",
+  "lat": 54.4667,
+  "lng": -8.45,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-ireland-lahinch",
+  "name": "Lahinch",
+  "region": "Clare",
+  "country": "Ireland",
+  "lat": 52.9333,
+  "lng": -9.35,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-bells-beach",
+  "name": "Bells Beach",
+  "region": "Victoria",
+  "country": "Australia",
+  "lat": -38.3683,
+  "lng": 144.2811,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-snapper-rocks",
+  "name": "Snapper Rocks",
+  "region": "Gold Coast",
+  "country": "Australia",
+  "lat": -28.1667,
+  "lng": 153.55,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-kirra",
+  "name": "Kirra",
+  "region": "Gold Coast",
+  "country": "Australia",
+  "lat": -28.1667,
+  "lng": 153.5333,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-burleigh-heads",
+  "name": "Burleigh Heads",
+  "region": "Gold Coast",
+  "country": "Australia",
+  "lat": -28.0833,
+  "lng": 153.45,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-margaret-river",
+  "name": "Margaret River",
+  "region": "Western Australia",
+  "country": "Australia",
+  "lat": -33.95,
+  "lng": 114.9833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-north-narrabeen",
+  "name": "North Narrabeen",
+  "region": "Sydney",
+  "country": "Australia",
+  "lat": -33.7167,
+  "lng": 151.3,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-manly-beach",
+  "name": "Manly Beach",
+  "region": "Sydney",
+  "country": "Australia",
+  "lat": -33.7917,
+  "lng": 151.2889,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-noosa-heads",
+  "name": "Noosa Heads",
+  "region": "Queensland",
+  "country": "Australia",
+  "lat": -26.3833,
+  "lng": 153.0833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-uluwatu",
+  "name": "Uluwatu",
+  "region": "Bali",
+  "country": "Indonesia",
+  "lat": -8.8155,
+  "lng": 115.0849,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-padang-padang",
+  "name": "Padang Padang",
+  "region": "Bali",
+  "country": "Indonesia",
+  "lat": -8.8117,
+  "lng": 115.1,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-kuta-beach",
+  "name": "Kuta Beach",
+  "region": "Bali",
+  "country": "Indonesia",
+  "lat": -8.7183,
+  "lng": 115.1689,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-canggu",
+  "name": "Canggu",
+  "region": "Bali",
+  "country": "Indonesia",
+  "lat": -8.6478,
+  "lng": 115.1385,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-desert-point",
+  "name": "Desert Point",
+  "region": "Lombok",
+  "country": "Indonesia",
+  "lat": -8.75,
+  "lng": 115.85,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-g-land",
+  "name": "G-Land",
+  "region": "East Java",
+  "country": "Indonesia",
+  "lat": -8.7333,
+  "lng": 114.3667,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-mentawai-islands",
+  "name": "Mentawai Islands",
+  "region": "West Sumatra",
+  "country": "Indonesia",
+  "lat": -2.0833,
+  "lng": 99.5,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-nias",
+  "name": "Nias",
+  "region": "North Sumatra",
+  "country": "Indonesia",
+  "lat": 1.1,
+  "lng": 97.55,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-jeffreys-bay",
+  "name": "Jeffreys Bay",
+  "region": "Eastern Cape",
+  "country": "South Africa",
+  "lat": -33.9667,
+  "lng": 25.95,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-dungeons",
+  "name": "Dungeons",
+  "region": "Cape Town",
+  "country": "South Africa",
+  "lat": -34.0833,
+  "lng": 18.35,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-muizenberg",
+  "name": "Muizenberg",
+  "region": "Cape Town",
+  "country": "South Africa",
+  "lat": -34.1083,
+  "lng": 18.4722,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-french-polynesia-teahupo-o",
+  "name": "Teahupo'o",
+  "region": "Tahiti",
+  "country": "French Polynesia",
+  "lat": -17.8369,
+  "lng": -149.2564,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-fiji-cloudbreak",
+  "name": "Cloudbreak",
+  "region": "Tavarua",
+  "country": "Fiji",
+  "lat": -17.85,
+  "lng": 177.1833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-fiji-restaurants",
+  "name": "Restaurants",
+  "region": "Tavarua",
+  "country": "Fiji",
+  "lat": -17.8583,
+  "lng": 177.1917,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-new-zealand-raglan",
+  "name": "Raglan",
+  "region": "Waikato",
+  "country": "New Zealand",
+  "lat": -37.8,
+  "lng": 174.8833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-peru-chicama",
+  "name": "Chicama",
+  "region": "La Libertad",
+  "country": "Peru",
+  "lat": -7.85,
+  "lng": -79.45,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-chile-punta-de-lobos",
+  "name": "Punta de Lobos",
+  "region": "Pichilemu",
+  "country": "Chile",
+  "lat": -34.4333,
+  "lng": -72.05,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-florianopolis",
+  "name": "Florianópolis",
+  "region": "Santa Catarina",
+  "country": "Brazil",
+  "lat": -27.5969,
+  "lng": -48.5495,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-itacare",
+  "name": "Itacaré",
+  "region": "Bahia",
+  "country": "Brazil",
+  "lat": -14.2833,
+  "lng": -38.9833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-saquarema",
+  "name": "Saquarema",
+  "region": "Rio de Janeiro",
+  "country": "Brazil",
+  "lat": -22.9167,
+  "lng": -42.5,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-morocco-taghazout",
+  "name": "Taghazout",
+  "region": "Agadir",
+  "country": "Morocco",
+  "lat": 30.5417,
+  "lng": -9.7083,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-morocco-anchor-point",
+  "name": "Anchor Point",
+  "region": "Taghazout",
+  "country": "Morocco",
+  "lat": 30.55,
+  "lng": -9.7167,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-morocco-imsouane",
+  "name": "Imsouane",
+  "region": "Agadir",
+  "country": "Morocco",
+  "lat": 30.8417,
+  "lng": -9.825,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canary-islands-el-quemao",
+  "name": "El Quemao",
+  "region": "Lanzarote",
+  "country": "Canary Islands",
+  "lat": 29.2167,
+  "lng": -13.85,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canary-islands-el-confital",
+  "name": "El Confital",
+  "region": "Gran Canaria",
+  "country": "Canary Islands",
+  "lat": 28.1667,
+  "lng": -15.4333,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-shonan",
+  "name": "Shonan",
+  "region": "Kanagawa",
+  "country": "Japan",
+  "lat": 35.3167,
+  "lng": 139.4833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-chiba",
+  "name": "Chiba",
+  "region": "Chiba",
+  "country": "Japan",
+  "lat": 35.2333,
+  "lng": 140.3167,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-miyazaki",
+  "name": "Miyazaki",
+  "region": "Miyazaki",
+  "country": "Japan",
+  "lat": 31.9167,
+  "lng": 131.4333,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-philippines-siargao-cloud-9-",
+  "name": "Siargao (Cloud 9)",
+  "region": "Surigao del Norte",
+  "country": "Philippines",
+  "lat": 9.85,
+  "lng": 126.1667,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-philippines-la-union",
+  "name": "La Union",
+  "region": "Ilocos",
+  "country": "Philippines",
+  "lat": 16.6167,
+  "lng": 120.3167,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-sri-lanka-arugam-bay",
+  "name": "Arugam Bay",
+  "region": "Eastern Province",
+  "country": "Sri Lanka",
+  "lat": 6.85,
+  "lng": 81.8333,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-sri-lanka-hikkaduwa",
+  "name": "Hikkaduwa",
+  "region": "Southern Province",
+  "country": "Sri Lanka",
+  "lat": 6.1333,
+  "lng": 80.1,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-india-covelong",
+  "name": "Covelong",
+  "region": "Tamil Nadu",
+  "country": "India",
+  "lat": 12.7833,
+  "lng": 80.25,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-india-mulki",
+  "name": "Mulki",
+  "region": "Karnataka",
+  "country": "India",
+  "lat": 13.0833,
+  "lng": 74.7833,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-taiwan-jinzun",
+  "name": "Jinzun",
+  "region": "Taitung",
+  "country": "Taiwan",
+  "lat": 22.9167,
+  "lng": 121.1667,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-senegal-n-gor-right",
+  "name": "N'Gor Right",
+  "region": "Dakar",
+  "country": "Senegal",
+  "lat": 14.75,
+  "lng": -17.5167,
+  "sports": [
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-cumbuco",
+  "name": "Cumbuco",
+  "region": "Ceará",
+  "country": "Brazil",
+  "lat": -3.6267,
+  "lng": -38.7317,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-jericoacoara",
+  "name": "Jericoacoara",
+  "region": "Ceará",
+  "country": "Brazil",
+  "lat": -2.795,
+  "lng": -40.5133,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-sao-miguel-do-gostoso",
+  "name": "São Miguel do Gostoso",
+  "region": "Rio Grande do Norte",
+  "country": "Brazil",
+  "lat": -5.1233,
+  "lng": -35.635,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-barra-grande",
+  "name": "Barra Grande",
+  "region": "Piauí",
+  "country": "Brazil",
+  "lat": -2.9033,
+  "lng": -41.405,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-egypt-el-gouna",
+  "name": "El Gouna",
+  "region": "Red Sea",
+  "country": "Egypt",
+  "lat": 27.1828,
+  "lng": 33.86,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-egypt-hurghada",
+  "name": "Hurghada",
+  "region": "Red Sea",
+  "country": "Egypt",
+  "lat": 27.2579,
+  "lng": 33.8116,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-egypt-dahab",
+  "name": "Dahab",
+  "region": "Sinai",
+  "country": "Egypt",
+  "lat": 28.5,
+  "lng": 34.5133,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-egypt-soma-bay",
+  "name": "Soma Bay",
+  "region": "Red Sea",
+  "country": "Egypt",
+  "lat": 26.85,
+  "lng": 33.9667,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-dominican-republic-cabarete",
+  "name": "Cabarete",
+  "region": "Puerto Plata",
+  "country": "Dominican Republic",
+  "lat": 19.7583,
+  "lng": -70.4083,
+  "sports": [
+   "kite",
+   "windsurf",
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-greece-paros-pounda-",
+  "name": "Paros (Pounda)",
+  "region": "Cyclades",
+  "country": "Greece",
+  "lat": 37.0333,
+  "lng": 25.1833,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-greece-naxos-mikri-vigla-",
+  "name": "Naxos (Mikri Vigla)",
+  "region": "Cyclades",
+  "country": "Greece",
+  "lat": 37.0167,
+  "lng": 25.45,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-greece-rhodes-prasonisi-",
+  "name": "Rhodes (Prasonisi)",
+  "region": "Dodecanese",
+  "country": "Greece",
+  "lat": 35.8833,
+  "lng": 27.7667,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-greece-lefkada-vassiliki-",
+  "name": "Lefkada (Vassiliki)",
+  "region": "Ionian Islands",
+  "country": "Greece",
+  "lat": 38.6333,
+  "lng": 20.5833,
+  "sports": [
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-lo-stagnone",
+  "name": "Lo Stagnone",
+  "region": "Sicily",
+  "country": "Italy",
+  "lat": 37.8667,
+  "lng": 12.45,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-lake-garda-torbole-",
+  "name": "Lake Garda (Torbole)",
+  "region": "Trentino",
+  "country": "Italy",
+  "lat": 45.8667,
+  "lng": 10.8833,
+  "sports": [
+   "windsurf",
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-tanzania-paje-beach",
+  "name": "Paje Beach",
+  "region": "Zanzibar",
+  "country": "Tanzania",
+  "lat": -6.2667,
+  "lng": 39.5333,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-langebaan",
+  "name": "Langebaan",
+  "region": "Western Cape",
+  "country": "South Africa",
+  "lat": -33.0917,
+  "lng": 18.025,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-big-bay-blouberg-",
+  "name": "Big Bay (Blouberg)",
+  "region": "Cape Town",
+  "country": "South Africa",
+  "lat": -33.7917,
+  "lng": 18.4583,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-philippines-boracay-bulabog-",
+  "name": "Boracay (Bulabog)",
+  "region": "Aklan",
+  "country": "Philippines",
+  "lat": 11.9667,
+  "lng": 121.9333,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-vietnam-mui-ne",
+  "name": "Mui Ne",
+  "region": "Bình Thuận",
+  "country": "Vietnam",
+  "lat": 10.9333,
+  "lng": 108.2833,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-morocco-dakhla",
+  "name": "Dakhla",
+  "region": "Dakhla-Oued Ed-Dahab",
+  "country": "Morocco",
+  "lat": 23.7167,
+  "lng": -15.95,
+  "sports": [
+   "kite",
+   "windsurf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-morocco-essaouira",
+  "name": "Essaouira",
+  "region": "Marrakech-Safi",
+  "country": "Morocco",
+  "lat": 31.5125,
+  "lng": -9.77,
+  "sports": [
+   "kite",
+   "windsurf",
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-st-kilda-beach",
+  "name": "St Kilda Beach",
+  "region": "Melbourne",
+  "country": "Australia",
+  "lat": -37.8667,
+  "lng": 144.9667,
+  "sports": [
+   "kite"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-netherlands-zandvoort",
+  "name": "Zandvoort",
+  "region": "North Holland",
+  "country": "Netherlands",
+  "lat": 52.375,
+  "lng": 4.5333,
+  "sports": [
+   "kite",
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-netherlands-scheveningen",
+  "name": "Scheveningen",
+  "region": "South Holland",
+  "country": "Netherlands",
+  "lat": 52.1,
+  "lng": 4.2667,
+  "sports": [
+   "kite",
+   "windsurf",
+   "surf"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-venice-beach-skatepark",
+  "name": "Venice Beach Skatepark",
+  "region": "Los Angeles",
+  "country": "USA",
+  "lat": 33.985,
+  "lng": -118.4725,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-burnside-skatepark",
+  "name": "Burnside Skatepark",
+  "region": "Portland, Oregon",
+  "country": "USA",
+  "lat": 45.5225,
+  "lng": -122.6625,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-fdr-skatepark",
+  "name": "FDR Skatepark",
+  "region": "Philadelphia",
+  "country": "USA",
+  "lat": 39.9167,
+  "lng": -75.1833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-stoner-skate-plaza",
+  "name": "Stoner Skate Plaza",
+  "region": "Los Angeles",
+  "country": "USA",
+  "lat": 34.0375,
+  "lng": -118.45,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-kona-skatepark",
+  "name": "Kona Skatepark",
+  "region": "Jacksonville, Florida",
+  "country": "USA",
+  "lat": 30.2833,
+  "lng": -81.5833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-vans-skatepark-orange-",
+  "name": "Vans Skatepark (Orange)",
+  "region": "Orange County",
+  "country": "USA",
+  "lat": 33.7875,
+  "lng": -117.8833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-les-coleman-skatepark",
+  "name": "LES Coleman Skatepark",
+  "region": "New York City",
+  "country": "USA",
+  "lat": 40.7142,
+  "lng": -73.9833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-woodward-west",
+  "name": "Woodward West",
+  "region": "Tehachapi, California",
+  "country": "USA",
+  "lat": 35.1333,
+  "lng": -118.45,
+  "sports": [
+   "skate",
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-woodward-east",
+  "name": "Woodward East",
+  "region": "Woodward, Pennsylvania",
+  "country": "USA",
+  "lat": 40.9,
+  "lng": -77.3167,
+  "sports": [
+   "skate",
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-the-berrics",
+  "name": "The Berrics",
+  "region": "Los Angeles",
+  "country": "USA",
+  "lat": 34.0333,
+  "lng": -118.2333,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-lincoln-city-skatepark",
+  "name": "Lincoln City Skatepark",
+  "region": "Oregon",
+  "country": "USA",
+  "lat": 44.9583,
+  "lng": -124.0167,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-lake-cunningham-skatepark",
+  "name": "Lake Cunningham Skatepark",
+  "region": "San Jose",
+  "country": "USA",
+  "lat": 37.3333,
+  "lng": -121.8167,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-russia-smp-skatepark",
+  "name": "SMP Skatepark",
+  "region": "Saint Petersburg",
+  "country": "Russia",
+  "lat": 59.9833,
+  "lng": 30.2167,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-southbank-undercroft",
+  "name": "Southbank Undercroft",
+  "region": "London",
+  "country": "UK",
+  "lat": 51.5058,
+  "lng": -0.1167,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-bay-sixty6-skatepark",
+  "name": "Bay Sixty6 Skatepark",
+  "region": "London",
+  "country": "UK",
+  "lat": 51.5208,
+  "lng": -0.2125,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-skatehalle-berlin",
+  "name": "Skatehalle Berlin",
+  "region": "Berlin",
+  "country": "Germany",
+  "lat": 52.4833,
+  "lng": 13.45,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-mellowpark",
+  "name": "Mellowpark",
+  "region": "Berlin",
+  "country": "Germany",
+  "lat": 52.45,
+  "lng": 13.5667,
+  "sports": [
+   "skate",
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-skatepark-de-bercy",
+  "name": "Skatepark de Bercy",
+  "region": "Paris",
+  "country": "France",
+  "lat": 48.8333,
+  "lng": 2.3833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-la-friche-skatepark",
+  "name": "La Friche Skatepark",
+  "region": "Marseille",
+  "country": "France",
+  "lat": 43.3083,
+  "lng": 5.3917,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-skatepark-lingotto",
+  "name": "Skatepark Lingotto",
+  "region": "Turin",
+  "country": "Italy",
+  "lat": 45.0333,
+  "lng": 7.6667,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-skatepark-parque-de-las-cruces",
+  "name": "Skatepark Parque de las Cruces",
+  "region": "Madrid",
+  "country": "Spain",
+  "lat": 40.3917,
+  "lng": -3.7333,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-mar-bella-skatepark",
+  "name": "Mar Bella Skatepark",
+  "region": "Barcelona",
+  "country": "Spain",
+  "lat": 41.3917,
+  "lng": 2.2167,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-macba-plaza",
+  "name": "MACBA Plaza",
+  "region": "Barcelona",
+  "country": "Spain",
+  "lat": 41.3833,
+  "lng": 2.1667,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-netherlands-skatepark-westblaak",
+  "name": "Skatepark Westblaak",
+  "region": "Rotterdam",
+  "country": "Netherlands",
+  "lat": 51.9167,
+  "lng": 4.4833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-netherlands-area-51-skatepark",
+  "name": "Area 51 Skatepark",
+  "region": "Eindhoven",
+  "country": "Netherlands",
+  "lat": 51.4417,
+  "lng": 5.475,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-sweden-stapelbaddsparken",
+  "name": "Stapelbäddsparken",
+  "region": "Malmö",
+  "country": "Sweden",
+  "lat": 55.6133,
+  "lng": 12.9833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-denmark-f-lledparken-skatepark",
+  "name": "Fælledparken Skatepark",
+  "region": "Copenhagen",
+  "country": "Denmark",
+  "lat": 55.6958,
+  "lng": 12.575,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-bondi-skatepark",
+  "name": "Bondi Skatepark",
+  "region": "Sydney",
+  "country": "Australia",
+  "lat": -33.8917,
+  "lng": 151.275,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-riverslide-skatepark",
+  "name": "Riverslide Skatepark",
+  "region": "Melbourne",
+  "country": "Australia",
+  "lat": -37.8167,
+  "lng": 144.9833,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-praca-da-se",
+  "name": "Praça da Sé",
+  "region": "São Paulo",
+  "country": "Brazil",
+  "lat": -23.55,
+  "lng": -46.6333,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-pista-de-skate-da-lagoa",
+  "name": "Pista de Skate da Lagoa",
+  "region": "Rio de Janeiro",
+  "country": "Brazil",
+  "lat": -22.9667,
+  "lng": -43.2,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-komazawa-skatepark",
+  "name": "Komazawa Skatepark",
+  "region": "Tokyo",
+  "country": "Japan",
+  "lat": 35.6333,
+  "lng": 139.6667,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-shin-yokohama-skatepark",
+  "name": "Shin-Yokohama Skatepark",
+  "region": "Yokohama",
+  "country": "Japan",
+  "lat": 35.5083,
+  "lng": 139.6167,
+  "sports": [
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-whistler-bike-park",
+  "name": "Whistler Bike Park",
+  "region": "British Columbia",
+  "country": "Canada",
+  "lat": 50.1163,
+  "lng": -122.9574,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-moab-slickrock-",
+  "name": "Moab (Slickrock)",
+  "region": "Utah",
+  "country": "USA",
+  "lat": 38.5733,
+  "lng": -109.5498,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-sedona",
+  "name": "Sedona",
+  "region": "Arizona",
+  "country": "USA",
+  "lat": 34.8697,
+  "lng": -111.761,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-mammoth-mountain-bike-park",
+  "name": "Mammoth Mountain Bike Park",
+  "region": "California",
+  "country": "USA",
+  "lat": 37.6308,
+  "lng": -119.0326,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-bentonville-trails",
+  "name": "Bentonville Trails",
+  "region": "Arkansas",
+  "country": "USA",
+  "lat": 36.3729,
+  "lng": -94.2088,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-kingdom-trails",
+  "name": "Kingdom Trails",
+  "region": "Vermont",
+  "country": "USA",
+  "lat": 44.5333,
+  "lng": -71.9667,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-downieville",
+  "name": "Downieville",
+  "region": "California",
+  "country": "USA",
+  "lat": 39.5592,
+  "lng": -120.8267,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-squamish",
+  "name": "Squamish",
+  "region": "British Columbia",
+  "country": "Canada",
+  "lat": 49.7016,
+  "lng": -123.1558,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-north-shore-mtb-",
+  "name": "North Shore (MTB)",
+  "region": "Vancouver",
+  "country": "Canada",
+  "lat": 49.35,
+  "lng": -123.1,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-austria-bikepark-leogang",
+  "name": "Bikepark Leogang",
+  "region": "Salzburg",
+  "country": "Austria",
+  "lat": 47.4333,
+  "lng": 12.7667,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-morzine-les-gets",
+  "name": "Morzine / Les Gets",
+  "region": "Haute-Savoie",
+  "country": "France",
+  "lat": 46.1792,
+  "lng": 6.7097,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-finale-ligure",
+  "name": "Finale Ligure",
+  "region": "Liguria",
+  "country": "Italy",
+  "lat": 44.1692,
+  "lng": 8.3431,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-bike-park-wales",
+  "name": "Bike Park Wales",
+  "region": "Merthyr Tydfil",
+  "country": "UK",
+  "lat": 51.75,
+  "lng": -3.3833,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-fort-william",
+  "name": "Fort William",
+  "region": "Scottish Highlands",
+  "country": "UK",
+  "lat": 56.8198,
+  "lng": -5.1052,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-sweden-are-bike-park",
+  "name": "Åre Bike Park",
+  "region": "Jämtland",
+  "country": "Sweden",
+  "lat": 63.3986,
+  "lng": 13.0744,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-switzerland-davos-klosters",
+  "name": "Davos Klosters",
+  "region": "Graubünden",
+  "country": "Switzerland",
+  "lat": 46.8003,
+  "lng": 9.8361,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-switzerland-lenzerheide",
+  "name": "Lenzerheide",
+  "region": "Graubünden",
+  "country": "Switzerland",
+  "lat": 46.7333,
+  "lng": 9.55,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-la-thuile",
+  "name": "La Thuile",
+  "region": "Aosta Valley",
+  "country": "Italy",
+  "lat": 45.7167,
+  "lng": 6.95,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-andorra-vallnord-bike-park",
+  "name": "Vallnord Bike Park",
+  "region": "La Massana",
+  "country": "Andorra",
+  "lat": 42.55,
+  "lng": 1.4833,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-new-zealand-rotorua-whakarewarewa-",
+  "name": "Rotorua (Whakarewarewa)",
+  "region": "Bay of Plenty",
+  "country": "New Zealand",
+  "lat": -38.1667,
+  "lng": 176.25,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-new-zealand-queenstown-bike-park",
+  "name": "Queenstown Bike Park",
+  "region": "Otago",
+  "country": "New Zealand",
+  "lat": -45.0312,
+  "lng": 168.6626,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-stellenbosch-trails",
+  "name": "Stellenbosch Trails",
+  "region": "Western Cape",
+  "country": "South Africa",
+  "lat": -33.9333,
+  "lng": 18.8667,
+  "sports": [
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-whistler-blackcomb",
+  "name": "Whistler Blackcomb",
+  "region": "British Columbia",
+  "country": "Canada",
+  "lat": 50.1163,
+  "lng": -122.9574,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-mammoth-mountain",
+  "name": "Mammoth Mountain",
+  "region": "California",
+  "country": "USA",
+  "lat": 37.6308,
+  "lng": -119.0326,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-jackson-hole",
+  "name": "Jackson Hole",
+  "region": "Wyoming",
+  "country": "USA",
+  "lat": 43.5877,
+  "lng": -110.8279,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-park-city",
+  "name": "Park City",
+  "region": "Utah",
+  "country": "USA",
+  "lat": 40.6514,
+  "lng": -111.508,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-aspen",
+  "name": "Aspen",
+  "region": "Colorado",
+  "country": "USA",
+  "lat": 39.1911,
+  "lng": -106.8175,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-vail",
+  "name": "Vail",
+  "region": "Colorado",
+  "country": "USA",
+  "lat": 39.6403,
+  "lng": -106.3742,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-big-bear",
+  "name": "Big Bear",
+  "region": "California",
+  "country": "USA",
+  "lat": 34.2364,
+  "lng": -116.8906,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-squaw-valley-palisades-",
+  "name": "Squaw Valley (Palisades)",
+  "region": "California",
+  "country": "USA",
+  "lat": 39.1968,
+  "lng": -120.2354,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-revelstoke",
+  "name": "Revelstoke",
+  "region": "British Columbia",
+  "country": "Canada",
+  "lat": 51,
+  "lng": -118.1833,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-banff-sunshine-village-",
+  "name": "Banff (Sunshine Village)",
+  "region": "Alberta",
+  "country": "Canada",
+  "lat": 51.115,
+  "lng": -115.7631,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-chamonix",
+  "name": "Chamonix",
+  "region": "Haute-Savoie",
+  "country": "France",
+  "lat": 45.9237,
+  "lng": 6.8694,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-val-d-isere",
+  "name": "Val d'Isère",
+  "region": "Savoie",
+  "country": "France",
+  "lat": 45.4486,
+  "lng": 6.9806,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-les-deux-alpes",
+  "name": "Les Deux Alpes",
+  "region": "Isère",
+  "country": "France",
+  "lat": 45.0167,
+  "lng": 6.1167,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-tignes",
+  "name": "Tignes",
+  "region": "Savoie",
+  "country": "France",
+  "lat": 45.45,
+  "lng": 6.9,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-switzerland-zermatt",
+  "name": "Zermatt",
+  "region": "Valais",
+  "country": "Switzerland",
+  "lat": 46.0207,
+  "lng": 7.7491,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-switzerland-verbier",
+  "name": "Verbier",
+  "region": "Valais",
+  "country": "Switzerland",
+  "lat": 46.0964,
+  "lng": 7.2286,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-switzerland-laax",
+  "name": "Laax",
+  "region": "Graubünden",
+  "country": "Switzerland",
+  "lat": 46.8097,
+  "lng": 9.2583,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-austria-st-anton",
+  "name": "St. Anton",
+  "region": "Tyrol",
+  "country": "Austria",
+  "lat": 47.1275,
+  "lng": 10.2683,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-austria-kitzbuhel",
+  "name": "Kitzbühel",
+  "region": "Tyrol",
+  "country": "Austria",
+  "lat": 47.45,
+  "lng": 12.3917,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-austria-innsbruck-nordkette-",
+  "name": "Innsbruck (Nordkette)",
+  "region": "Tyrol",
+  "country": "Austria",
+  "lat": 47.3069,
+  "lng": 11.3883,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-cortina-d-ampezzo",
+  "name": "Cortina d'Ampezzo",
+  "region": "Veneto",
+  "country": "Italy",
+  "lat": 46.5369,
+  "lng": 12.1358,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-livigno",
+  "name": "Livigno",
+  "region": "Lombardy",
+  "country": "Italy",
+  "lat": 46.5383,
+  "lng": 10.135,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-sierra-nevada",
+  "name": "Sierra Nevada",
+  "region": "Granada",
+  "country": "Spain",
+  "lat": 37.0956,
+  "lng": -3.3953,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-niseko",
+  "name": "Niseko",
+  "region": "Hokkaido",
+  "country": "Japan",
+  "lat": 42.8625,
+  "lng": 140.6989,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-hakuba",
+  "name": "Hakuba",
+  "region": "Nagano",
+  "country": "Japan",
+  "lat": 36.6983,
+  "lng": 137.8617,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-new-zealand-queenstown-the-remarkables-",
+  "name": "Queenstown (The Remarkables)",
+  "region": "Otago",
+  "country": "New Zealand",
+  "lat": -45.05,
+  "lng": 168.8167,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-new-zealand-wanaka-treble-cone-",
+  "name": "Wanaka (Treble Cone)",
+  "region": "Otago",
+  "country": "New Zealand",
+  "lat": -44.6333,
+  "lng": 168.9,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-thredbo",
+  "name": "Thredbo",
+  "region": "New South Wales",
+  "country": "Australia",
+  "lat": -36.5,
+  "lng": 148.3,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-chile-portillo",
+  "name": "Portillo",
+  "region": "Valparaíso",
+  "country": "Chile",
+  "lat": -32.8333,
+  "lng": -70.1333,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-chile-valle-nevado",
+  "name": "Valle Nevado",
+  "region": "Santiago",
+  "country": "Chile",
+  "lat": -33.3667,
+  "lng": -70.25,
+  "sports": [
+   "ski",
+   "snowboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-glen-helen-raceway",
+  "name": "Glen Helen Raceway",
+  "region": "San Bernardino, California",
+  "country": "USA",
+  "lat": 34.2167,
+  "lng": -117.3833,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-redbud-mx",
+  "name": "RedBud MX",
+  "region": "Buchanan, Michigan",
+  "country": "USA",
+  "lat": 41.8333,
+  "lng": -86.3667,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-washougal-mx-park",
+  "name": "Washougal MX Park",
+  "region": "Washington",
+  "country": "USA",
+  "lat": 45.5833,
+  "lng": -122.3167,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-unadilla-mx",
+  "name": "Unadilla MX",
+  "region": "New Berlin, New York",
+  "country": "USA",
+  "lat": 42.6167,
+  "lng": -75.3333,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-belgium-lommel-mx",
+  "name": "Lommel MX",
+  "region": "Limburg",
+  "country": "Belgium",
+  "lat": 51.2333,
+  "lng": 5.3167,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-ernee-mx",
+  "name": "Ernée MX",
+  "region": "Mayenne",
+  "country": "France",
+  "lat": 48.3,
+  "lng": -0.9333,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-maggiora-park",
+  "name": "Maggiora Park",
+  "region": "Piedmont",
+  "country": "Italy",
+  "lat": 45.7,
+  "lng": 8.4167,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-teutschenthal-mx",
+  "name": "Teutschenthal MX",
+  "region": "Saxony-Anhalt",
+  "country": "Germany",
+  "lat": 51.45,
+  "lng": 11.8,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-hawkstone-park",
+  "name": "Hawkstone Park",
+  "region": "Shropshire",
+  "country": "UK",
+  "lat": 52.85,
+  "lng": -2.7167,
+  "sports": [
+   "moto"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-berlin",
+  "name": "Berlin",
+  "region": "Berlin",
+  "country": "Germany",
+  "lat": 52.52,
+  "lng": 13.405,
+  "sports": [
+   "skate",
+   "mtb",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-munich",
+  "name": "Munich",
+  "region": "Bavaria",
+  "country": "Germany",
+  "lat": 48.1351,
+  "lng": 11.582,
+  "sports": [
+   "skate",
+   "mtb",
+   "surf",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-netherlands-amsterdam",
+  "name": "Amsterdam",
+  "region": "North Holland",
+  "country": "Netherlands",
+  "lat": 52.3676,
+  "lng": 4.9041,
+  "sports": [
+   "skate",
+   "marathon",
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-czech-republic-prague",
+  "name": "Prague",
+  "region": "Bohemia",
+  "country": "Czech Republic",
+  "lat": 50.0755,
+  "lng": 14.4378,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-austria-vienna",
+  "name": "Vienna",
+  "region": "Vienna",
+  "country": "Austria",
+  "lat": 48.2082,
+  "lng": 16.3738,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-portugal-lisbon",
+  "name": "Lisbon",
+  "region": "Lisboa",
+  "country": "Portugal",
+  "lat": 38.7223,
+  "lng": -9.1393,
+  "sports": [
+   "skate",
+   "surf",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-tokyo",
+  "name": "Tokyo",
+  "region": "Kantō",
+  "country": "Japan",
+  "lat": 35.6762,
+  "lng": 139.6503,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-korea-seoul",
+  "name": "Seoul",
+  "region": "Seoul",
+  "country": "South Korea",
+  "lat": 37.5665,
+  "lng": 126.978,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-los-angeles",
+  "name": "Los Angeles",
+  "region": "California",
+  "country": "USA",
+  "lat": 34.0522,
+  "lng": -118.2437,
+  "sports": [
+   "skate",
+   "surf",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-new-york-city",
+  "name": "New York City",
+  "region": "New York",
+  "country": "USA",
+  "lat": 40.7128,
+  "lng": -74.006,
+  "sports": [
+   "skate",
+   "marathon",
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-sao-paulo",
+  "name": "São Paulo",
+  "region": "São Paulo",
+  "country": "Brazil",
+  "lat": -23.5505,
+  "lng": -46.6333,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-melbourne",
+  "name": "Melbourne",
+  "region": "Victoria",
+  "country": "Australia",
+  "lat": -37.8136,
+  "lng": 144.9631,
+  "sports": [
+   "skate",
+   "surf",
+   "marathon",
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-cape-town",
+  "name": "Cape Town",
+  "region": "Western Cape",
+  "country": "South Africa",
+  "lat": -33.9249,
+  "lng": 18.4241,
+  "sports": [
+   "surf",
+   "kite",
+   "mtb",
+   "marathon",
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uae-dubai",
+  "name": "Dubai",
+  "region": "Dubai",
+  "country": "UAE",
+  "lat": 25.2048,
+  "lng": 55.2708,
+  "sports": [
+   "skate",
+   "kite",
+   "marathon",
+   "triathlon",
+   "crossfit"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-ukraine-kyiv",
+  "name": "Kyiv",
+  "region": "Kyiv",
+  "country": "Ukraine",
+  "lat": 50.4501,
+  "lng": 30.5234,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-poland-warsaw",
+  "name": "Warsaw",
+  "region": "Masovia",
+  "country": "Poland",
+  "lat": 52.2297,
+  "lng": 21.0122,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-sweden-stockholm",
+  "name": "Stockholm",
+  "region": "Stockholm",
+  "country": "Sweden",
+  "lat": 59.3293,
+  "lng": 18.0686,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-finland-helsinki",
+  "name": "Helsinki",
+  "region": "Uusimaa",
+  "country": "Finland",
+  "lat": 60.1699,
+  "lng": 24.9384,
+  "sports": [
+   "skate",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-boston-marathon",
+  "name": "Boston Marathon",
+  "region": "Massachusetts",
+  "country": "USA",
+  "lat": 42.3496,
+  "lng": -71.0785,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-new-york-city-marathon",
+  "name": "New York City Marathon",
+  "region": "New York",
+  "country": "USA",
+  "lat": 40.7686,
+  "lng": -73.9812,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-chicago-marathon",
+  "name": "Chicago Marathon",
+  "region": "Illinois",
+  "country": "USA",
+  "lat": 41.8742,
+  "lng": -87.6246,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-london-marathon",
+  "name": "London Marathon",
+  "region": "London",
+  "country": "UK",
+  "lat": 51.4769,
+  "lng": -0.0005,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-berlin-marathon",
+  "name": "Berlin Marathon",
+  "region": "Berlin",
+  "country": "Germany",
+  "lat": 52.5145,
+  "lng": 13.3501,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-japan-tokyo-marathon",
+  "name": "Tokyo Marathon",
+  "region": "Tokyo",
+  "country": "Japan",
+  "lat": 35.6895,
+  "lng": 139.6917,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-paris-marathon",
+  "name": "Paris Marathon",
+  "region": "Paris",
+  "country": "France",
+  "lat": 48.8738,
+  "lng": 2.295,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-valencia-marathon",
+  "name": "Valencia Marathon",
+  "region": "Valencia",
+  "country": "Spain",
+  "lat": 39.4528,
+  "lng": -0.3476,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-netherlands-amsterdam-marathon",
+  "name": "Amsterdam Marathon",
+  "region": "Amsterdam",
+  "country": "Netherlands",
+  "lat": 52.359,
+  "lng": 4.908,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uae-dubai-marathon",
+  "name": "Dubai Marathon",
+  "region": "Dubai",
+  "country": "UAE",
+  "lat": 25.088,
+  "lng": 55.14,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-sydney-marathon",
+  "name": "Sydney Marathon",
+  "region": "Sydney",
+  "country": "Australia",
+  "lat": -33.8568,
+  "lng": 151.2153,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-greece-athens-marathon",
+  "name": "Athens Marathon",
+  "region": "Athens",
+  "country": "Greece",
+  "lat": 37.9838,
+  "lng": 23.7275,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-comrades-marathon",
+  "name": "Comrades Marathon",
+  "region": "KwaZulu-Natal",
+  "country": "South Africa",
+  "lat": -29.8587,
+  "lng": 31.0218,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-ultra-trail-du-mont-blanc",
+  "name": "Ultra-Trail du Mont-Blanc",
+  "region": "Chamonix",
+  "country": "France",
+  "lat": 45.9237,
+  "lng": 6.8694,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-western-states-100",
+  "name": "Western States 100",
+  "region": "California",
+  "country": "USA",
+  "lat": 39.1268,
+  "lng": -120.9542,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-ukraine-kyiv-marathon",
+  "name": "Kyiv Marathon",
+  "region": "Kyiv",
+  "country": "Ukraine",
+  "lat": 50.4501,
+  "lng": 30.5234,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-poland-warsaw-marathon",
+  "name": "Warsaw Marathon",
+  "region": "Warsaw",
+  "country": "Poland",
+  "lat": 52.2297,
+  "lng": 21.0122,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-czech-republic-prague-marathon",
+  "name": "Prague Marathon",
+  "region": "Prague",
+  "country": "Czech Republic",
+  "lat": 50.088,
+  "lng": 14.4208,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-turkey-istanbul-marathon",
+  "name": "Istanbul Marathon",
+  "region": "Istanbul",
+  "country": "Turkey",
+  "lat": 41.0082,
+  "lng": 28.9784,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-brazil-rio-de-janeiro-marathon",
+  "name": "Rio de Janeiro Marathon",
+  "region": "Rio de Janeiro",
+  "country": "Brazil",
+  "lat": -22.9068,
+  "lng": -43.1729,
+  "sports": [
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-hawaii-ironman-hawaii-kona-",
+  "name": "Ironman Hawaii (Kona)",
+  "region": "Big Island",
+  "country": "Hawaii",
+  "lat": 19.64,
+  "lng": -155.9969,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-ironman-nice",
+  "name": "Ironman Nice",
+  "region": "Nice",
+  "country": "France",
+  "lat": 43.7102,
+  "lng": 7.262,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-ironman-frankfurt",
+  "name": "Ironman Frankfurt",
+  "region": "Hesse",
+  "country": "Germany",
+  "lat": 50.1109,
+  "lng": 8.6821,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-ironman-barcelona",
+  "name": "Ironman Barcelona",
+  "region": "Catalonia",
+  "country": "Spain",
+  "lat": 41.3874,
+  "lng": 2.1686,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-ironman-lanzarote",
+  "name": "Ironman Lanzarote",
+  "region": "Canary Islands",
+  "country": "Spain",
+  "lat": 28.9638,
+  "lng": -13.5477,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-ironman-cairns",
+  "name": "Ironman Cairns",
+  "region": "Queensland",
+  "country": "Australia",
+  "lat": -16.9186,
+  "lng": 145.7781,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-south-africa-ironman-south-africa",
+  "name": "Ironman South Africa",
+  "region": "Eastern Cape",
+  "country": "South Africa",
+  "lat": -33.9608,
+  "lng": 25.6022,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-challenge-roth",
+  "name": "Challenge Roth",
+  "region": "Bavaria",
+  "country": "Germany",
+  "lat": 49.2458,
+  "lng": 11.0908,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uae-ironman-70-3-dubai",
+  "name": "Ironman 70.3 Dubai",
+  "region": "Dubai",
+  "country": "UAE",
+  "lat": 25.0657,
+  "lng": 55.1713,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-new-zealand-ironman-new-zealand-taupo-",
+  "name": "Ironman New Zealand (Taupō)",
+  "region": "Waikato",
+  "country": "New Zealand",
+  "lat": -38.6857,
+  "lng": 176.0702,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uae-itu-world-triathlon-abu-dhabi",
+  "name": "ITU World Triathlon Abu Dhabi",
+  "region": "Abu Dhabi",
+  "country": "UAE",
+  "lat": 24.4539,
+  "lng": 54.3773,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-escape-from-alcatraz-triathlon",
+  "name": "Escape from Alcatraz Triathlon",
+  "region": "San Francisco",
+  "country": "USA",
+  "lat": 37.8267,
+  "lng": -122.4233,
+  "sports": [
+   "triathlon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-alpe-d-huez",
+  "name": "Alpe d'Huez",
+  "region": "Isère",
+  "country": "France",
+  "lat": 45.0917,
+  "lng": 6.0694,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-mont-ventoux",
+  "name": "Mont Ventoux",
+  "region": "Vaucluse",
+  "country": "France",
+  "lat": 44.1742,
+  "lng": 5.2789,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-stelvio-pass",
+  "name": "Stelvio Pass",
+  "region": "South Tyrol",
+  "country": "Italy",
+  "lat": 46.5286,
+  "lng": 10.4531,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-sa-calobra",
+  "name": "Sa Calobra",
+  "region": "Mallorca",
+  "country": "Spain",
+  "lat": 39.85,
+  "lng": 2.8,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-belgium-flanders-ronde-",
+  "name": "Flanders (Ronde)",
+  "region": "Flanders",
+  "country": "Belgium",
+  "lat": 50.8503,
+  "lng": 3.725,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-roubaix-velodrome",
+  "name": "Roubaix Velodrome",
+  "region": "Nord",
+  "country": "France",
+  "lat": 50.6942,
+  "lng": 3.1746,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-girona",
+  "name": "Girona",
+  "region": "Catalonia",
+  "country": "Spain",
+  "lat": 41.9794,
+  "lng": 2.8214,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-lake-como",
+  "name": "Lake Como",
+  "region": "Lombardy",
+  "country": "Italy",
+  "lat": 45.987,
+  "lng": 9.2572,
+  "sports": [
+   "cycling"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-boulder",
+  "name": "Boulder",
+  "region": "Colorado",
+  "country": "USA",
+  "lat": 40.015,
+  "lng": -105.2705,
+  "sports": [
+   "cycling",
+   "marathon"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-yosemite-el-capitan-",
+  "name": "Yosemite (El Capitan)",
+  "region": "California",
+  "country": "USA",
+  "lat": 37.734,
+  "lng": -119.637,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-joshua-tree",
+  "name": "Joshua Tree",
+  "region": "California",
+  "country": "USA",
+  "lat": 33.8734,
+  "lng": -115.901,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-red-river-gorge",
+  "name": "Red River Gorge",
+  "region": "Kentucky",
+  "country": "USA",
+  "lat": 37.7833,
+  "lng": -83.6167,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-smith-rock",
+  "name": "Smith Rock",
+  "region": "Oregon",
+  "country": "USA",
+  "lat": 44.3682,
+  "lng": -121.1426,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-france-fontainebleau",
+  "name": "Fontainebleau",
+  "region": "Île-de-France",
+  "country": "France",
+  "lat": 48.3905,
+  "lng": 2.6444,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-greece-kalymnos",
+  "name": "Kalymnos",
+  "region": "Dodecanese",
+  "country": "Greece",
+  "lat": 36.9833,
+  "lng": 26.9833,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-spain-siurana",
+  "name": "Siurana",
+  "region": "Catalonia",
+  "country": "Spain",
+  "lat": 41.25,
+  "lng": 0.9333,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-arco",
+  "name": "Arco",
+  "region": "Trentino",
+  "country": "Italy",
+  "lat": 45.9186,
+  "lng": 10.8861,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-thailand-railay-beach",
+  "name": "Railay Beach",
+  "region": "Krabi",
+  "country": "Thailand",
+  "lat": 8.0117,
+  "lng": 98.8383,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-thailand-tonsai-beach",
+  "name": "Tonsai Beach",
+  "region": "Krabi",
+  "country": "Thailand",
+  "lat": 8.0083,
+  "lng": 98.8333,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-frankenjura",
+  "name": "Frankenjura",
+  "region": "Bavaria",
+  "country": "Germany",
+  "lat": 49.7167,
+  "lng": 11.3833,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-squamish-the-chief-",
+  "name": "Squamish (The Chief)",
+  "region": "British Columbia",
+  "country": "Canada",
+  "lat": 49.6833,
+  "lng": -123.15,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-grampians",
+  "name": "Grampians",
+  "region": "Victoria",
+  "country": "Australia",
+  "lat": -37.15,
+  "lng": 142.5167,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-china-yangshuo",
+  "name": "Yangshuo",
+  "region": "Guangxi",
+  "country": "China",
+  "lat": 24.7736,
+  "lng": 110.4897,
+  "sports": [
+   "climbing"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-mastercraft-pro-wakeboard-orlando-",
+  "name": "Mastercraft Pro Wakeboard (Orlando)",
+  "region": "Florida",
+  "country": "USA",
+  "lat": 28.3922,
+  "lng": -81.2962,
+  "sports": [
+   "wakeboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-turkey-hip-notics-cable-park",
+  "name": "Hip Notics Cable Park",
+  "region": "Antalya",
+  "country": "Turkey",
+  "lat": 36.8969,
+  "lng": 30.6897,
+  "sports": [
+   "wakeboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-philippines-camsur-watersports-complex",
+  "name": "Camsur Watersports Complex",
+  "region": "Camarines Sur",
+  "country": "Philippines",
+  "lat": 13.625,
+  "lng": 123.1833,
+  "sports": [
+   "wakeboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-liquid-leisure",
+  "name": "Liquid Leisure",
+  "region": "Windsor",
+  "country": "UK",
+  "lat": 51.45,
+  "lng": -0.5667,
+  "sports": [
+   "wakeboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-germany-wasserski-langenfeld",
+  "name": "Wasserski Langenfeld",
+  "region": "North Rhine-Westphalia",
+  "country": "Germany",
+  "lat": 51.1167,
+  "lng": 6.95,
+  "sports": [
+   "wakeboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-bali-wake-park",
+  "name": "Bali Wake Park",
+  "region": "Bali",
+  "country": "Indonesia",
+  "lat": -8.65,
+  "lng": 115.2167,
+  "sports": [
+   "wakeboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-philippines-anthem-wakepark",
+  "name": "Anthem Wakepark",
+  "region": "Cavite",
+  "country": "Philippines",
+  "lat": 14.2833,
+  "lng": 120.9333,
+  "sports": [
+   "wakeboard"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-crossfit-games-madison-",
+  "name": "CrossFit Games (Madison)",
+  "region": "Wisconsin",
+  "country": "USA",
+  "lat": 43.0731,
+  "lng": -89.4012,
+  "sports": [
+   "crossfit"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uae-dubai-crossfit-championship",
+  "name": "Dubai CrossFit Championship",
+  "region": "Dubai",
+  "country": "UAE",
+  "lat": 25.2048,
+  "lng": 55.2708,
+  "sports": [
+   "crossfit"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-rogue-invitational",
+  "name": "Rogue Invitational",
+  "region": "Austin, Texas",
+  "country": "USA",
+  "lat": 30.2672,
+  "lng": -97.7431,
+  "sports": [
+   "crossfit"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-chile-futaleufu-river",
+  "name": "Futaleufú River",
+  "region": "Los Lagos",
+  "country": "Chile",
+  "lat": -43.1833,
+  "lng": -71.8667,
+  "sports": [
+   "kayak"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-zambia-zambezi-river-victoria-falls-",
+  "name": "Zambezi River (Victoria Falls)",
+  "region": "Livingstone",
+  "country": "Zambia",
+  "lat": -17.9244,
+  "lng": 25.8567,
+  "sports": [
+   "kayak"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-colorado-river-grand-canyon-",
+  "name": "Colorado River (Grand Canyon)",
+  "region": "Arizona",
+  "country": "USA",
+  "lat": 36.1069,
+  "lng": -112.1129,
+  "sports": [
+   "kayak"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-slovenia-soca-river",
+  "name": "Soča River",
+  "region": "Primorska",
+  "country": "Slovenia",
+  "lat": 46.3333,
+  "lng": 13.55,
+  "sports": [
+   "kayak"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-canada-ottawa-river",
+  "name": "Ottawa River",
+  "region": "Ontario",
+  "country": "Canada",
+  "lat": 45.55,
+  "lng": -76.9833,
+  "sports": [
+   "kayak"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-norway-sjoa-river",
+  "name": "Sjoa River",
+  "region": "Innlandet",
+  "country": "Norway",
+  "lat": 61.6833,
+  "lng": 9.3333,
+  "sports": [
+   "kayak"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-turkey-oludeniz",
+  "name": "Ölüdeniz",
+  "region": "Muğla",
+  "country": "Turkey",
+  "lat": 36.55,
+  "lng": 29.1167,
+  "sports": [
+   "paragliding"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-switzerland-interlaken",
+  "name": "Interlaken",
+  "region": "Bern",
+  "country": "Switzerland",
+  "lat": 46.6863,
+  "lng": 7.8632,
+  "sports": [
+   "paragliding"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-nepal-pokhara",
+  "name": "Pokhara",
+  "region": "Gandaki",
+  "country": "Nepal",
+  "lat": 28.2096,
+  "lng": 83.9856,
+  "sports": [
+   "paragliding"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-india-bir-billing",
+  "name": "Bir Billing",
+  "region": "Himachal Pradesh",
+  "country": "India",
+  "lat": 31.8833,
+  "lng": 76.7167,
+  "sports": [
+   "paragliding"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-italy-bassano-del-grappa",
+  "name": "Bassano del Grappa",
+  "region": "Veneto",
+  "country": "Italy",
+  "lat": 45.7667,
+  "lng": 11.7333,
+  "sports": [
+   "paragliding"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-colombia-san-gil",
+  "name": "San Gil",
+  "region": "Santander",
+  "country": "Colombia",
+  "lat": 6.5569,
+  "lng": -73.1361,
+  "sports": [
+   "paragliding"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-switzerland-pumptrack-zurich",
+  "name": "Pumptrack Zürich",
+  "region": "Zürich",
+  "country": "Switzerland",
+  "lat": 47.3769,
+  "lng": 8.5417,
+  "sports": [
+   "bmx"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-usa-ray-s-mtb-indoor-park",
+  "name": "Ray's MTB Indoor Park",
+  "region": "Cleveland, Ohio",
+  "country": "USA",
+  "lat": 41.4993,
+  "lng": -81.6944,
+  "sports": [
+   "bmx",
+   "mtb"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-uk-adrenaline-alley",
+  "name": "Adrenaline Alley",
+  "region": "Corby",
+  "country": "UK",
+  "lat": 52.4917,
+  "lng": -0.6833,
+  "sports": [
+   "bmx",
+   "skate"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-poland-leszno-bmx-track",
+  "name": "Leszno BMX Track",
+  "region": "Greater Poland",
+  "country": "Poland",
+  "lat": 51.8417,
+  "lng": 16.575,
+  "sports": [
+   "bmx"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-netherlands-papendal-bmx-track",
+  "name": "Papendal BMX Track",
+  "region": "Gelderland",
+  "country": "Netherlands",
+  "lat": 51.9833,
+  "lng": 5.85,
+  "sports": [
+   "bmx"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-australia-great-barrier-reef",
+  "name": "Great Barrier Reef",
+  "region": "Queensland",
+  "country": "Australia",
+  "lat": -18.2871,
+  "lng": 147.6992,
+  "sports": [
+   "diving"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-belize-blue-hole-belize-",
+  "name": "Blue Hole (Belize)",
+  "region": "Belize District",
+  "country": "Belize",
+  "lat": 17.3156,
+  "lng": -87.5347,
+  "sports": [
+   "diving"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-malaysia-sipadan-island",
+  "name": "Sipadan Island",
+  "region": "Sabah",
+  "country": "Malaysia",
+  "lat": 4.1147,
+  "lng": 118.6292,
+  "sports": [
+   "diving"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-indonesia-raja-ampat",
+  "name": "Raja Ampat",
+  "region": "West Papua",
+  "country": "Indonesia",
+  "lat": -0.2333,
+  "lng": 130.5167,
+  "sports": [
+   "diving"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-ecuador-galapagos-islands",
+  "name": "Galápagos Islands",
+  "region": "Galápagos",
+  "country": "Ecuador",
+  "lat": -0.9538,
+  "lng": -90.9656,
+  "sports": [
+   "diving"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-egypt-red-sea-sharm-el-sheikh-",
+  "name": "Red Sea (Sharm el-Sheikh)",
+  "region": "South Sinai",
+  "country": "Egypt",
+  "lat": 27.9158,
+  "lng": 34.33,
+  "sports": [
+   "diving"
+  ],
+  "accuracy": "approx"
+ },
+ {
+  "sourceId": "legacy-mexico-cenotes-tulum-",
+  "name": "Cenotes (Tulum)",
+  "region": "Quintana Roo",
+  "country": "Mexico",
+  "lat": 20.2145,
+  "lng": -87.4292,
+  "sports": [
+   "diving"
+  ],
+  "accuracy": "approx"
+ }
+]

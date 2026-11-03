@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
-import { ACTION_SPOTS } from "@/lib/spots-database";
+import { allSpots as loadSpots } from "@/lib/spots";
 import ExploreView from "./explore-view";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +16,7 @@ export default async function SessionsPage({
     include: {
       photographer: { select: { name: true } },
       photos: { take: 1, select: { previewKey: true, thumbnailKey: true } },
+      spot: { select: { lat: true, lng: true } },
     },
     orderBy: { date: "desc" },
   });
@@ -24,8 +25,8 @@ export default async function SessionsPage({
     id: s.id,
     title: s.title,
     location: s.location,
-    locationLat: s.locationLat ?? null,
-    locationLng: s.locationLng ?? null,
+    locationLat: s.locationLat ?? s.spot?.lat ?? null,
+    locationLng: s.locationLng ?? s.spot?.lng ?? null,
     date: s.date.toISOString(),
     startTime: s.startTime,
     endTime: s.endTime,
@@ -39,8 +40,8 @@ export default async function SessionsPage({
   }));
 
   // All spots for map background
-  const allSpots = ACTION_SPOTS.map((s) => ({
-    name: s.name, region: s.region, country: s.country, lat: s.lat, lng: s.lng,
+  const allSpots = (await loadSpots()).map((s) => ({
+    name: s.name, region: s.region ?? "", country: s.country ?? "", lat: s.lat, lng: s.lng,
   }));
 
   return (

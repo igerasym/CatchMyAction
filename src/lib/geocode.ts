@@ -1,4 +1,4 @@
-import { ACTION_SPOTS, findSpotByName } from "./spots-database";
+import { findSpotByName } from "./spots";
 
 interface GeoResult {
   lat: number;
@@ -7,8 +7,8 @@ interface GeoResult {
 
 /** Geocode a location name — check spots database first, then Nominatim */
 export async function geocodeLocation(location: string): Promise<GeoResult | null> {
-  // 1. Check spots database (instant, accurate)
-  const spot = findSpotByName(location);
+  // 1. Spot catalogue (exact name match)
+  const spot = await findSpotByName(location);
   if (spot) return { lat: spot.lat, lng: spot.lng };
 
   // 2. Nominatim (OpenStreetMap) — free, no API key

@@ -4,6 +4,7 @@ import { getAuthUser } from "@/lib/auth-helpers";
 import { isWaterSport, fetchMarineConditions } from "@/lib/marine-conditions";
 import { geocodeLocation } from "@/lib/geocode";
 import { parsePriceCents } from "@/lib/validation";
+import { resolveSpotForCoords } from "@/lib/spots";
 
 /** GET /api/sessions — list sessions with optional filters */
 export async function GET(req: NextRequest) {
@@ -80,8 +81,13 @@ export async function POST(req: NextRequest) {
   const sport = sportType || "surf";
 
   try {
-    // Geocode location
-    const coords = await geocodeLocation(location);
+    // Catalogue spot picked in the form → its name + coordinates; otherwise geocode the free text
+    const pickedSpot =
+      typeof body.spotId === "string"
+        ? await prisma.spot.findUnique({ where: { id: body.spotId }, select: { id: true, name: true, lat: true, lng: true } })
+        : null;
+    const coords = pickedSpot ? { lat: pickedSpot.lat, lng: pickedSpot.lng } : await geocodeLocation(location);
+    const spotId = pickedSpot?.id ?? (coords ? await resolveSpotForCoords(location, coords.lat, coords.lng, sport) : null);
 
     // Auto-fetch marine conditions for water sports
     let conditions = {};
@@ -109,6 +115,7 @@ export async function POST(req: NextRequest) {
         sportType: sport,
         photographerId: user.id,
         ...(coords && { locationLat: coords.lat, locationLng: coords.lng }),
+        ...(spotId && { spotId }),
         ...(pricePerPhoto !== undefined ? { pricePerPhoto } : {}),
         ...conditions,
       } as any,

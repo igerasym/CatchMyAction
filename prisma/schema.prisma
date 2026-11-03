@@ -13,22 +13,22 @@ enum UserRole {
 }
 
 model User {
-  id           String   @id @default(cuid())
-  email        String   @unique
-  name         String
-  passwordHash String?
-  role         UserRole @default(USER)
-  emailVerified Boolean @default(false)
-  verifyToken   String?
-  avatarUrl    String?
-  bio          String?
-  website      String?
-  instagram    String?
-  youtube      String?
-  tiktok       String?
+  id              String   @id @default(cuid())
+  email           String   @unique
+  name            String
+  passwordHash    String?
+  role            UserRole @default(USER)
+  emailVerified   Boolean  @default(false)
+  verifyToken     String?
+  avatarUrl       String?
+  bio             String?
+  website         String?
+  instagram       String?
+  youtube         String?
+  tiktok          String?
   stripeAccountId String?
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   sessions  Session[]
   purchases Purchase[]
@@ -36,63 +36,68 @@ model User {
 }
 
 model Session {
-  id              String   @id @default(cuid())
-  title           String
-  location        String
-  locationLat     Float?
-  locationLng     Float?
-  date            DateTime
-  startTime       String   // "06:30"
-  endTime         String   // "09:00"
-  description     String?
-  sportType       String   @default("surf") // surf, kite, windsurf, skate, mtb, other
-  coverPhotoId    String?
-  photoCount      Int      @default(0)
-  viewCount       Int      @default(0)
-  pricePerPhoto   Int      @default(999) // cents, $9.99
+  id            String   @id @default(cuid())
+  title         String
+  location      String
+  locationLat   Float?
+  locationLng   Float?
+  date          DateTime
+  startTime     String // "06:30"
+  endTime       String // "09:00"
+  description   String?
+  sportType     String   @default("surf") // surf, kite, windsurf, skate, mtb, other
+  coverPhotoId  String?
+  photoCount    Int      @default(0)
+  viewCount     Int      @default(0)
+  pricePerPhoto Int      @default(999) // cents, $9.99
   // Marine conditions (auto-fetched for water sports)
-  waveHeight      Float?   // meters
-  wavePeriod      Float?   // seconds
-  waveDirection   Float?   // degrees
-  windSpeed       Float?   // km/h
-  windDirection   Float?   // degrees
-  waterTemp       Float?   // celsius
-  published       Boolean  @default(false)
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  waveHeight    Float? // meters
+  wavePeriod    Float? // seconds
+  waveDirection Float? // degrees
+  windSpeed     Float? // km/h
+  windDirection Float? // degrees
+  waterTemp     Float? // celsius
+  published     Boolean  @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 
   photographerId String
   photographer   User    @relation(fields: [photographerId], references: [id])
   photos         Photo[]
 
+  // Catalogue spot this session was shot at (location/locationLat/Lng kept as the display copy)
+  spotId String?
+  spot   Spot?   @relation(fields: [spotId], references: [id], onDelete: SetNull)
+
   @@index([location, date])
   @@index([photographerId])
+  @@index([spotId])
 }
 
 model Photo {
-  id              String   @id @default(cuid())
-  originalKey     String   // S3 key for original (private bucket)
-  previewKey      String   // S3 key for watermarked preview (public bucket)
-  thumbnailKey    String   // S3 key for thumbnail
-  width           Int
-  height          Int
-  fileSize        Int      // bytes
-  fileHash        String?  // SHA-256 for duplicate detection
-  mimeType        String   @default("image/jpeg")
-  takenAt         DateTime? // EXIF capture time
-  cameraMake      String?   // e.g. "Canon"
-  cameraModel     String?   // e.g. "EOS R5"
-  focalLength     Float?    // mm
-  iso             Int?
-  shutterSpeed    String?   // e.g. "1/2000"
-  aperture        Float?    // e.g. 2.8
-  gpsLat          Float?
-  gpsLng          Float?
-  priceInCents    Int      @default(999) // $9.99
-  createdAt       DateTime @default(now())
+  id           String    @id @default(cuid())
+  originalKey  String // S3 key for original (private bucket)
+  previewKey   String // S3 key for watermarked preview (public bucket)
+  thumbnailKey String // S3 key for thumbnail
+  width        Int
+  height       Int
+  fileSize     Int // bytes
+  fileHash     String? // SHA-256 for duplicate detection
+  mimeType     String    @default("image/jpeg")
+  takenAt      DateTime? // EXIF capture time
+  cameraMake   String? // e.g. "Canon"
+  cameraModel  String? // e.g. "EOS R5"
+  focalLength  Float? // mm
+  iso          Int?
+  shutterSpeed String? // e.g. "1/2000"
+  aperture     Float? // e.g. 2.8
+  gpsLat       Float?
+  gpsLng       Float?
+  priceInCents Int       @default(999) // $9.99
+  createdAt    DateTime  @default(now())
 
   sessionId String
-  session   Session    @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  session   Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
   purchases Purchase[]
   claims    PhotoClaim[]
   reports   PhotoReport[]
@@ -101,23 +106,23 @@ model Photo {
 }
 
 model Purchase {
-  id                String   @id @default(cuid())
-  amountInCents     Int
-  currency          String   @default("usd")
-  stripePaymentId   String   @unique
-  stripeSessionId   String?  @unique
-  downloadCount     Int      @default(0)
-  maxDownloads      Int      @default(5)
-  createdAt         DateTime @default(now())
+  id              String   @id @default(cuid())
+  amountInCents   Int
+  currency        String   @default("usd")
+  stripePaymentId String   @unique
+  stripeSessionId String?  @unique
+  downloadCount   Int      @default(0)
+  maxDownloads    Int      @default(5)
+  createdAt       DateTime @default(now())
 
   userId  String
   user    User   @relation(fields: [userId], references: [id])
   photoId String
   photo   Photo  @relation(fields: [photoId], references: [id])
 
+  @@unique([userId, photoId])
   @@index([userId])
   @@index([photoId])
-  @@unique([userId, photoId])
 }
 
 model SessionNotification {
@@ -148,7 +153,7 @@ model PhotoReport {
   id        String   @id @default(cuid())
   photoId   String
   email     String
-  reason    String   // "thats_me", "inappropriate", "copyright", "other"
+  reason    String // "thats_me", "inappropriate", "copyright", "other"
   details   String?
   status    String   @default("pending") // pending, reviewed, removed, dismissed
   createdAt DateTime @default(now())
@@ -157,4 +162,26 @@ model PhotoReport {
 
   @@index([photoId])
   @@index([status])
+}
+
+/// Spot catalogue (surf breaks, skateparks, …). Source-agnostic: imported from a catalogue file,
+/// seeded from the curated list, or created from photographers' sessions.
+model Spot {
+  id        String    @id @default(cuid())
+  name      String
+  lat       Float
+  lng       Float
+  region    String?
+  country   String?
+  sports    String[]  @default([])
+  source    String    @default("manual") // manual | curated | surfline | osm | session
+  sourceId  String? // id in the source catalogue (e.g. BrizoCast spot_key)
+  accuracy  String    @default("exact") // exact | island | approx
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  sessions  Session[]
+
+  @@unique([source, sourceId])
+  @@index([lat, lng])
+  @@index([name])
 }
