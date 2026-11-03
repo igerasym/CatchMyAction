@@ -414,7 +414,7 @@ export default function PhotoGrid({
                 aria-label={`Open ${label}${isMatched ? " (it's you)" : ""}${isOwned ? " (owned)" : ""}`}
                 className="absolute inset-0 w-full h-full focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bone">
                 <img src={photo.thumbnailUrl}
-                  alt={label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" decoding="async" crossOrigin="anonymous" />
+                  alt={label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" decoding="async" />
               </button>
 
               {/* Frame: matched = REC brackets, otherwise brackets on hover */}
@@ -465,7 +465,7 @@ export default function PhotoGrid({
           <div className="max-w-5xl mx-auto flex items-center gap-3 p-2.5 pl-3 bg-bone text-ink" aria-live="polite">
             <div className="hidden min-[360px]:flex -space-x-3 shrink-0" aria-hidden="true">
               {cartPhotos.slice(0, 3).map((p) => (
-                <img key={p.id} src={p.thumbnailUrl} alt="" crossOrigin="anonymous"
+                <img key={p.id} src={p.thumbnailUrl} alt=""
                   className="w-10 h-10 object-cover ring-2 ring-bone" />
               ))}
             </div>
@@ -543,7 +543,7 @@ export default function PhotoGrid({
             onClick={(e) => e.stopPropagation()}>
             <div className="relative bg-ink">
               <img src={selectedPhoto.previewUrl}
-                alt={`Photo ${currentIndex + 1} from ${sessionTitle}`} className="w-full" crossOrigin="anonymous" />
+                alt={`Photo ${currentIndex + 1} from ${sessionTitle}`} className="w-full" />
               {isSelectedMatched && (
                 <>
                   <span aria-hidden="true" className="brk brk-rec" style={{ inset: "10px" }} />

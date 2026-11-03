@@ -126,7 +126,6 @@ export default async function SessionPage({
             src={coverUrl}
             alt=""
             className="absolute inset-0 w-full h-full object-cover"
-            crossOrigin="anonymous"
           />
         )}
         <div
