@@ -15,6 +15,10 @@ export interface SpotLite {
 
 const SELECT = { id: true, name: true, region: true, country: true, lat: true, lng: true, sports: true } as const;
 
+export function normName(s: string): string {
+  return s.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 export function haversineKm(aLat: number, aLng: number, bLat: number, bLng: number): number {
   const r = Math.PI / 180;
   const dLat = (bLat - aLat) * r;
@@ -84,8 +88,14 @@ export async function resolveSpotForCoords(
   lng: number,
   sport?: string
 ): Promise<string> {
-  const near = await spotsNear(lat, lng, 0.5, 1);
-  if (near[0]) return near[0].id;
+  // A catalogue spot named in the location text wins within 30 km ("Maldives Cokes" → "Cokes"),
+  // because geocoders often land on the town/atoll rather than the break; else nearest within 500 m.
+  const loc = normName(name);
+  const candidates = await spotsNear(lat, lng, 30, 200);
+  const byName = candidates.find((c) => normName(c.name).length >= 4 && loc.includes(normName(c.name)));
+  if (byName) return byName.id;
+  const near = candidates.find((c) => c.km <= 0.5);
+  if (near) return near.id;
   const created = await prisma.spot.create({
     data: { name: name.trim().slice(0, 120) || "Unnamed spot", lat, lng, sports: sport ? [sport] : [], source: "session", accuracy: "exact" },
     select: { id: true },

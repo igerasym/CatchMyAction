@@ -20,7 +20,7 @@ async function main() {
     const load = (f: string) => parseSpotRecords(JSON.parse(readFileSync(join(dir, f), "utf8")));
 
     for (const f of readdirSync(dir).filter((f) => /^curated-.*\.json$/.test(f)).sort()) {
-      const r = await importSpots(prisma, load(f), "curated", { updateExisting: true });
+      const r = await importSpots(prisma, load(f), "curated", { updateExisting: true, distanceDedup: false });
       console.log(`curated ${f}: created ${r.created} · updated ${r.updated} · skipped ${r.skipped}`);
     }
     const l = await importSpots(prisma, load("legacy-manual.json"), "manual");
@@ -28,8 +28,10 @@ async function main() {
 
     // Link sessions → spots
     const spots = await prisma.spot.findMany({ select: { id: true, name: true, lat: true, lng: true } });
+    // --relink: recompute links for every session (first rollout / after catalogue fixes)
+    const relink = process.argv.includes("--relink");
     const sessions = await prisma.session.findMany({
-      where: { spotId: null, locationLat: { not: null }, locationLng: { not: null } },
+      where: { ...(relink ? {} : { spotId: null }), locationLat: { not: null }, locationLng: { not: null } },
       select: { id: true, location: true, locationLat: true, locationLng: true, sportType: true },
     });
     let linked = 0;
@@ -37,12 +39,16 @@ async function main() {
     for (const s of sessions) {
       // Nearest spot within 500 m, or a spot whose name appears in the session location within 30 km
       // (e.g. session "Maldives Cokes" geocoded to the atoll → catalogue spot "Cokes")
+      // A spot named in the session location wins (geocoders often land on the atoll/town, not the break);
+      // otherwise the nearest spot within 500 m.
       const loc = normName(s.location);
-      let best: { id: string; d: number } | null = null;
+      let best: { id: string; d: number; name: boolean } | null = null;
       for (const sp of spots) {
         const d = haversineKm(sp.lat, sp.lng, s.locationLat!, s.locationLng!);
         const nameHit = normName(sp.name).length >= 4 && loc.includes(normName(sp.name)) && d <= 30;
-        if ((d <= 0.5 || nameHit) && (!best || d < best.d)) best = { id: sp.id, d };
+        if (!nameHit && d > 0.5) continue;
+        const better = !best || (nameHit && !best.name) || (nameHit === best.name && d < best.d);
+        if (better) best = { id: sp.id, d, name: nameHit };
       }
       let spotId = best?.id;
       if (!spotId) {

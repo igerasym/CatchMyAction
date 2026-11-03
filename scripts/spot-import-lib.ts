@@ -71,7 +71,8 @@ export async function importSpots(
   prisma: PrismaClient,
   items: SpotInput[],
   source: string,
-  opts: { dryRun?: boolean; updateExisting?: boolean } = {}
+  // distanceDedup=false for hand-verified files: neighbouring breaks on one island are distinct spots
+  opts: { dryRun?: boolean; updateExisting?: boolean; distanceDedup?: boolean } = {}
 ): Promise<{ created: number; updated: number; skipped: number; skippedNames: string[] }> {
   const existing = await prisma.spot.findMany({
     select: { id: true, name: true, lat: true, lng: true, source: true, sourceId: true },
@@ -93,9 +94,10 @@ export async function importSpots(
       continue;
     }
     const n = normName(it.name);
+    const useDistance = opts.distanceDedup !== false;
     const dup = existing.find((e) => {
       const d = haversineKm(e.lat, e.lng, it.lat, it.lng);
-      return d <= DEDUP_KM || (d <= SAME_NAME_KM && normName(e.name) === n);
+      return (useDistance && d <= DEDUP_KM) || (d <= SAME_NAME_KM && normName(e.name) === n);
     });
     if (dup) {
       skippedNames.push(`${it.name} (≈ ${dup.name})`);
