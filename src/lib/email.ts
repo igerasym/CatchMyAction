@@ -45,7 +45,7 @@ export async function sendVerificationEmail(email: string, token: string, name: 
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
         <h2 style="color: #333; margin-bottom: 8px;">Welcome to CatchMyActions, ${name}!</h2>
         <p style="color: #666; line-height: 1.6;">Please verify your email address to activate your account.</p>
-        <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+        <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #ff4433; color: #160806; text-decoration: none; border-radius: 8px; font-weight: 600;">
           Verify Email
         </a>
         <p style="color: #999; font-size: 13px;">Or copy this link: ${link}</p>
@@ -66,7 +66,7 @@ export async function sendSessionNotification(email: string, sessionTitle: strin
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
         <h2 style="color: #333;">📸 Photos are ready!</h2>
         <p style="color: #666; line-height: 1.6;">The photos for <strong>${sessionTitle}</strong> have been uploaded. Find yourself and grab your shots!</p>
-        <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+        <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #ff4433; color: #160806; text-decoration: none; border-radius: 8px; font-weight: 600;">
           View Photos
         </a>
         <p style="color: #999; font-size: 13px; margin-top: 32px;">— CatchMyAction</p>
@@ -86,7 +86,7 @@ export async function sendPasswordResetEmail(email: string, token: string) {
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
         <h2 style="color: #333;">Reset your password</h2>
         <p style="color: #666; line-height: 1.6;">Click the button below to set a new password.</p>
-        <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+        <a href="${link}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #ff4433; color: #160806; text-decoration: none; border-radius: 8px; font-weight: 600;">
           Reset Password
         </a>
         <p style="color: #999; font-size: 13px;">This link expires in 1 hour. If you didn't request this, ignore this email.</p>

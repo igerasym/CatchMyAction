@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import PublishedPanel from "../../published-panel";
 import { toastError } from "@/lib/toast";
 import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin } from "lucide-react";
 import { loginHref } from "@/lib/redirect";
@@ -41,6 +42,15 @@ export default function ManagePhotosPage() {
   const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
   const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [showQR, setShowQR] = useState(false);
+  // ?published=1&notified=N — arrived straight from publishing
+  const [justPublished, setJustPublished] = useState<{ notified: number } | null>(null);
+  useEffect(() => {
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("published") === "1") {
+      setJustPublished({ notified: Number(q.get("notified")) || 0 });
+      window.history.replaceState({}, "", window.location.pathname);
+    }
+  }, []);
   const [dragging, setDragging] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -209,6 +219,15 @@ export default function ManagePhotosPage() {
           <ArrowLeft className="w-3.5 h-3.5" aria-hidden="true" /> Back to dashboard
         </Link>
       </div>
+
+      {justPublished && (
+        <PublishedPanel
+          sessionId={sessionId as string}
+          title={session.title}
+          notified={justPublished.notified}
+          onClose={() => setJustPublished(null)}
+        />
+      )}
 
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-end justify-between gap-5 mb-8 pb-8 border-b border-line">

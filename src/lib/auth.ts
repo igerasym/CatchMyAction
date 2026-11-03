@@ -2,6 +2,7 @@ import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
+import { rateLimit } from "./rate-limit";
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
@@ -15,8 +16,17 @@ export const authOptions: NextAuthOptions = {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, req) {
         if (!credentials?.email || !credentials?.password) return null;
+
+        // Brute-force / credential-stuffing throttle: per address and per client IP
+        const headers = (req?.headers ?? {}) as Record<string, string | undefined>;
+        const ip =
+          headers["cf-connecting-ip"] || headers["x-real-ip"] || headers["x-forwarded-for"]?.split(",")[0].trim() || "unknown";
+        const email = credentials.email.trim().toLowerCase();
+        if (!rateLimit(`login:em:${email}`, 10, 15 * 60 * 1000) || !rateLimit(`login:ip:${ip}`, 30, 15 * 60 * 1000)) {
+          throw new Error("Too many sign-in attempts. Wait a few minutes and try again.");
+        }
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },

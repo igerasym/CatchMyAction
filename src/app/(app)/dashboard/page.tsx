@@ -139,6 +139,13 @@ export default function DashboardPage() {
     }
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, published: !published } : s)));
     refreshStats();
+    if (!published) {
+      toastSuccess(
+        data.notified > 0
+          ? `Session is live — ${data.notified} ${data.notified === 1 ? "person" : "people"} notified`
+          : "Session is live"
+      );
+    }
   }
 
   function refreshStats() {
