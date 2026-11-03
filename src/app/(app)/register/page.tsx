@@ -7,6 +7,7 @@ import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
 import { Mail } from "lucide-react";
 import { AuthShell, CHECKBOX, HINT, INPUT, LABEL, LINK, Notice } from "../ui";
+import { safeCallbackUrl } from "@/lib/redirect";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,10 +16,13 @@ export default function RegisterPage() {
   const [success, setSuccess] = useState(false);
   const [agreed, setAgreed] = useState(false);
   const [role, setRole] = useState("USER");
+  const [callbackUrl, setCallbackUrl] = useState("/");
 
-  // /register?role=photographer (from the homepage photographer CTA)
+  // /register?role=photographer (homepage CTA) · ?callbackUrl=/sessions/x (came from a buy / find-me gate)
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("role") === "photographer") setRole("PHOTOGRAPHER");
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("role") === "photographer") setRole("PHOTOGRAPHER");
+    setCallbackUrl(safeCallbackUrl(q.get("callbackUrl")));
   }, []);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
@@ -45,7 +49,9 @@ export default function RegisterPage() {
       return;
     }
     await signIn("credentials", { email: data.email, password: data.password, redirect: false });
-    window.location.href = "/";
+    // Signed in; show the "verify your email" step (needed before buying) with a way back to where they were
+    setLoading(false);
+    setSuccess(true);
   }
 
   const inputClass = INPUT;
@@ -57,11 +63,11 @@ export default function RegisterPage() {
           <Mail className="w-8 h-8 text-rec mb-5" aria-hidden="true" />
           <h2 className="text-lg font-bold text-bone mb-2">Check your email</h2>
           <p className="text-sm text-mute mb-6">
-            We sent a verification link to your email. Click it to activate your account.
+            You&apos;re signed in. We sent a verification link to your email — confirm it before buying photos.
           </p>
-          <Link href="/login" className="btn-sec">
-            Go to Sign in
-          </Link>
+          <a href={callbackUrl} className="btn-pri">
+            {callbackUrl === "/" ? "Continue" : "Back to where you were"}
+          </a>
         </div>
       ) : (
         <>

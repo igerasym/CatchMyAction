@@ -6,6 +6,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { toastError } from "@/lib/toast";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Download, Flag, Loader2, Plus, X } from "lucide-react";
+import { loginHref } from "@/lib/redirect";
 
 const FindMe = dynamic(() => import("./find-me"), { ssr: false });
 
@@ -55,6 +56,8 @@ export default function PhotoGrid({
   const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [purchaseSuccess, setPurchaseSuccess] = useState<{ count: number; downloadUrl?: string } | null>(null);
+  // Post-checkout status: confirming → success | slow (webhook late) · cancelled (came back from Stripe without paying)
+  const [payState, setPayState] = useState<"confirming" | "slow" | "cancelled" | null>(null);
   const [reportingPhoto, setReportingPhoto] = useState<string | null>(null);
   const [reportEmail, setReportEmail] = useState("");
   const [reportReason, setReportReason] = useState("thats_me");
@@ -95,14 +98,17 @@ export default function PhotoGrid({
     window.history.replaceState({}, "", window.location.pathname);
 
     async function verifyAndDownload() {
+      setPayState("confirming");
       // Poll for purchase (webhook may be delayed)
-      for (let i = 0; i < 5; i++) {
+      for (let i = 0; i < 10; i++) {
         const res = await fetch(`/api/photos/${purchasedPhotoId}/verify-purchase?cs=${encodeURIComponent(cs)}`);
         const data = await res.json();
         if (data.purchased) {
           setPurchasedIds((prev) => new Set(prev).add(purchasedPhotoId!));
           const dlRes = await fetch(`/api/photos/${purchasedPhotoId}/download`);
           const dlData = await dlRes.json();
+          setPayState(null);
+          clearSavedCart();
           if (dlData.downloadUrl) {
             setPurchaseSuccess({ count: 1, downloadUrl: dlData.downloadUrl });
             const a = document.createElement("a");
@@ -114,6 +120,7 @@ export default function PhotoGrid({
         }
         await new Promise((r) => setTimeout(r, 1500));
       }
+      setPayState("slow");
     }
 
     verifyAndDownload();
@@ -129,7 +136,8 @@ export default function PhotoGrid({
     if (!cs) return;
 
     async function verify() {
-      for (let i = 0; i < 5; i++) {
+      setPayState("confirming");
+      for (let i = 0; i < 10; i++) {
         const res = await fetch("/api/photos/bulk-verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -144,13 +152,47 @@ export default function PhotoGrid({
             return next;
           });
           setPurchaseSuccess({ count: ids.length });
+          setPayState(null);
+          setCartIds(new Set());
+          clearSavedCart();
           return;
         }
         await new Promise((r) => setTimeout(r, 1500));
       }
+      setPayState("slow");
     }
     verify();
   }, [bulkPurchasedIds, userId]);
+
+  // Cart survives the login redirect and a cancelled Stripe checkout (per session, this tab only)
+  const cartKey = `cma-cart-${sessionId}`;
+  function clearSavedCart() {
+    try { sessionStorage.removeItem(cartKey); } catch {}
+  }
+  const cartRestored = useRef(false);
+  useEffect(() => {
+    if (cartRestored.current) return;
+    cartRestored.current = true;
+    try {
+      const saved = JSON.parse(sessionStorage.getItem(cartKey) || "[]");
+      if (Array.isArray(saved) && saved.length) setCartIds(new Set(saved.filter((x) => typeof x === "string")));
+    } catch {}
+    const q = new URLSearchParams(window.location.search);
+    if (q.get("cancelled") === "1") {
+      setPayState("cancelled");
+      q.delete("cancelled");
+      const rest = q.toString();
+      window.history.replaceState({}, "", window.location.pathname + (rest ? `?${rest}` : ""));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  useEffect(() => {
+    if (!cartRestored.current) return;
+    try {
+      if (cartIds.size) sessionStorage.setItem(cartKey, JSON.stringify(Array.from(cartIds)));
+      else sessionStorage.removeItem(cartKey);
+    } catch {}
+  }, [cartIds, cartKey]);
 
   const loadMore = useCallback(async () => {
     if (!cursor || loading) return;
@@ -193,7 +235,7 @@ export default function PhotoGrid({
   }, [cursor, loading, loadMore]);
 
   async function handleFreeDownload(photo: Photo) {
-    if (!userId) { router.push("/login"); return; }
+    if (!userId) { router.push(loginHref(window.location.pathname)); return; }
     setPurchasing(true);
     try {
       // Create a free "purchase" record
@@ -217,7 +259,7 @@ export default function PhotoGrid({
 
   async function handlePurchase(photo: Photo) {
     if (!userId) {
-      router.push("/login");
+      router.push(loginHref(window.location.pathname));
       return;
     }
     setPurchasing(true);
@@ -259,7 +301,7 @@ export default function PhotoGrid({
 
   // Buy all matched (unpurchased) photos
   async function handleBulkPurchase() {
-    if (!userId) { router.push("/login"); return; }
+    if (!userId) { router.push(loginHref(window.location.pathname)); return; }
     const toBuy = Array.from(cartIds).filter((id) => !purchasedIds.has(id));
     if (toBuy.length === 0) return;
     setBulkBuying(true);
@@ -332,6 +374,40 @@ export default function PhotoGrid({
 
   return (
     <>
+      {/* Checkout status */}
+      {payState && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="relative mb-6 p-5 bg-ink flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+        >
+          <span aria-hidden="true" className="brk brk-soft brk-sm" />
+          <div className="flex items-center gap-4">
+            <span className={`rec-dot shrink-0 ${payState === "confirming" ? "blink" : ""}`} aria-hidden="true" />
+            <div>
+              <p className="disp text-[20px] text-bone">
+                {payState === "confirming" && "Confirming your payment…"}
+                {payState === "slow" && "Payment received — still processing"}
+                {payState === "cancelled" && "Payment cancelled"}
+              </p>
+              <p className="text-sm text-mute mt-1">
+                {payState === "confirming" && "This usually takes a few seconds. Don't close the page."}
+                {payState === "slow" && "It's taking longer than usual. Your photos will appear in My Actions within a minute."}
+                {payState === "cancelled" && "No charge was made. Your selection is still here."}
+              </p>
+            </div>
+          </div>
+          {payState !== "confirming" && (
+            <div className="flex gap-2 shrink-0">
+              {payState === "slow" && (
+                <a href="/my-photos" className="btn-pri !py-2.5 !px-4 !text-sm">Open My Actions</a>
+              )}
+              <button onClick={() => setPayState(null)} className="btn-sec !py-2.5 !px-4 !text-sm">Dismiss</button>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Purchase success banner */}
       {purchaseSuccess && (
         <div role="status" className="relative mb-6 p-5 bg-ink flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
@@ -351,6 +427,11 @@ export default function PhotoGrid({
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
+            {!purchaseSuccess.downloadUrl && (
+              <a href="/my-photos" className="btn-pri !py-2.5 !px-4 !text-sm !gap-2">
+                <Download className="w-4 h-4" aria-hidden="true" /> Download in My Actions
+              </a>
+            )}
             {purchaseSuccess.downloadUrl && (
               <a href={purchaseSuccess.downloadUrl} download
                 className="btn-pri !py-2.5 !px-4 !text-sm !gap-2">

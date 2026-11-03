@@ -6,6 +6,7 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { toastError } from "@/lib/toast";
 import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin } from "lucide-react";
+import { loginHref } from "@/lib/redirect";
 
 interface Photo {
   id: string;
@@ -44,7 +45,7 @@ export default function ManagePhotosPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
+    if (status === "unauthenticated") router.push(loginHref(window.location.pathname));
   }, [status, router]);
 
   useEffect(() => {
