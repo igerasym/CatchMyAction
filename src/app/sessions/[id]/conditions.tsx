@@ -15,33 +15,49 @@ function kmhToMs(kmh: number): string {
   return (kmh / 3.6).toFixed(1);
 }
 
+function Cell({ label, icon, value, sub }: { label: string; icon?: React.ReactNode; value: string; sub?: string | null }) {
+  return (
+    <div className="p-3 border-r border-b border-line">
+      <dt className="font-mono text-[10.5px] tracking-[0.12em] uppercase text-dim mb-1.5 flex items-center gap-1.5">
+        {icon}
+        {label}
+      </dt>
+      <dd className="font-mono text-[15px] font-semibold text-bone">
+        {value}
+        {sub && <span className="text-dim font-normal ml-1.5">{sub}</span>}
+      </dd>
+    </div>
+  );
+}
+
 export default function Conditions(props: Props) {
   const { waveHeight, wavePeriod, waveDirection, windSpeed, windDirection, waterTemp } = props;
 
   if (!waveHeight && !windSpeed) return null;
 
   return (
-    <div className="flex flex-wrap items-center gap-2 mt-3 text-xs text-white/40">
-      {waveHeight != null && (
-        <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded">
-          <IconWave className="w-3.5 h-3.5 text-ocean-400/60" />
-          {waveHeight.toFixed(1)}m
-          {wavePeriod != null && <span className="text-white/25">@ {wavePeriod.toFixed(0)}s</span>}
-          {waveDirection != null && <span className="text-white/20">{degreesToCompass(waveDirection)}</span>}
-        </span>
-      )}
-      {windSpeed != null && (
-        <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded">
-          <IconWind className="w-3.5 h-3.5 text-white/30" />
-          {kmhToMs(windSpeed)} m/s
-          {windDirection != null && <span className="text-white/20">{degreesToCompass(windDirection)}</span>}
-        </span>
-      )}
-      {waterTemp != null && (
-        <span className="inline-flex items-center gap-1 px-2 py-1 bg-white/[0.04] rounded">
-          {waterTemp.toFixed(0)}°C
-        </span>
-      )}
-    </div>
+    <section aria-label="Conditions during the session">
+      <p className="hud mb-3">Conditions</p>
+      <dl className="grid grid-cols-2 sm:grid-cols-4 border-t border-l border-line">
+        {waveHeight != null && (
+          <Cell
+            label="Swell"
+            icon={<IconWave className="w-3.5 h-3.5" />}
+            value={`${waveHeight.toFixed(1)} m`}
+            sub={waveDirection != null ? degreesToCompass(waveDirection) : null}
+          />
+        )}
+        {wavePeriod != null && <Cell label="Period" value={`${wavePeriod.toFixed(0)} s`} />}
+        {windSpeed != null && (
+          <Cell
+            label="Wind"
+            icon={<IconWind className="w-3.5 h-3.5" />}
+            value={`${kmhToMs(windSpeed)} m/s`}
+            sub={windDirection != null ? degreesToCompass(windDirection) : null}
+          />
+        )}
+        {waterTemp != null && <Cell label="Water" value={`${waterTemp.toFixed(0)}°C`} />}
+      </dl>
+    </section>
   );
 }

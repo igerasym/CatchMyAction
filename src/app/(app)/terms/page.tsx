@@ -1,8 +1,9 @@
 export default function TermsPage() {
   return (
-    <div className="max-w-3xl mx-auto py-12 prose-invert">
-      <h1 className="text-3xl font-bold text-white mb-2">Terms of Service</h1>
-      <p className="text-white/40 text-sm mb-8">Last updated: March 2026</p>
+    <div className="max-w-3xl mx-auto py-12 md:py-16">
+      <p className="hud mb-5">Legal / Terms</p>
+      <h1 className="disp text-[clamp(34px,5vw,60px)] text-bone mb-4">Terms of Service<span className="text-rec">.</span></h1>
+      <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-dim mb-10">Last updated: March 2026</p>
 
       <Section title="1. Acceptance of Terms">
         By creating an account or using CatchMyAction, you agree to these Terms of Service and our Privacy Policy.
@@ -69,9 +70,9 @@ export default function TermsPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-8">
-      <h2 className="text-lg font-semibold text-white mb-2">{title}</h2>
-      <p className="text-white/50 text-sm leading-relaxed">{children}</p>
-    </div>
+    <section className="border-t border-line py-6">
+      <h2 className="text-lg font-bold text-bone mb-3">{title}</h2>
+      <p className="text-mute text-[15px] leading-relaxed">{children}</p>
+    </section>
   );
 }

@@ -40,26 +40,27 @@ export default function ToastBanner() {
   if (toasts.length === 0) return null;
 
   const icons = {
-    success: <CheckCircle className="w-4 h-4 flex-shrink-0" />,
-    error: <AlertCircle className="w-4 h-4 flex-shrink-0" />,
-    warning: <AlertTriangle className="w-4 h-4 flex-shrink-0" />,
+    success: <CheckCircle className="w-4 h-4 flex-shrink-0 text-bone" aria-hidden="true" />,
+    error: <AlertCircle className="w-4 h-4 flex-shrink-0 text-rec" aria-hidden="true" />,
+    warning: <AlertTriangle className="w-4 h-4 flex-shrink-0 text-rec" aria-hidden="true" />,
   };
 
+  // Square ink panel with a hairline; the left rule carries the status (rec = needs attention).
   const colors = {
-    success: "bg-green-500/90 text-white",
-    error: "bg-red-500/90 text-white",
-    warning: "bg-yellow-500/90 text-black",
+    success: "border-l-bone",
+    error: "border-l-rec",
+    warning: "border-l-rec",
   };
 
   return (
-    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 items-center pointer-events-none">
+    <div className="fixed top-16 left-1/2 -translate-x-1/2 z-50 flex flex-col gap-2 items-center pointer-events-none" aria-live="polite">
       {toasts.map((t) => (
-        <div key={t.id}
-          className={`${colors[t.type]} px-5 py-2.5 rounded-xl shadow-lg flex items-center gap-2.5 text-sm pointer-events-auto animate-fade-in max-w-md`}>
+        <div key={t.id} role={t.type === "error" ? "alert" : "status"}
+          className={`bg-ink text-bone border border-line border-l-2 ${colors[t.type]} px-5 py-3 shadow-lg flex items-center gap-2.5 text-sm pointer-events-auto animate-fade-in max-w-md`}>
           {icons[t.type]}
           <span>{t.message}</span>
-          <button onClick={() => removeToast(t.id)} className="ml-1 opacity-60 hover:opacity-100">
-            <X className="w-3.5 h-3.5" />
+          <button onClick={() => removeToast(t.id)} className="ml-1 text-dim hover:text-bone" aria-label="Dismiss notification">
+            <X className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
       ))}

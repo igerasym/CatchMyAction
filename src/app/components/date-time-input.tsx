@@ -34,10 +34,11 @@ export default function DateTimeInput({ type, value, onChange, required, min, ma
       <button
         type="button"
         onClick={() => ref.current?.showPicker?.()}
-        className="absolute right-3 top-1/2 -translate-y-1/2 text-ocean-400/50 hover:text-ocean-400 transition-colors pointer-events-none"
+        className="absolute right-3 top-1/2 -translate-y-1/2 text-dim hover:text-bone transition-colors pointer-events-none"
         tabIndex={-1}
+        aria-hidden="true"
       >
-        <Icon className="w-4 h-4" />
+        <Icon className="w-4 h-4" aria-hidden="true" />
       </button>
     </div>
   );

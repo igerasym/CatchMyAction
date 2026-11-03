@@ -24,8 +24,8 @@ export default async function SessionsPage({
     id: s.id,
     title: s.title,
     location: s.location,
-    locationLat: (s as any).locationLat as number | null,
-    locationLng: (s as any).locationLng as number | null,
+    locationLat: s.locationLat ?? null,
+    locationLng: s.locationLng ?? null,
     date: s.date.toISOString(),
     startTime: s.startTime,
     endTime: s.endTime,
@@ -34,6 +34,7 @@ export default async function SessionsPage({
     coverUrl: s.photos[0] ? getPreviewUrl(s.photos[0].thumbnailKey || s.photos[0].previewKey) : null,
     sportType: (s as any).sportType || "surf",
     waveHeight: (s as any).waveHeight ?? null,
+    wavePeriod: (s as any).wavePeriod ?? null,
     windSpeed: (s as any).windSpeed ?? null,
   }));
 

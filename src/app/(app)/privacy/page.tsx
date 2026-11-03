@@ -1,15 +1,16 @@
 export default function PrivacyPage() {
   return (
-    <div className="max-w-3xl mx-auto py-12 prose-invert">
-      <h1 className="text-3xl font-bold text-white mb-2">Privacy Policy</h1>
-      <p className="text-white/40 text-sm mb-8">Last updated: March 2026</p>
+    <div className="max-w-3xl mx-auto py-12 md:py-16">
+      <p className="hud mb-5">Legal / Privacy</p>
+      <h1 className="disp text-[clamp(34px,5vw,60px)] text-bone mb-4">Privacy Policy<span className="text-rec">.</span></h1>
+      <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-dim mb-10">Last updated: March 2026</p>
 
       <Section title="1. Information We Collect">
-        <strong className="text-white/70">Account data:</strong> name, email address, password (hashed), account type.
-        <br /><strong className="text-white/70">Photos:</strong> images uploaded by photographers, including metadata (dimensions, file size).
-        <br /><strong className="text-white/70">Biometric data:</strong> if you use facial recognition features, we process facial geometry data to match you in photos.
-        <br /><strong className="text-white/70">Payment data:</strong> processed by Stripe. We do not store card numbers.
-        <br /><strong className="text-white/70">Usage data:</strong> pages visited, searches performed, device information.
+        <strong className="text-bone">Account data:</strong> name, email address, password (hashed), account type.
+        <br /><strong className="text-bone">Photos:</strong> images uploaded by photographers, including metadata (dimensions, file size).
+        <br /><strong className="text-bone">Biometric data:</strong> if you use facial recognition features, we process facial geometry data to match you in photos.
+        <br /><strong className="text-bone">Payment data:</strong> processed by Stripe. We do not store card numbers.
+        <br /><strong className="text-bone">Usage data:</strong> pages visited, searches performed, device information.
       </Section>
 
       <Section title="2. How We Use Your Information">
@@ -31,9 +32,9 @@ export default function PrivacyPage() {
 
       <Section title="4. Data Sharing">
         We do not sell your personal data. We share data only with:
-        <br />• <strong className="text-white/70">Stripe</strong> — for payment processing
-        <br />• <strong className="text-white/70">AWS</strong> — for secure photo storage
-        <br />• <strong className="text-white/70">Law enforcement</strong> — only when legally required
+        <br />• <strong className="text-bone">Stripe</strong> — for payment processing
+        <br />• <strong className="text-bone">AWS</strong> — for secure photo storage
+        <br />• <strong className="text-bone">Law enforcement</strong> — only when legally required
       </Section>
 
       <Section title="5. Data Retention">
@@ -75,9 +76,9 @@ export default function PrivacyPage() {
 
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="mb-8">
-      <h2 className="text-lg font-semibold text-white mb-2">{title}</h2>
-      <div className="text-white/50 text-sm leading-relaxed">{children}</div>
-    </div>
+    <section className="border-t border-line py-6">
+      <h2 className="text-lg font-bold text-bone mb-3">{title}</h2>
+      <div className="text-mute text-[15px] leading-relaxed">{children}</div>
+    </section>
   );
 }

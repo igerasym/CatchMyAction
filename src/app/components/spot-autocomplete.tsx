@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import { Globe, Map as MapIcon, MapPin, Camera, type LucideIcon } from "lucide-react";
 
 interface Suggestion {
   label: string;
@@ -8,7 +9,7 @@ interface Suggestion {
   sub?: string;
 }
 
-const ICONS: Record<string, string> = { country: "🌍", region: "🗺️", spot: "📍", session: "📸" };
+const ICONS: Record<string, LucideIcon> = { country: Globe, region: MapIcon, spot: MapPin, session: Camera };
 
 interface Props {
   value: string;
@@ -56,7 +57,7 @@ export default function SpotAutocomplete({
 
   return (
     <div className="relative" ref={ref}>
-      <label htmlFor={name} className="block text-xs font-medium text-white/40 mb-1">{label}</label>
+      <label htmlFor={name} className="hud block mb-2">{label}</label>
       <input
         id={name}
         name={name}
@@ -66,21 +67,25 @@ export default function SpotAutocomplete({
         placeholder={placeholder}
         required={required}
         autoComplete="off"
-        className="w-full px-3 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent placeholder-white/25"
+        role="combobox"
+        aria-expanded={open && suggestions.length > 0}
+        aria-controls={`${name}-suggestions`}
+        aria-autocomplete="list"
+        className="w-full px-3.5 py-3 bg-ink border border-line text-bone text-sm placeholder:text-dim focus:border-bone focus:outline-none"
       />
       {open && suggestions.length > 0 && (
-        <ul className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-lg shadow-xl max-h-56 overflow-y-auto z-50">
+        <ul id={`${name}-suggestions`} role="listbox" className="absolute top-full left-0 right-0 mt-px bg-ink border border-line shadow-xl max-h-56 overflow-y-auto z-50">
           {suggestions.map((s, i) => (
-            <li key={`${s.type}-${s.label}-${i}`}>
+            <li key={`${s.type}-${s.label}-${i}`} role="option" aria-selected={false}>
               <button
                 type="button"
                 onClick={() => { onChange(s.label); setOpen(false); }}
-                className="w-full text-left px-3 py-2 text-sm hover:bg-white/10 transition-colors flex items-center gap-2"
+                className="w-full text-left px-3.5 py-2.5 text-sm border-b border-line last:border-b-0 hover:bg-char-2 focus:bg-char-2 focus:outline-none transition-colors flex items-center gap-2.5"
               >
-                <span className="flex-shrink-0">{ICONS[s.type] || "📍"}</span>
+                {(() => { const Icon = ICONS[s.type] || MapPin; return <Icon className="w-3.5 h-3.5 flex-shrink-0 text-dim" aria-hidden="true" />; })()}
                 <span className="flex-1 min-w-0">
-                  <span className="text-white">{s.label}</span>
-                  {s.sub && <span className="text-white/30 ml-1 text-xs">{s.sub}</span>}
+                  <span className="text-bone">{s.label}</span>
+                  {s.sub && <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-dim ml-2">{s.sub}</span>}
                 </span>
               </button>
             </li>

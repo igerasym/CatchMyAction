@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { Mail } from "lucide-react";
+import { AuthShell, INPUT, LABEL, LINK } from "../ui";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -21,30 +23,28 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="max-w-sm mx-auto mt-16">
-      <h1 className="text-2xl font-bold text-center mb-6 text-white">Reset Password</h1>
+    <AuthShell kicker="01 / Account" title="Reset password">
       {sent ? (
-        <div className="text-center py-8">
-          <div className="text-5xl mb-4">📧</div>
-          <p className="text-sm text-white/50 mb-4">If an account exists with that email, we sent a reset link. Check your inbox.</p>
-          <Link href="/login" className="text-ocean-400 hover:underline text-sm">Back to Sign in</Link>
+        <div className="py-4" role="status">
+          <Mail className="w-8 h-8 text-rec mb-5" aria-hidden="true" />
+          <p className="text-sm text-mute mb-6">If an account exists with that email, we sent a reset link. Check your inbox.</p>
+          <Link href="/login" className="btn-sec">Back to Sign in</Link>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <div>
-            <label className="block text-sm font-medium text-white/50 mb-1">Email</label>
-            <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
-              className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-ocean-500 focus:border-transparent" />
+            <label htmlFor="email" className={LABEL}>Email</label>
+            <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
+              className={INPUT} />
           </div>
-          <button type="submit" disabled={loading}
-            className="w-full py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors">
-            {loading ? "Sending..." : "Send Reset Link"}
+          <button type="submit" disabled={loading} className="btn-pri w-full justify-center disabled:opacity-50">
+            {loading ? "Sending..." : "Send reset link"}
           </button>
-          <p className="text-center text-sm text-white/40">
-            <Link href="/login" className="text-ocean-400 hover:underline">Back to Sign in</Link>
+          <p className="text-sm text-mute pt-5 border-t border-line">
+            <Link href="/login" className={LINK}>Back to Sign in</Link>
           </p>
         </form>
       )}
-    </div>
+    </AuthShell>
   );
 }

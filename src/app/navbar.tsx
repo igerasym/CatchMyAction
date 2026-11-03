@@ -57,14 +57,14 @@ export default function NavBar() {
           </Link>
 
           {status === "loading" ? (
-            <div className="w-7 h-7 rounded-full bg-white/10 animate-pulse" />
+            <div className="w-7 h-7 rounded-full bg-char-3 animate-pulse" />
           ) : session ? (
             <div className="relative" ref={menuRef}>
               <button
                 onClick={() => setMenuOpen(!menuOpen)}
-                className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
+                className="flex items-center gap-2 text-bone/75 hover:text-bone transition-colors"
               >
-                <div className="w-8 h-8 rounded-full bg-ocean-500/30 flex items-center justify-center text-xs font-bold text-ocean-400 border border-ocean-500/20 overflow-hidden">
+                <div className="w-8 h-8 rounded-full bg-char-3 flex items-center justify-center text-xs font-bold text-bone border border-line overflow-hidden">
                   {user?.avatarUrl ? (
                     <img src={user.avatarUrl} alt="" className="w-full h-full object-cover" />
                   ) : (
@@ -77,13 +77,13 @@ export default function NavBar() {
               </button>
 
               {menuOpen && (
-                <div className="absolute right-0 mt-2 w-56 bg-[#1a1a2e] border border-white/10 rounded-xl shadow-2xl py-1 z-50">
+                <div className="absolute right-0 mt-2 w-60 bg-char-2 border border-line shadow-2xl py-1 z-50">
                   {/* User info */}
-                  <div className="px-4 py-3 border-b border-white/5">
-                    <p className="text-sm font-medium text-white">{user?.name}</p>
-                    <p className="text-xs text-white/40 truncate">{user?.email}</p>
+                  <div className="px-4 py-3 border-b border-line">
+                    <p className="text-sm font-semibold text-bone">{user?.name}</p>
+                    <p className="text-xs text-dim truncate">{user?.email}</p>
                     {user?.role === "PHOTOGRAPHER" && (
-                      <span className="inline-block mt-1 text-[10px] bg-ocean-500/20 text-ocean-400 px-1.5 py-0.5 rounded">
+                      <span className="inline-block mt-1.5 tag-ghost">
                         Photographer
                       </span>
                     )}
@@ -95,15 +95,15 @@ export default function NavBar() {
                         <MenuItem href="/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" onClick={() => setMenuOpen(false)} />
                         <MenuItem href={`/photographer/${user?.id}`} icon={<UserCircle className="w-4 h-4" />} label="Public Profile" onClick={() => setMenuOpen(false)} />
                         <MenuItem href="/guide" icon={<BookOpen className="w-4 h-4" />} label="Photographer Guide" onClick={() => setMenuOpen(false)} />
-                        <div className="border-t border-white/5 my-1" />
+                        <div className="border-t border-line my-1" />
                       </>
                     )}
                     <MenuItem href="/my-photos" icon={<Images className="w-4 h-4" />} label="My Actions" onClick={() => setMenuOpen(false)} />
                     <MenuItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" onClick={() => setMenuOpen(false)} />
-                    <div className="border-t border-white/5 my-1" />
+                    <div className="border-t border-line my-1" />
                     <button
                       onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/" }); }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-white/5 transition-colors flex items-center gap-2.5"
+                      className="w-full text-left px-4 py-2 text-sm text-rec hover:bg-char-3 transition-colors flex items-center gap-2.5"
                     >
                       <LogOut className="w-4 h-4" />
                       Sign out
@@ -136,9 +136,9 @@ function MenuItem({ href, icon, label, onClick }: { href: string; icon: React.Re
     <Link
       href={href}
       onClick={onClick}
-      className="flex items-center gap-2.5 px-4 py-2 text-sm text-white/70 hover:bg-white/5 hover:text-white transition-colors"
+      className="flex items-center gap-2.5 px-4 py-2 text-sm text-mute hover:bg-char-3 hover:text-bone transition-colors"
     >
-      <span className="w-5 flex justify-center text-white/50">{icon}</span>
+      <span className="w-5 flex justify-center text-dim">{icon}</span>
       {label}
     </Link>
   );

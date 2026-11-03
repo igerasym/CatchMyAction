@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
-import { Search, Camera, Upload, Loader2 } from "lucide-react";
+import { Search, Camera, Upload, Loader2, ScanFace, ArrowRight, X, Check } from "lucide-react";
 
 interface Photo {
   id: string;
@@ -155,97 +155,119 @@ export default function FindMe({ sessionId, photos, onMatchFound, autoOpen }: Pr
   if (!open) {
     return (
       <button onClick={handleOpen}
-        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-ocean-500 text-white rounded-lg hover:from-purple-500 hover:to-ocean-400 transition-all text-sm font-medium shadow-lg shadow-purple-500/20">
-        <Search className="w-4 h-4 inline mr-1" /> Find Me
+        className="group relative w-full flex items-center gap-4 p-5 sm:p-6 bg-rec text-rec-ink text-left transition-transform hover:-translate-y-px focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-bone">
+        <span aria-hidden="true" className="brk brk-sm" style={{ ["--c" as any]: "#160806", inset: "-6px" }} />
+        <span aria-hidden="true" className="w-14 h-14 shrink-0 grid place-items-center bg-ink text-bone">
+          <ScanFace className="w-8 h-8" strokeWidth={1.6} />
+        </span>
+        <span className="flex-1 min-w-0">
+          <span className="block font-mono text-[10.5px] font-bold tracking-[0.12em] uppercase">Find me · face match</span>
+          <span className="block disp text-[clamp(24px,7vw,34px)] mt-1.5">Find me with a selfie</span>
+          <span className="block text-[13px] mt-1.5 font-medium">Scans every photo in this session. Your selfie is not stored.</span>
+        </span>
+        <ArrowRight aria-hidden="true" className="w-6 h-6 shrink-0 transition-transform group-hover:translate-x-1" />
       </button>
     );
   }
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={() => !searching && handleClose()}>
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-white mb-1">Find Your Photos</h2>
-        <p className="text-sm text-white/40 mb-5">Upload a selfie and we'll find photos with your face in this session.</p>
+    <div className="fixed inset-0 bg-ink/90 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => !searching && handleClose()}>
+      <div role="dialog" aria-modal="true" aria-labelledby="findme-title"
+        className="relative bg-char-2 border border-line w-full sm:max-w-sm p-6 pb-8 sm:pb-6" onClick={(e) => e.stopPropagation()}>
+        {!searching && (
+          <button onClick={handleClose} aria-label="Close"
+            className="absolute top-3 right-3 w-10 h-10 grid place-items-center text-mute hover:text-bone transition-colors">
+            <X className="w-5 h-5" aria-hidden="true" />
+          </button>
+        )}
+        <p className="hud mb-3 flex items-center gap-2"><span className="rec-dot" aria-hidden="true" />Find me</p>
+        <h2 id="findme-title" className="disp text-[30px] text-bone mb-2">Find your photos<span className="text-rec">.</span></h2>
+        <p className="text-sm text-mute mb-6">Upload a selfie and we&apos;ll find the photos with your face in this session.</p>
 
         {error && (
-          <div className="bg-red-500/10 text-red-400 text-sm p-3 rounded-lg border border-red-500/20 mb-4">{error}</div>
+          <div role="alert" className="text-sm text-bone p-3 border-l-2 border-rec bg-ink mb-4">{error}</div>
         )}
 
         {searching ? (
-          <div className="text-center py-8">
-            <Loader2 className="w-8 h-8 text-ocean-400 animate-spin mx-auto mb-3" />
-            <p className="text-sm text-white/50">Searching for your face...</p>
-            <p className="text-xs text-white/25 mt-1">This takes a few seconds</p>
+          <div className="text-center py-8" role="status" aria-live="polite">
+            <Loader2 className="w-8 h-8 text-rec animate-spin mx-auto mb-3" aria-hidden="true" />
+            <p className="text-sm text-bone">Searching for your face…</p>
+            <p className="hud mt-2">This takes a few seconds</p>
           </div>
         ) : results !== null ? (
-          <div className="text-center py-4">
+          <div className="text-center py-2" role="status" aria-live="polite">
             {results.length > 0 ? (
               <>
-                <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-green-400 text-2xl">✓</span>
+                <div className="relative w-16 h-16 grid place-items-center mx-auto mb-4 bg-ink">
+                  <span aria-hidden="true" className="brk brk-rec brk-sm" />
+                  <Check className="w-7 h-7 text-rec" aria-hidden="true" />
                 </div>
-                <p className="text-lg font-semibold text-white mb-1">Found {results.length} photo{results.length > 1 ? "s" : ""}!</p>
-                <p className="text-sm text-white/40 mb-4">Your photos are highlighted in the gallery below.</p>
+                <p className="disp text-[28px] text-bone mb-2">It&apos;s you. <span className="text-rec">×{results.length}</span></p>
+                <p className="text-sm text-mute mb-6">Found {results.length} photo{results.length > 1 ? "s" : ""} — they&apos;re marked in the gallery and added to your cart.</p>
               </>
             ) : (
               <>
-                <div className="w-14 h-14 rounded-full bg-white/5 flex items-center justify-center mx-auto mb-3">
-                  <Search className="w-6 h-6 text-white/30" />
+                <div className="w-16 h-16 grid place-items-center mx-auto mb-4 bg-ink">
+                  <Search className="w-7 h-7 text-dim" aria-hidden="true" />
                 </div>
-                <p className="text-lg font-semibold text-white mb-1">No matches found</p>
-                <p className="text-sm text-white/40 mb-4">Try a clearer selfie with good lighting, or your face might not be visible in these photos.</p>
+                <p className="disp text-[24px] text-bone mb-2">No matches found</p>
+                <p className="text-sm text-mute mb-6">Try a clearer selfie with good lighting, or your face might not be visible in these photos.</p>
               </>
             )}
             <div className="flex gap-2 justify-center">
               <button onClick={() => { setResults(null); setError(""); }}
-                className="px-4 py-2 border border-white/10 text-white/60 rounded-lg hover:bg-white/5 transition-colors text-sm">
-                Try Again
+                className="btn-sec flex-1 justify-center !py-3 !text-sm">
+                Try again
               </button>
               <button onClick={handleClose}
-                className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm">
-                {results.length > 0 ? "View Photos" : "Close"}
+                className={`${results.length > 0 ? "btn-rec" : "btn-pri"} flex-1 justify-center !py-3 !text-sm`}>
+                {results.length > 0 ? "View photos" : "Close"}
               </button>
             </div>
           </div>
         ) : cameraActive ? (
           <div className="space-y-3">
-            <div className="rounded-xl overflow-hidden bg-black">
+            <div className="relative overflow-hidden bg-ink">
               <video ref={videoRefCallback} autoPlay playsInline muted
                 onLoadedMetadata={(e) => (e.target as HTMLVideoElement).play()}
-                className="w-full rounded-xl" style={{ transform: "scaleX(-1)" }} />
+                aria-label="Camera preview"
+                className="w-full" style={{ transform: "scaleX(-1)" }} />
+              <span aria-hidden="true" className="brk brk-rec" style={{ inset: "12px" }} />
             </div>
             <button onClick={captureAndSearch}
-              className="w-full py-3 bg-ocean-500 text-white rounded-xl hover:bg-ocean-400 transition-colors font-medium">
-              <Camera className="w-4 h-4 inline mr-1" /> Capture & Search
+              className="btn-rec w-full justify-center">
+              <Camera className="w-5 h-5" aria-hidden="true" /> Capture &amp; search
             </button>
             <button onClick={() => { stopCamera(); }}
-              className="w-full py-2 text-xs text-white/30 hover:text-white/50 transition-colors">
+              className="w-full py-3 text-sm text-mute hover:text-bone transition-colors">
               Cancel
             </button>
           </div>
         ) : (
           <div className="space-y-3">
-            <label className="block w-full py-10 border-2 border-dashed border-white/10 rounded-xl text-center cursor-pointer hover:border-ocean-500/50 hover:bg-ocean-500/5 transition-all">
-              <Upload className="w-7 h-7 mx-auto mb-2 text-white/40" />
-              <span className="text-sm text-white/50">Upload a selfie</span>
-              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
-                onChange={handleFile} />
-            </label>
-
-            {/* Mobile: native camera */}
-            <label className="sm:hidden block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 transition-colors text-center cursor-pointer">
-              <Camera className="w-4 h-4 inline mr-1" /> Take a Selfie
-              <input type="file" accept="image/*" capture="user" className="hidden"
+            {/* Mobile: native front camera — primary on phones */}
+            <label className="sm:hidden btn-rec w-full justify-center cursor-pointer">
+              <Camera className="w-5 h-5" aria-hidden="true" /> Take a selfie
+              <input type="file" accept="image/*" capture="user" className="sr-only"
                 onChange={handleFile} />
             </label>
 
             {/* Desktop: webcam */}
             <button onClick={startCamera}
-              className="hidden sm:block w-full py-3 border border-white/10 text-white/60 rounded-xl hover:bg-white/5 transition-colors">
-              <Camera className="w-4 h-4 inline mr-1" /> Use Camera
+              className="hidden sm:flex btn-rec w-full justify-center">
+              <Camera className="w-5 h-5" aria-hidden="true" /> Use camera
             </button>
 
-            <p className="text-[11px] text-white/20 text-center">
+            <label className="relative block w-full py-8 bg-ink text-center cursor-pointer group hover:bg-char-3 transition-colors">
+              <span aria-hidden="true" className="brk brk-soft brk-sm" />
+              <Upload className="w-6 h-6 mx-auto mb-2 text-mute group-hover:text-bone" aria-hidden="true" />
+              <span className="text-sm font-semibold text-bone">Upload a selfie</span>
+              <span className="block hud mt-1">JPG · PNG · WEBP</span>
+              <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only"
+                onChange={handleFile} />
+            </label>
+
+            <p className="text-xs text-dim text-center pt-1">
               Your selfie is sent to our server for face matching and is not stored.
             </p>
           </div>

@@ -2,16 +2,16 @@ import { Camera, Target, Scissors, DollarSign, Users, Zap, ImageIcon, TrendingUp
 
 export default function PhotographerGuidePage() {
   return (
-    <div className="max-w-2xl mx-auto pb-16">
-      <div className="text-center mb-12">
-        <h1 className="text-3xl font-bold text-white mb-3">Photographer Guide</h1>
-        <p className="text-white/50 text-lg">Sell more. Shoot smarter. Build your reputation.</p>
+    <div className="max-w-3xl mx-auto py-12 md:py-16">
+      <div className="mb-12">
+        <p className="hud mb-5">Guide / For photographers</p>
+        <h1 className="disp text-[clamp(34px,5vw,60px)] text-bone mb-4">Photographer guide<span className="text-rec">.</span></h1>
+        <p className="text-mute text-lg">Sell more. Shoot smarter. Build your reputation.</p>
       </div>
 
       <Section
-        icon={<Target className="w-5 h-5" />}
+        icon={<Target className="w-5 h-5" aria-hidden="true" />}
         title="The Golden Rule: Quality Over Quantity"
-        color="ocean"
       >
         <p>
           Athletes scroll through your gallery in seconds. If they see 200 blurry shots, they leave.
@@ -24,9 +24,8 @@ export default function PhotographerGuidePage() {
       </Section>
 
       <Section
-        icon={<Camera className="w-5 h-5" />}
+        icon={<Camera className="w-5 h-5" aria-hidden="true" />}
         title="What Sells"
-        color="green"
       >
         <ul className="space-y-3">
           <Li>Faces visible and in focus — people buy photos where they can recognize themselves</Li>
@@ -38,9 +37,8 @@ export default function PhotographerGuidePage() {
       </Section>
 
       <Section
-        icon={<Scissors className="w-5 h-5" />}
+        icon={<Scissors className="w-5 h-5" aria-hidden="true" />}
         title="Before You Upload"
-        color="purple"
       >
         <ul className="space-y-3">
           <Li>Cull ruthlessly — if you shot 500, upload 20–30 best. Not 500</Li>
@@ -56,9 +54,8 @@ export default function PhotographerGuidePage() {
       </Section>
 
       <Section
-        icon={<DollarSign className="w-5 h-5" />}
+        icon={<DollarSign className="w-5 h-5" aria-hidden="true" />}
         title="Pricing That Works"
-        color="yellow"
       >
         <ul className="space-y-3">
           <Li>$5–$10 for casual sessions (beach days, park sessions)</Li>
@@ -72,9 +69,8 @@ export default function PhotographerGuidePage() {
       </Section>
 
       <Section
-        icon={<Users className="w-5 h-5" />}
+        icon={<Users className="w-5 h-5" aria-hidden="true" />}
         title="Get Athletes to Find You"
-        color="ocean"
       >
         <ul className="space-y-3">
           <Li>Print the QR code and show it at the spot — tape it to your car, hold it up after the session</Li>
@@ -86,9 +82,8 @@ export default function PhotographerGuidePage() {
       </Section>
 
       <Section
-        icon={<Zap className="w-5 h-5" />}
+        icon={<Zap className="w-5 h-5" aria-hidden="true" />}
         title="Session Setup Tips"
-        color="green"
       >
         <ul className="space-y-3">
           <Li>Title it clearly — "Pipeline Morning Session" not "Session 47"</Li>
@@ -99,9 +94,8 @@ export default function PhotographerGuidePage() {
       </Section>
 
       <Section
-        icon={<ImageIcon className="w-5 h-5" />}
+        icon={<ImageIcon className="w-5 h-5" aria-hidden="true" />}
         title="Technical Requirements"
-        color="purple"
       >
         <ul className="space-y-3">
           <Li>JPEG format, minimum 1200px on the shortest side</Li>
@@ -113,9 +107,8 @@ export default function PhotographerGuidePage() {
       </Section>
 
       <Section
-        icon={<TrendingUp className="w-5 h-5" />}
+        icon={<TrendingUp className="w-5 h-5" aria-hidden="true" />}
         title="Build Your Reputation"
-        color="yellow"
       >
         <ul className="space-y-3">
           <Li>Complete your profile — add bio, avatar, social links. Athletes check who shot the photos</Li>
@@ -132,34 +125,28 @@ export default function PhotographerGuidePage() {
   );
 }
 
-function Section({ icon, title, color, children }: {
-  icon: React.ReactNode; title: string; color: string; children: React.ReactNode;
+function Section({ icon, title, children }: {
+  icon: React.ReactNode; title: string; children: React.ReactNode;
 }) {
-  const colors: Record<string, string> = {
-    ocean: "bg-ocean-500/10 border-ocean-500/20 text-ocean-400",
-    green: "bg-green-500/10 border-green-500/20 text-green-400",
-    purple: "bg-purple-500/10 border-purple-500/20 text-purple-400",
-    yellow: "bg-yellow-500/10 border-yellow-500/20 text-yellow-400",
-  };
   return (
-    <div className="mb-10">
+    <section className="border-t border-line pt-6 pb-10">
       <div className="flex items-center gap-3 mb-4">
-        <div className={`w-10 h-10 rounded-xl border flex items-center justify-center ${colors[color]}`}>
+        <div className="w-10 h-10 border border-line bg-char-2 flex items-center justify-center text-bone">
           {icon}
         </div>
-        <h2 className="text-lg font-semibold text-white">{title}</h2>
+        <h2 className="text-lg font-bold text-bone">{title}</h2>
       </div>
-      <div className="text-sm text-white/50 leading-relaxed pl-[52px]">
+      <div className="text-[15px] text-mute leading-relaxed sm:pl-[52px]">
         {children}
       </div>
-    </div>
+    </section>
   );
 }
 
 function Li({ children }: { children: React.ReactNode }) {
   return (
-    <li className="flex gap-2">
-      <span className="text-ocean-400/60 mt-0.5 flex-shrink-0">›</span>
+    <li className="flex gap-2.5">
+      <span className="text-rec mt-0.5 flex-shrink-0 font-mono" aria-hidden="true">›</span>
       <span>{children}</span>
     </li>
   );
@@ -167,8 +154,8 @@ function Li({ children }: { children: React.ReactNode }) {
 
 function Tip({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mt-4 px-4 py-3 bg-ocean-500/5 border border-ocean-500/10 rounded-xl text-xs text-ocean-300/80 leading-relaxed">
-      <span className="font-medium text-ocean-400">Pro tip:</span> {children}
+    <div className="mt-5 px-4 py-3 bg-ink border border-line border-l-2 border-l-rec text-sm text-mute leading-relaxed">
+      <span className="hud text-rec mr-2">Pro tip</span> {children}
     </div>
   );
 }

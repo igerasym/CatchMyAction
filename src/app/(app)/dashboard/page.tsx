@@ -11,6 +11,7 @@ import {
   TrendingUp, Camera, Eye,
 } from "lucide-react";
 import { toastError, toastWarning, toastSuccess } from "@/lib/toast";
+import { PageIntro } from "../ui";
 
 const LocationPicker = dynamic(() => import("@/app/components/location-picker"), { ssr: false });
 
@@ -159,12 +160,12 @@ export default function DashboardPage() {
   if (status !== "authenticated" || user?.role !== "PHOTOGRAPHER") {
     return (
       <div className="space-y-6">
-        <div className="flex gap-2"><div className="h-10 w-32 bg-white/5 rounded-lg animate-pulse" /><div className="ml-auto h-10 w-32 bg-white/5 rounded-lg animate-pulse" /></div>
+        <div className="flex gap-2" role="status" aria-label="Loading dashboard"><div className="h-10 w-32 bg-char-2 border border-line animate-pulse" /><div className="ml-auto h-10 w-32 bg-char-2 border border-line animate-pulse" /></div>
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
-          {[...Array(5)].map((_, i) => <div key={i} className="bg-white/5 border border-white/10 rounded-xl h-20 animate-pulse" />)}
+          {[...Array(5)].map((_, i) => <div key={i} className="bg-char-2 border border-line animate-pulse h-20" />)}
         </div>
         <div className="space-y-3">
-          {[...Array(3)].map((_, i) => <div key={i} className="bg-white/5 border border-white/10 rounded-xl h-24 animate-pulse" />)}
+          {[...Array(3)].map((_, i) => <div key={i} className="bg-char-2 border border-line animate-pulse h-24" />)}
         </div>
       </div>
     );
@@ -174,41 +175,41 @@ export default function DashboardPage() {
   const drafts = sessions.length - published;
 
   return (
-    <div>
+    <div className="py-4 md:py-8">
+      <PageIntro kicker="Studio / Dashboard" title="Your sessions" className="mb-10" />
       {/* Header with tabs */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center bg-white/5 rounded-lg p-0.5">
+      <div className="flex flex-wrap items-end justify-between gap-4 mb-8 border-b border-line">
+        <div className="flex items-center" role="tablist" aria-label="Dashboard sections">
           {(["sessions", "earnings"] as const).map((t) => (
-            <button key={t} onClick={() => setTab(t)}
-              className={`px-4 py-2 text-sm rounded-md transition-all ${
-                tab === t ? "bg-white/10 text-white font-medium shadow-sm" : "text-white/40 hover:text-white/60"
+            <button key={t} onClick={() => setTab(t)} role="tab" aria-selected={tab === t}
+              className={`-mb-px px-4 py-3 text-sm font-bold border-b-2 transition-colors ${
+                tab === t ? "border-rec text-bone" : "border-transparent text-dim hover:text-bone"
               }`}>
               {t === "sessions" ? (
-                <><FolderOpen className="w-3.5 h-3.5 inline -mt-0.5 mr-1.5" />Sessions</>
+                <><FolderOpen className="w-3.5 h-3.5 inline -mt-0.5 mr-1.5" aria-hidden="true" />Sessions</>
               ) : (
-                <><DollarSign className="w-3.5 h-3.5 inline -mt-0.5 mr-1.5" />Earnings</>
+                <><DollarSign className="w-3.5 h-3.5 inline -mt-0.5 mr-1.5" aria-hidden="true" />Earnings</>
               )}
             </button>
           ))}
         </div>
-        <Link href="/upload"
-          className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm">
-          + New Session
+        <Link href="/upload" className="btn-pri py-3 px-5 text-sm mb-2">
+          + New session
         </Link>
       </div>
 
       {/* Stripe nudge */}
       {!stripeConnected && (
-        <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/20 rounded-xl flex items-center justify-between gap-4">
+        <div className="mb-8 p-4 bg-ink border border-line border-l-2 border-l-rec flex flex-wrap items-center justify-between gap-4" role="status">
           <div>
-            <p className="text-sm text-yellow-400 font-medium">
+            <p className="text-sm text-bone font-bold">
               {stats && stats.photosSold > 0
                 ? `You have $${((stats.revenue * 0.82) / 100).toFixed(2)} in earnings`
                 : stripeStatus === "incomplete" ? "Complete your Stripe setup to receive payouts" : "Connect Stripe to get paid"}
             </p>
-            <p className="text-xs text-white/30 mt-0.5">You keep 82% of each sale.</p>
+            <p className="font-mono text-[11px] tracking-[0.1em] uppercase text-dim mt-1">You keep 82% of each sale.</p>
           </div>
-          <a href="/settings" className="px-4 py-2 bg-yellow-500 text-black text-xs rounded-lg hover:bg-yellow-400 transition-colors font-medium whitespace-nowrap">
+          <a href="/settings" className="btn-rec py-2.5 px-4 text-sm whitespace-nowrap">
             {stripeStatus === "incomplete" ? "Complete Setup" : "Connect Stripe"}
           </a>
         </div>
@@ -261,17 +262,17 @@ function SessionsTab({ stats, sessions, loading, deleting, published, drafts, on
     <>
       {/* Overview cards */}
       {stats && (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6">
-          <MiniCard icon={<FolderOpen className="w-4 h-4 text-ocean-400" />}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-px bg-line border border-line mb-8">
+          <MiniCard icon={<FolderOpen className="w-4 h-4 text-dim" aria-hidden="true" />}
             value={stats.sessions} label="Sessions"
             detail={`${published} live · ${drafts} draft`} />
-          <MiniCard icon={<Camera className="w-4 h-4 text-ocean-400" />}
+          <MiniCard icon={<Camera className="w-4 h-4 text-dim" aria-hidden="true" />}
             value={stats.photos} label="Photos" />
-          <MiniCard icon={<ShoppingCart className="w-4 h-4 text-green-400" />}
+          <MiniCard icon={<ShoppingCart className="w-4 h-4 text-dim" aria-hidden="true" />}
             value={stats.photosSold} label="Sold" />
-          <MiniCard icon={<Eye className="w-4 h-4 text-white/40" />}
+          <MiniCard icon={<Eye className="w-4 h-4 text-dim" aria-hidden="true" />}
             value={stats.totalViews} label="Views" />
-          <MiniCard icon={<DollarSign className="w-4 h-4 text-green-400" />}
+          <MiniCard icon={<DollarSign className="w-4 h-4 text-rec" aria-hidden="true" />}
             value={`$${(stats.revenue / 100).toFixed(2)}`} label="Total Revenue" />
         </div>
       )}
@@ -281,19 +282,19 @@ function SessionsTab({ stats, sessions, loading, deleting, published, drafts, on
 
       {/* Session list */}
       {loading ? (
-        <div className="space-y-3">
+        <div className="space-y-2" role="status" aria-label="Loading sessions">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 h-20 animate-pulse" />
+            <div key={i} className="bg-char-2 border border-line animate-pulse p-4 h-20" />
           ))}
         </div>
       ) : sessions.length === 0 ? (
-        <div className="text-center py-20">
-          <FolderOpen className="w-12 h-12 text-white/10 mx-auto mb-4" />
-          <p className="text-white/40 mb-2">No sessions yet</p>
-          <Link href="/upload" className="text-ocean-400 hover:underline text-sm">Create your first session →</Link>
+        <div className="border-t border-line py-20 text-center">
+          <FolderOpen className="w-10 h-10 text-dim mx-auto mb-5" aria-hidden="true" />
+          <p className="text-mute mb-6">No sessions yet</p>
+          <Link href="/upload" className="btn-pri">Create your first session →</Link>
         </div>
       ) : (
-        <div className="space-y-3">
+        <div className="border-t border-line">
           {sessions.map((s) => (
             <SessionRow key={s.id} session={s} deleting={deleting === s.id}
               onEdit={() => onEdit(s)} onDelete={() => onDelete(s.id)}
@@ -312,47 +313,48 @@ function EarningsTab({ data, loading, range, setRange }: {
   return (
     <>
       {/* Range pills */}
-      <div className="flex gap-1 mb-5">
+      <div className="flex gap-px mb-8 border border-line w-fit" role="group" aria-label="Earnings range">
         {[
           { key: "7", label: "7d" },
           { key: "30", label: "30d" },
           { key: "90", label: "90d" },
           { key: "all", label: "All" },
         ].map((r) => (
-          <button key={r.key} onClick={() => setRange(r.key)}
-            className={`px-3 py-1.5 text-xs rounded-lg transition-colors ${
-              range === r.key ? "bg-white/10 text-white font-medium" : "text-white/40 hover:text-white/60 hover:bg-white/5"
+          <button key={r.key} onClick={() => setRange(r.key)} aria-pressed={range === r.key}
+            className={`px-4 py-2 font-mono text-[11px] tracking-[0.12em] uppercase transition-colors ${
+              range === r.key ? "bg-bone text-ink font-bold" : "text-dim hover:text-bone hover:bg-char-2"
             }`}>{r.label}</button>
         ))}
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-3 gap-3 mb-8">
+        <div className="grid grid-cols-3 gap-2 mb-8" role="status" aria-label="Loading earnings">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="bg-white/5 border border-white/10 rounded-xl p-4 h-28 animate-pulse" />
+            <div key={i} className="bg-char-2 border border-line animate-pulse p-4 h-28" />
           ))}
         </div>
       ) : data ? (
         <>
           {/* Earnings cards — 2 columns */}
-          <div className="grid grid-cols-2 gap-3 mb-8">
-            <div className="rounded-xl p-5 border bg-green-500/5 border-green-500/20">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-line border border-line mb-10">
+            <div className="relative p-6 bg-char-2">
+              <div className="brk brk-rec brk-sm" aria-hidden="true" />
               <div className="flex items-center gap-2 mb-2">
-                <DollarSign className="w-5 h-5 text-green-400" />
-                <span className="text-xs text-white/40">Your Earnings</span>
+                <DollarSign className="w-4 h-4 text-rec" aria-hidden="true" />
+                <span className="hud">Your earnings</span>
               </div>
-              <p className="text-3xl font-bold text-green-400">${(data.totalNet / 100).toFixed(2)}</p>
-              <p className="text-xs text-white/25 mt-1">
+              <p className="disp text-4xl text-bone mt-1">${(data.totalNet / 100).toFixed(2)}</p>
+              <p className="font-mono text-[11px] tracking-[0.06em] text-dim mt-2">
                 {data.totalSales > 0 ? `avg $${(data.totalNet / data.totalSales / 100).toFixed(2)} per photo` : "no sales yet"}
               </p>
             </div>
-            <div className="rounded-xl p-5 border bg-white/5 border-white/10">
+            <div className="p-6 bg-char-2">
               <div className="flex items-center gap-2 mb-2">
-                <ShoppingCart className="w-5 h-5 text-ocean-400" />
-                <span className="text-xs text-white/40">Photos Sold</span>
+                <ShoppingCart className="w-4 h-4 text-dim" aria-hidden="true" />
+                <span className="hud">Photos sold</span>
               </div>
-              <p className="text-3xl font-bold text-white">{data.totalSales}</p>
-              <p className="text-xs text-white/25 mt-1">
+              <p className="disp text-4xl text-bone mt-1">{data.totalSales}</p>
+              <p className="font-mono text-[11px] tracking-[0.06em] text-dim mt-2">
                 {data.totalSales > 0 ? `$${(data.totalGross / 100).toFixed(2)} total sales` : "no sales yet"}
               </p>
             </div>
@@ -361,7 +363,7 @@ function EarningsTab({ data, loading, range, setRange }: {
           {/* Revenue chart */}
           {data.dailyRevenue.length > 1 && (
             <div className="mb-8">
-              <h2 className="text-sm font-medium text-white/40 mb-3">Earnings Over Time</h2>
+              <h2 className="hud mb-4">01 / Earnings over time</h2>
               <RevenueChart data={data.dailyRevenue} />
             </div>
           )}
@@ -369,9 +371,9 @@ function EarningsTab({ data, loading, range, setRange }: {
           {/* Per-session breakdown */}
           {data.perSession.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-sm font-medium text-white/40 mb-3">By Session</h2>
-              <div className="bg-white/5 border border-white/10 rounded-xl overflow-hidden">
-                <div className="hidden sm:grid grid-cols-[1fr_60px_80px_80px_80px] gap-2 px-4 py-2 text-[11px] text-white/25 uppercase tracking-wider border-b border-white/5">
+              <h2 className="hud mb-4">02 / By session</h2>
+              <div className="border-t border-line">
+                <div className="hidden sm:grid grid-cols-[1fr_60px_80px_80px_80px] gap-2 px-4 py-2.5 font-mono text-[11px] tracking-[0.12em] uppercase text-dim border-b border-line">
                   <span>Session</span>
                   <span className="text-right">Views</span>
                   <span className="text-right">Sales</span>
@@ -380,16 +382,16 @@ function EarningsTab({ data, loading, range, setRange }: {
                 </div>
                 {data.perSession.map((s) => (
                   <Link key={s.id} href={`/sessions/${s.id}`}
-                    className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_60px_80px_80px_80px] gap-2 px-4 py-3 text-sm hover:bg-white/5 transition-colors border-b border-white/5 last:border-0">
+                    className="grid grid-cols-[1fr_auto] sm:grid-cols-[1fr_60px_80px_80px_80px] gap-2 px-4 py-3.5 text-sm hover:bg-char-2 transition-colors border-b border-line group">
                     <div className="min-w-0">
-                      <p className="text-white truncate">{s.title}</p>
-                      <p className="text-xs text-white/25 truncate">{s.location}</p>
+                      <p className="text-bone font-bold truncate group-hover:text-rec transition-colors">{s.title}</p>
+                      <p className="font-mono text-[11px] tracking-[0.08em] uppercase text-dim truncate mt-0.5">{s.location}</p>
                     </div>
                     <div className="text-right sm:contents">
-                      <span className="hidden sm:block text-right text-white/30">{s.views}</span>
-                      <span className="hidden sm:block text-right text-white/50">{s.sales}</span>
-                      <span className="hidden sm:block text-right text-white/50">${(s.gross / 100).toFixed(2)}</span>
-                      <span className="text-right text-green-400 font-medium">${(s.net / 100).toFixed(2)}</span>
+                      <span className="hidden sm:block text-right font-mono text-dim">{s.views}</span>
+                      <span className="hidden sm:block text-right font-mono text-mute">{s.sales}</span>
+                      <span className="hidden sm:block text-right font-mono text-mute">${(s.gross / 100).toFixed(2)}</span>
+                      <span className="text-right font-mono text-bone font-bold">${(s.net / 100).toFixed(2)}</span>
                     </div>
                   </Link>
                 ))}
@@ -400,18 +402,18 @@ function EarningsTab({ data, loading, range, setRange }: {
           {/* Transactions */}
           {data.transactions.length > 0 && (
             <div className="mb-8">
-              <h2 className="text-sm font-medium text-white/40 mb-3">Recent Transactions</h2>
-              <div className="space-y-1.5">
+              <h2 className="hud mb-4">03 / Recent transactions</h2>
+              <div className="border-t border-line">
                 {data.transactions.map((t) => (
-                  <div key={t.id} className="flex items-center gap-3 bg-white/[0.03] border border-white/5 rounded-lg px-4 py-2.5">
-                    <div className="w-9 h-7 rounded overflow-hidden bg-white/5 flex-shrink-0">
-                      <img src={t.thumbnailUrl} alt="" className="w-full h-full object-cover" />
+                  <div key={t.id} className="flex items-center gap-3 border-b border-line px-4 py-3">
+                    <div className="w-12 h-9 overflow-hidden bg-char-3 flex-shrink-0">
+                      <img src={t.thumbnailUrl} alt={`Sold photo from ${t.sessionTitle}`} className="w-full h-full object-cover" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm text-white/80 truncate">{t.sessionTitle}</p>
-                      <p className="text-[11px] text-white/25">{t.buyerName} · {new Date(t.date).toLocaleDateString()}</p>
+                      <p className="text-sm text-bone truncate">{t.sessionTitle}</p>
+                      <p className="font-mono text-[11px] tracking-[0.06em] text-dim mt-0.5">{t.buyerName} · {new Date(t.date).toLocaleDateString()}</p>
                     </div>
-                    <p className="text-sm text-green-400 font-medium flex-shrink-0">${(t.net / 100).toFixed(2)}</p>
+                    <p className="font-mono text-sm text-bone font-bold flex-shrink-0">+${(t.net / 100).toFixed(2)}</p>
                   </div>
                 ))}
               </div>
@@ -420,10 +422,10 @@ function EarningsTab({ data, loading, range, setRange }: {
 
           {/* Empty state */}
           {data.totalSales === 0 && (
-            <div className="text-center py-20">
-              <DollarSign className="w-12 h-12 text-white/10 mx-auto mb-4" />
-              <p className="text-white/40 mb-2">No sales yet</p>
-              <p className="text-sm text-white/20">When athletes purchase your photos, earnings will appear here.</p>
+            <div className="text-center py-20 border-t border-line">
+              <DollarSign className="w-10 h-10 text-dim mx-auto mb-5" aria-hidden="true" />
+              <p className="text-mute mb-2">No sales yet</p>
+              <p className="text-sm text-dim">When athletes purchase your photos, earnings will appear here.</p>
             </div>
           )}
         </>
@@ -437,13 +439,13 @@ function MiniCard({ icon, value, label, detail }: {
   icon: React.ReactNode; value: string | number; label: string; detail?: string;
 }) {
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl px-4 py-3">
-      <div className="flex items-center gap-2 mb-0.5">
+    <div className="bg-char-2 px-4 py-4">
+      <div className="flex items-center gap-2 mb-2">
         {icon}
-        <span className="text-[11px] text-white/35 uppercase tracking-wider">{label}</span>
+        <span className="hud">{label}</span>
       </div>
-      <p className="text-xl font-bold text-white">{value}</p>
-      {detail && <p className="text-[11px] text-white/20 mt-0.5">{detail}</p>}
+      <p className="disp text-2xl text-bone">{value}</p>
+      {detail && <p className="font-mono text-[11px] tracking-[0.06em] text-dim mt-1.5">{detail}</p>}
     </div>
   );
 }
@@ -476,11 +478,11 @@ function RevenueChart({ data }: { data: { date: string; gross: number; net: numb
     // Grid
     for (let i = 0; i <= 4; i++) {
       const y = pad.top + (chartH / 4) * i;
-      ctx.strokeStyle = "rgba(255,255,255,0.04)";
+      ctx.strokeStyle = "#383a40"; // line
       ctx.lineWidth = 1;
       ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(w - pad.right, y); ctx.stroke();
-      ctx.fillStyle = "rgba(255,255,255,0.15)";
-      ctx.font = "10px system-ui";
+      ctx.fillStyle = "#948f86"; // dim
+      ctx.font = "10px ui-monospace, monospace";
       ctx.textAlign = "right";
       ctx.fillText(`$${((maxVal - (maxVal / 4) * i) / 100).toFixed(0)}`, pad.left - 8, y + 3);
     }
@@ -490,8 +492,8 @@ function RevenueChart({ data }: { data: { date: string; gross: number; net: numb
     data.forEach((d, i) => {
       if (i % step === 0 || i === data.length - 1) {
         const x = pad.left + (i / (data.length - 1)) * chartW;
-        ctx.fillStyle = "rgba(255,255,255,0.15)";
-        ctx.font = "10px system-ui";
+        ctx.fillStyle = "#948f86"; // dim
+        ctx.font = "10px ui-monospace, monospace";
         ctx.textAlign = "center";
         ctx.fillText(new Date(d.date + "T00:00:00").toLocaleDateString("en", { month: "short", day: "numeric" }), x, h - 6);
       }
@@ -526,13 +528,13 @@ function RevenueChart({ data }: { data: { date: string; gross: number; net: numb
       ctx!.stroke();
     }
 
-    drawArea(data.map((d) => d.net), "#22c55e", "rgba(34,197,94,0.08)");
+    drawArea(data.map((d) => d.net), "#ff4433", "rgba(255,68,51,0.14)"); // rec
 
   }, [data]);
 
   return (
-    <div className="bg-white/[0.03] border border-white/5 rounded-xl p-4">
-      <canvas ref={canvasRef} className="w-full" style={{ height: 200 }} />
+    <div className="bg-char-2 border border-line p-4">
+      <canvas ref={canvasRef} className="w-full" style={{ height: 200 }} role="img" aria-label={`Net earnings chart, ${data.length} days`} />
     </div>
   );
 }
@@ -549,66 +551,68 @@ function SessionRow({
   const sessionDate = s.date ? new Date(s.date).toLocaleDateString("en", { month: "short", day: "numeric" }) : "";
 
   return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-4 hover:border-white/20 transition-colors">
+    <div className="border-b border-line py-4 px-1 sm:px-2 hover:bg-char-2 transition-colors">
       <div className="flex items-center gap-4">
-        <Link href={`/dashboard/sessions/${s.id}`} className="w-16 h-12 sm:w-20 sm:h-14 rounded-lg overflow-hidden bg-white/5 flex-shrink-0">
+        <Link href={`/dashboard/sessions/${s.id}`} aria-label={`Manage ${s.title}`} className="group relative w-16 h-12 sm:w-20 sm:h-14 overflow-hidden bg-char-3 flex-shrink-0">
+          <span className="brk brk-sm brk-hover z-10" aria-hidden="true" />
           {thumbUrl ? (
             <img src={thumbUrl} alt="" className="w-full h-full object-cover" />
           ) : (
-            <div className="w-full h-full flex items-center justify-center text-white/20">
-              <ImageIcon className="w-5 h-5" />
+            <div className="w-full h-full flex items-center justify-center text-dim">
+              <ImageIcon className="w-5 h-5" aria-hidden="true" />
             </div>
           )}
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">
             <Link href={`/dashboard/sessions/${s.id}`}
-              className="font-medium text-white hover:text-ocean-400 transition-colors truncate text-sm sm:text-base">
+              className="font-bold text-bone hover:text-rec transition-colors truncate text-sm sm:text-base">
               {s.title}
             </Link>
-            <span className={`text-[10px] sm:text-xs px-1.5 sm:px-2 py-0.5 rounded-full flex-shrink-0 ${
-              s.published ? "bg-green-500/20 text-green-400" : "bg-yellow-500/20 text-yellow-400"
-            }`}>{s.published ? "Live" : "Draft"}</span>
+            <span className={`flex-shrink-0 ${s.published ? "tag-rec" : "tag-ghost border border-line"}`}>
+              {s.published ? "LIVE" : "DRAFT"}
+            </span>
           </div>
-          <p className="text-xs text-white/40 truncate">
-            <MapPin className="w-3 h-3 inline mr-0.5" /> {s.location} · {sessionDate}
+          <p className="text-sm text-mute truncate mt-1">
+            <MapPin className="w-3 h-3 inline mr-1 text-dim" aria-hidden="true" />{s.location} · {sessionDate}
           </p>
-          <div className="flex gap-3 mt-0.5 text-[11px] text-white/25">
+          <div className="flex gap-4 mt-1 font-mono text-[11px] tracking-[0.08em] uppercase text-dim">
             <span>{s.photoCount} photos</span>
-            <span><Eye className="w-3 h-3 inline mr-0.5" />{s.viewCount} views</span>
+            <span><Eye className="w-3 h-3 inline mr-1 -mt-0.5" aria-hidden="true" />{s.viewCount} views</span>
           </div>
         </div>
 
         {/* Actions — compact */}
         <div className="flex items-center gap-1.5 flex-shrink-0">
           <button onClick={onTogglePublish}
-            className={`px-2.5 py-1.5 text-xs rounded-lg transition-colors ${
+            className={`px-3 py-2 text-xs font-bold transition-colors ${
               s.published
-                ? "border border-white/10 text-white/50 hover:bg-white/10"
-                : "bg-green-600/20 text-green-400 border border-green-500/20 hover:bg-green-600/30"
+                ? "border border-line text-mute hover:text-bone hover:border-bone"
+                : "bg-bone text-ink hover:bg-white"
             }`}>
             {s.published ? "Unpublish" : "Publish"}
           </button>
           <div className="relative">
             <button onClick={() => setShowMenu(!showMenu)}
-              className="w-8 h-8 flex items-center justify-center rounded-lg border border-white/10 text-white/40 hover:bg-white/10 hover:text-white/60 transition-colors">
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
+              aria-label={`More actions for ${s.title}`} aria-haspopup="menu" aria-expanded={showMenu}
+              className="w-9 h-9 flex items-center justify-center border border-line text-mute hover:text-bone hover:border-bone transition-colors">
+              <svg aria-hidden="true" className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/></svg>
             </button>
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
-                <div className="absolute right-0 top-full mt-1 w-40 bg-[#1a1a2e] border border-white/10 rounded-lg shadow-xl z-50 py-1">
+                <div role="menu" className="absolute right-0 top-full mt-px w-44 bg-ink border border-line shadow-xl z-50 py-1">
                   <button onClick={() => { onEdit(); setShowMenu(false); }}
-                    className="w-full text-left px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">Edit Session</button>
+                    role="menuitem" className="w-full text-left px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">Edit Session</button>
                   <button onClick={() => { setShowQR(true); setShowMenu(false); }}
-                    className="w-full text-left px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">QR Code</button>
+                    role="menuitem" className="w-full text-left px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">QR Code</button>
                   <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/sessions/${s.id}`); setShowMenu(false); toastSuccess("Link copied!"); }}
-                    className="w-full text-left px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">Copy Link</button>
+                    role="menuitem" className="w-full text-left px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">Copy Link</button>
                   <Link href={`/dashboard/sessions/${s.id}`} onClick={() => setShowMenu(false)}
-                    className="block px-3 py-2 text-xs text-white/60 hover:bg-white/5 transition-colors">Manage Photos</Link>
-                  <div className="border-t border-white/5 my-1" />
+                    role="menuitem" className="block px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">Manage Photos</Link>
+                  <div className="border-t border-line my-1" />
                   <button onClick={() => { onDelete(); setShowMenu(false); }} disabled={deleting}
-                    className="w-full text-left px-3 py-2 text-xs text-red-400 hover:bg-red-500/10 disabled:opacity-50 transition-colors">
+                    role="menuitem" className="w-full text-left px-3.5 py-2.5 text-sm text-rec hover:bg-char-2 disabled:opacity-50 transition-colors">
                     {deleting ? "Deleting..." : "Delete Session"}</button>
                 </div>
               </>
@@ -618,21 +622,22 @@ function SessionRow({
       </div>
 
       {showQR && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-white mb-1">Session QR Code</h2>
-            <p className="text-sm text-white/40 mb-4">Athletes can scan this to find their photos</p>
-            <div className="bg-white rounded-xl p-4 inline-block mb-4">
+        <div className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
+          <div role="dialog" aria-modal="true" className="relative bg-char-2 border border-line p-7 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <p className="hud mb-3">QR / Session</p>
+            <h2 className="disp text-2xl text-bone mb-2">Session QR code<span className="text-rec">.</span></h2>
+            <p className="text-sm text-mute mb-5">Athletes can scan this to find their photos</p>
+            <div className="bg-bone p-4 inline-block mb-4">
               <img src={`/api/sessions/${s.id}/qr`} alt="QR Code" className="w-48 h-48" />
             </div>
-            <p className="text-xs text-white/30 mb-4 break-all">
+            <p className="font-mono text-[11px] text-dim mb-5 break-all">
               {typeof window !== "undefined" ? `${window.location.origin}/sessions/${s.id}` : ""}
             </p>
             <div className="flex gap-2 justify-center">
               <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/sessions/${s.id}`)}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/60 hover:bg-white/10 transition-colors">Copy Link</button>
+                className="btn-sec py-2.5 px-4 text-sm">Copy Link</button>
               <a href={`/api/sessions/${s.id}/qr`} download={`session-${s.id}-qr.svg`}
-                className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm">Download QR</a>
+                className="btn-pri py-2.5 px-4 text-sm">Download QR</a>
             </div>
           </div>
         </div>
@@ -654,42 +659,43 @@ function PhotographerQR() {
 
   return (
     <>
-      <div className="mb-6 flex items-center justify-between bg-white/[0.03] border border-white/5 rounded-xl px-4 py-3">
+      <div className="mb-10 flex flex-wrap gap-3 items-center justify-between bg-char-2 border border-line px-4 py-3">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-lg p-1 flex-shrink-0">
-            <img src="/api/photographer/qr" alt="QR" className="w-full h-full" />
+          <div className="w-10 h-10 bg-bone p-1 flex-shrink-0">
+            <img src="/api/photographer/qr" alt="" className="w-full h-full" />
           </div>
           <div>
-            <p className="text-sm text-white/70">Your Profile QR Code</p>
-            <p className="text-[11px] text-white/25">Print it on a t-shirt, sticker, or business card</p>
+            <p className="text-sm text-bone font-bold">Your profile QR code</p>
+            <p className="font-mono text-[11px] tracking-[0.04em] text-dim mt-0.5">Print it on a t-shirt, sticker, or business card</p>
           </div>
         </div>
         <button onClick={() => setShowQR(true)}
-          className="px-3 py-1.5 text-xs border border-white/10 text-white/50 rounded-lg hover:bg-white/5 transition-colors">
+          className="btn-sec py-2 px-3.5 text-xs">
           View & Download
         </button>
       </div>
 
       {showQR && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl p-6 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <h2 className="text-lg font-bold text-white mb-1">Your Profile QR Code</h2>
-            <p className="text-sm text-white/40 mb-4">Athletes scan this to see all your sessions</p>
-            <div className="bg-white rounded-xl p-4 inline-block mb-4">
+        <div className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
+          <div role="dialog" aria-modal="true" className="relative bg-char-2 border border-line p-7 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+            <p className="hud mb-3">QR / Profile</p>
+            <h2 className="disp text-2xl text-bone mb-2">Your profile QR<span className="text-rec">.</span></h2>
+            <p className="text-sm text-mute mb-5">Athletes scan this to see all your sessions</p>
+            <div className="bg-bone p-4 inline-block mb-4">
               <img src="/api/photographer/qr" alt="QR Code" className="w-48 h-48" />
             </div>
-            <p className="text-xs text-white/30 mb-4 break-all">{profileUrl}</p>
+            <p className="font-mono text-[11px] text-dim mb-5 break-all">{profileUrl}</p>
             <div className="flex gap-2 justify-center">
               <button onClick={() => { navigator.clipboard.writeText(profileUrl); toastSuccess("Link copied!"); }}
-                className="px-4 py-2 bg-white/5 border border-white/10 rounded-lg text-sm text-white/60 hover:bg-white/10 transition-colors">
+                className="btn-sec py-2.5 px-4 text-sm">
                 Copy Link
               </button>
               <a href="/api/photographer/qr" download="my-qr-code.svg"
-                className="px-4 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm">
+                className="btn-pri py-2.5 px-4 text-sm">
                 Download QR
               </a>
             </div>
-            <p className="text-[11px] text-white/15 mt-4">
+            <p className="font-mono text-[11px] text-dim mt-5">
               Print on t-shirts, stickers, business cards, or show at the spot
             </p>
           </div>

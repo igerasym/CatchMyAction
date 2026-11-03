@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect, useRef, useCallback } from "react";
 import dynamic from "next/dynamic";
 import { toastError } from "@/lib/toast";
+import { ArrowRight, Check, ChevronLeft, ChevronRight, Download, Flag, Loader2, Plus, X } from "lucide-react";
 
 const FindMe = dynamic(() => import("./find-me"), { ssr: false });
 
@@ -19,6 +20,8 @@ interface Photo {
 
 interface Props {
   sessionId: string;
+  /** Used for photo alt text only */
+  sessionTitle?: string;
   previewBaseUrl: string;
   initialPhotos: Photo[];
   initialCursor: string | null;
@@ -29,6 +32,7 @@ interface Props {
 
 export default function PhotoGrid({
   sessionId,
+  sessionTitle = "this session",
   previewBaseUrl,
   initialPhotos,
   initialCursor,
@@ -320,44 +324,51 @@ export default function PhotoGrid({
     .reduce((sum, p) => sum + p.priceInCents, 0);
   const cartCount = Array.from(cartIds).filter((id) => !purchasedIds.has(id)).length;
 
+  // Presentation-only derived values
+  const fmtPrice = (cents: number) => (cents === 0 ? "Free" : `$${(cents / 100).toFixed(2)}`);
+  const minPrice = photos.length > 0 ? Math.min(...photos.map((p) => p.priceInCents)) : 0;
+  const cartPhotos = photos.filter((p) => cartIds.has(p.id) && !purchasedIds.has(p.id));
+  const matchedCount = photos.filter((p) => matchedIds.has(p.id)).length;
+
   return (
     <>
       {/* Purchase success banner */}
       {purchaseSuccess && (
-        <div className="mb-4 p-4 bg-green-500/10 border border-green-500/20 rounded-xl flex items-center justify-between gap-4 animate-fade-in">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center flex-shrink-0">
-              <span className="text-green-400 text-lg">✓</span>
+        <div role="status" className="relative mb-6 p-5 bg-ink flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fade-in">
+          <span aria-hidden="true" className="brk brk-rec brk-sm" />
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 grid place-items-center bg-rec text-rec-ink shrink-0">
+              <Check className="w-5 h-5" strokeWidth={3} aria-hidden="true" />
             </div>
             <div>
-              <p className="text-sm font-medium text-white">
-                {purchaseSuccess.count === 1 ? "Photo purchased!" : `${purchaseSuccess.count} photos purchased!`}
+              <p className="disp text-[22px] text-bone">
+                {purchaseSuccess.count === 1 ? "Photo purchased" : `${purchaseSuccess.count} photos purchased`}
+                <span className="text-rec">.</span>
               </p>
-              <p className="text-xs text-white/40">
+              <p className="text-sm text-mute mt-1">
                 {purchaseSuccess.downloadUrl ? "Your download should start automatically." : "Photos are now in My Actions."}
               </p>
             </div>
           </div>
-          <div className="flex gap-2 flex-shrink-0">
+          <div className="flex gap-2 shrink-0">
             {purchaseSuccess.downloadUrl && (
               <a href={purchaseSuccess.downloadUrl} download
-                className="px-3 py-1.5 bg-green-600 text-white rounded-lg hover:bg-green-500 transition-colors text-xs">
-                Download Again
+                className="btn-pri !py-2.5 !px-4 !text-sm !gap-2">
+                <Download className="w-4 h-4" aria-hidden="true" /> Download again
               </a>
             )}
             <button onClick={() => setPurchaseSuccess(null)}
-              className="px-3 py-1.5 border border-white/10 text-white/50 rounded-lg hover:bg-white/5 transition-colors text-xs">
+              className="btn-sec !py-2.5 !px-4 !text-sm">
               Dismiss
             </button>
           </div>
         </div>
       )}
 
-      {/* Toolbar: Find Me button */}
+      {/* Find Me — the one big action */}
       {photos.length > 0 && (
-        <div className="flex items-center justify-end mb-4">
+        <div className="mb-10 px-1.5">
           <FindMe sessionId={sessionId} photos={photos} autoOpen={autoFindMe} onMatchFound={(ids) => {
-            console.log("Find Me matched:", ids);
             setMatchedIds(new Set(ids));
             const unpurchased = ids.filter((id: string) => !purchasedIds.has(id));
             setCartIds(new Set(unpurchased));
@@ -370,80 +381,126 @@ export default function PhotoGrid({
         </div>
       )}
 
+      {/* Grid header */}
+      {photos.length > 0 && (
+        <div className="flex items-end justify-between gap-4 pb-3 mb-3 border-b border-line">
+          <div>
+            <p className="hud">All frames · {photos.length}{cursor ? "+" : ""}</p>
+            {matchedCount > 0 && (
+              <p className="font-mono text-[11.5px] font-bold tracking-[0.14em] uppercase text-rec mt-1.5 flex items-center gap-2">
+                <span className="rec-dot !w-1.5 !h-1.5" aria-hidden="true" />
+                It&apos;s you · {matchedCount}
+              </p>
+            )}
+          </div>
+          <p className="font-mono text-[11.5px] tracking-[0.14em] uppercase text-bone">
+            {minPrice === 0 ? "Free" : <><span className="text-dim">From</span> {fmtPrice(minPrice)}</>}
+          </p>
+        </div>
+      )}
+
       {/* Photo grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-        {photos.map((photo) => {
+      <ul className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2" aria-label={`Photos from ${sessionTitle}`}>
+        {photos.map((photo, index) => {
           const isOwned = purchasedIds.has(photo.id);
           const isMatched = matchedIds.has(photo.id);
           const isInCart = cartIds.has(photo.id);
+          const label = `Photo ${index + 1} from ${sessionTitle}`;
           return (
-            <div key={photo.id} onClick={() => setSelectedPhoto(photo)}
+            <li key={photo.id}
               data-matched={isMatched ? "true" : undefined}
-              className={`relative aspect-[4/3] bg-white/5 rounded-lg overflow-hidden transition-all cursor-pointer ${
-                isOwned ? "ring-2 ring-green-500 shadow-lg shadow-green-500/20"
-                : isInCart ? "ring-2 ring-green-500/60"
-                : isMatched ? "ring-2 ring-purple-500 shadow-lg shadow-purple-500/20"
-                : "hover:ring-2 hover:ring-ocean-500"
-              }`}>
-              <img src={photo.thumbnailUrl}
-                alt="" className="w-full h-full object-cover" loading="lazy" decoding="async" crossOrigin="anonymous" />
+              className="group relative aspect-[4/5] bg-char-2 overflow-hidden">
+              <button type="button" onClick={() => setSelectedPhoto(photo)}
+                aria-label={`Open ${label}${isMatched ? " (it's you)" : ""}${isOwned ? " (owned)" : ""}`}
+                className="absolute inset-0 w-full h-full focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-bone">
+                <img src={photo.thumbnailUrl}
+                  alt={label} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" loading="lazy" decoding="async" crossOrigin="anonymous" />
+              </button>
 
-              {/* Checkbox for unpurchased */}
-              {!isOwned && (
-                <button onClick={(e) => { e.stopPropagation(); toggleCart(photo.id); }}
-                  className={`absolute top-1.5 left-1.5 w-5 h-5 rounded border flex items-center justify-center text-xs transition-all z-10 ${
-                    isInCart ? "bg-green-500 border-green-500 text-white"
-                    : "border-white/40 bg-black/50 text-transparent hover:text-white/50 hover:border-white/60"
-                  }`}>✓</button>
+              {/* Frame: matched = REC brackets, otherwise brackets on hover */}
+              {isMatched ? (
+                <span aria-hidden="true" className="brk brk-rec brk-sm" style={{ inset: "6px" }} />
+              ) : (
+                <span aria-hidden="true" className="brk brk-sm brk-hover" />
               )}
 
               {/* Badges */}
-              {isOwned && (
-                <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-green-500/90 text-white text-[10px] font-bold rounded">✓ OWNED</div>
+              {isMatched && (
+                <span className="tag-rec absolute top-2 left-2 pointer-events-none">IT&apos;S YOU</span>
               )}
-              {isMatched && !isOwned && (
-                <div className="absolute top-1.5 right-1.5 px-1.5 py-0.5 bg-purple-500/90 text-white text-[10px] font-bold rounded">IT&apos;S YOU</div>
+              {isOwned ? (
+                <span className="tag-ghost absolute top-2 right-2 pointer-events-none inline-flex items-center gap-1">
+                  <Check className="w-3 h-3" strokeWidth={3} aria-hidden="true" /> OWNED
+                </span>
+              ) : (
+                /* Cart checkbox for unpurchased — 40px touch target */
+                <button type="button" onClick={(e) => { e.stopPropagation(); toggleCart(photo.id); }}
+                  role="checkbox" aria-checked={isInCart}
+                  aria-label={`${isInCart ? "Remove" : "Add"} photo ${index + 1} ${isInCart ? "from" : "to"} cart`}
+                  className="absolute top-0 right-0 w-10 h-10 grid place-items-center z-10">
+                  <span aria-hidden="true" className={`w-7 h-7 grid place-items-center transition-colors ${
+                    isInCart ? "bg-rec text-rec-ink"
+                    : "bg-ink/60 text-bone shadow-[inset_0_0_0_2px_#f2ede4] hover:bg-ink/80"
+                  }`}>
+                    {isInCart ? <Check className="w-4 h-4" strokeWidth={3} /> : <Plus className="w-4 h-4" strokeWidth={2.5} />}
+                  </span>
+                </button>
               )}
-            </div>
+
+              {/* Price */}
+              {!isOwned && (
+                <span className="tag-ghost absolute bottom-2 left-2 pointer-events-none !text-[12px] font-semibold">
+                  {fmtPrice(photo.priceInCents)}
+                </span>
+              )}
+            </li>
           );
         })}
-      </div>
+      </ul>
 
       {/* Sticky purchase bar */}
       {cartCount > 0 && (
-        <div className="fixed bottom-0 left-0 right-0 z-40 bg-[#111]/95 backdrop-blur-lg border-t border-white/10 px-4 py-3">
-          <div className="max-w-5xl mx-auto flex items-center justify-between">
-            <div>
-              <p className="text-sm text-white font-medium">{cartCount} photo{cartCount > 1 ? "s" : ""} selected</p>
-              <p className="text-xs text-white/40">{cartTotal === 0 ? "Free" : `$${(cartTotal / 100).toFixed(2)} total`}</p>
+        <div className="fixed bottom-0 left-0 right-0 z-40 px-3 sm:px-4 pt-6 pb-[max(12px,env(safe-area-inset-bottom))]"
+          style={{ background: "linear-gradient(0deg, #1a1b1e 65%, rgba(26,27,30,0))" }}>
+          <div className="max-w-5xl mx-auto flex items-center gap-3 p-2.5 pl-3 bg-bone text-ink" aria-live="polite">
+            <div className="hidden min-[360px]:flex -space-x-3 shrink-0" aria-hidden="true">
+              {cartPhotos.slice(0, 3).map((p) => (
+                <img key={p.id} src={p.thumbnailUrl} alt="" crossOrigin="anonymous"
+                  className="w-10 h-10 object-cover ring-2 ring-bone" />
+              ))}
             </div>
-            <div className="flex gap-2">
+            <div className="flex-1 min-w-0 leading-tight">
+              <p className="text-[15px] font-extrabold truncate">
+                {cartCount} photo{cartCount > 1 ? "s" : ""} · {cartTotal === 0 ? "Free" : `$${(cartTotal / 100).toFixed(2)}`}
+              </p>
               <button onClick={() => setCartIds(new Set())}
-                className="px-4 py-2 text-xs text-white/40 hover:text-white/60 transition-colors">
-                Clear
-              </button>
-              <button onClick={handleBulkPurchase} disabled={bulkBuying}
-                className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-500 disabled:opacity-50 transition-all text-sm font-medium">
-                {bulkBuying ? "Processing..." : cartTotal === 0 ? `Download ${cartCount} Free` : `Buy ${cartCount} Photo${cartCount > 1 ? "s" : ""}`}
+                className="text-[12px] text-[#4a4740] underline underline-offset-2 hover:text-ink">
+                Clear selection
               </button>
             </div>
+            <button onClick={handleBulkPurchase} disabled={bulkBuying}
+              className="shrink-0 inline-flex items-center gap-2 px-4 py-3 bg-ink text-bone text-[14px] font-bold disabled:opacity-60 transition-colors hover:bg-char-3">
+              {bulkBuying ? "Processing…" : cartTotal === 0 ? `Download ${cartCount} free` : "Checkout"}
+              {!bulkBuying && <ArrowRight className="w-4 h-4" aria-hidden="true" />}
+            </button>
           </div>
         </div>
       )}
 
       {/* Infinite scroll sentinel */}
-      <div ref={sentinelRef} className="py-8 text-center">
+      <div ref={sentinelRef} className="py-10 text-center">
         {loading && (
-          <div className="inline-flex items-center gap-2 text-white/30 text-sm">
-            <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-            Loading more photos...
+          <div role="status" className="inline-flex items-center gap-2 hud">
+            <Loader2 className="animate-spin h-4 w-4" aria-hidden="true" />
+            Loading more photos
           </div>
         )}
         {!cursor && photos.length > 0 && (
-          <p className="text-white/30 text-sm">All {photos.length} photos loaded</p>
+          <div className="flex items-center gap-4" aria-hidden="true">
+            <span className="ticks flex-1" />
+            <span className="hud">End of session</span>
+            <span className="ticks flex-1" />
+          </div>
         )}
       </div>
 
@@ -452,9 +509,11 @@ export default function PhotoGrid({
         const currentIndex = photos.findIndex((p) => p.id === selectedPhoto.id);
         const prevPhoto = currentIndex > 0 ? photos[currentIndex - 1] : null;
         const nextPhoto = currentIndex < photos.length - 1 ? photos[currentIndex + 1] : null;
+        const isSelectedMatched = matchedIds.has(selectedPhoto.id);
         return (
-        <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
+        <div className="fixed inset-0 bg-ink/95 z-50 flex items-center justify-center p-3 sm:p-4 outline-none"
           onClick={() => setSelectedPhoto(null)} role="dialog" aria-modal="true"
+          aria-label={`Photo ${currentIndex + 1} of ${photos.length} from ${sessionTitle}`}
           onKeyDown={(e) => {
             if (e.key === "ArrowLeft" && prevPhoto) setSelectedPhoto(prevPhoto);
             if (e.key === "ArrowRight" && nextPhoto) setSelectedPhoto(nextPhoto);
@@ -466,72 +525,86 @@ export default function PhotoGrid({
           {/* Prev button */}
           {prevPhoto && (
             <button onClick={(e) => { e.stopPropagation(); setSelectedPhoto(prevPhoto); }}
-              className="absolute left-2 sm:left-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" /></svg>
+              aria-label="Previous photo"
+              className="absolute left-1 sm:left-6 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-ink/70 text-bone grid place-items-center hover:bg-char-3 transition-colors">
+              <ChevronLeft className="w-6 h-6" aria-hidden="true" />
             </button>
           )}
           {/* Next button */}
           {nextPhoto && (
             <button onClick={(e) => { e.stopPropagation(); setSelectedPhoto(nextPhoto); }}
-              className="absolute right-2 sm:right-6 top-1/2 -translate-y-1/2 z-10 w-10 h-10 rounded-full bg-black/50 text-white flex items-center justify-center hover:bg-black/70 transition-colors">
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" /></svg>
+              aria-label="Next photo"
+              className="absolute right-1 sm:right-6 top-1/2 -translate-y-1/2 z-10 w-11 h-11 bg-ink/70 text-bone grid place-items-center hover:bg-char-3 transition-colors">
+              <ChevronRight className="w-6 h-6" aria-hidden="true" />
             </button>
           )}
 
-          <div className="bg-[#1a1a2e] rounded-xl max-w-4xl w-full max-h-[90vh] overflow-auto border border-white/10"
+          <div className="bg-char-2 border border-line max-w-4xl w-full max-h-[92vh] overflow-auto"
             onClick={(e) => e.stopPropagation()}>
-            <div className="relative">
+            <div className="relative bg-ink">
               <img src={selectedPhoto.previewUrl}
-                alt="" className="w-full rounded-t-xl" crossOrigin="anonymous" />
+                alt={`Photo ${currentIndex + 1} from ${sessionTitle}`} className="w-full" crossOrigin="anonymous" />
+              {isSelectedMatched && (
+                <>
+                  <span aria-hidden="true" className="brk brk-rec" style={{ inset: "10px" }} />
+                  <span className="tag-rec absolute top-4 left-4">IT&apos;S YOU</span>
+                </>
+              )}
               <button onClick={() => setSelectedPhoto(null)}
-                className="absolute top-3 right-3 bg-black/50 text-white rounded-full w-8 h-8 flex items-center justify-center hover:bg-black/70">
-                ✕
+                aria-label="Close photo"
+                className="absolute top-2 right-2 w-11 h-11 bg-ink/70 text-bone grid place-items-center hover:bg-char-3 transition-colors">
+                <X className="w-5 h-5" aria-hidden="true" />
               </button>
               {/* Photo counter */}
-              <div className="absolute bottom-3 left-3 bg-black/50 text-white/70 text-xs px-2 py-1 rounded">
-                {currentIndex + 1} / {photos.length}
-              </div>
+              <span className="tag-ghost absolute bottom-3 left-3">
+                {String(currentIndex + 1).padStart(2, "0")} / {String(photos.length).padStart(2, "0")}
+              </span>
             </div>
-            <div className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div className="p-4 sm:p-5 flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
               <div>
                 {purchasedIds.has(selectedPhoto.id) ? (
                   <>
-                    <p className="text-sm font-medium text-green-400">✓ Purchased</p>
-                    <p className="text-sm text-white/40">{selectedPhoto.width} × {selectedPhoto.height} · Original quality</p>
+                    <p className="text-[17px] font-bold text-bone inline-flex items-center gap-2">
+                      <Check className="w-4 h-4 text-rec" strokeWidth={3} aria-hidden="true" /> Purchased
+                    </p>
+                    <p className="hud mt-1">{selectedPhoto.width} × {selectedPhoto.height} · Original quality</p>
                   </>
                 ) : selectedPhoto.priceInCents === 0 ? (
                   <>
-                    <p className="text-lg font-semibold text-green-400">Free</p>
-                    <p className="text-sm text-white/40">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
+                    <p className="disp text-[26px] text-bone">Free</p>
+                    <p className="hud mt-1">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
                   </>
                 ) : (
                   <>
-                    <p className="text-lg font-semibold text-white">${(selectedPhoto.priceInCents / 100).toFixed(2)}</p>
-                    <p className="text-sm text-white/40">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
+                    <p className="disp text-[26px] text-bone">${(selectedPhoto.priceInCents / 100).toFixed(2)}</p>
+                    <p className="hud mt-1">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
                   </>
                 )}
               </div>
               {purchasedIds.has(selectedPhoto.id) ? (
                 <button onClick={() => handlePurchase(selectedPhoto)} disabled={purchasing}
-                  className="px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50">
-                  {purchasing ? "..." : "Download HD"}
+                  className="btn-pri justify-center disabled:opacity-50">
+                  <Download className="w-4 h-4" aria-hidden="true" />
+                  {purchasing ? "…" : "Download HD"}
                 </button>
               ) : selectedPhoto.priceInCents === 0 ? (
                 <button onClick={() => handleFreeDownload(selectedPhoto)} disabled={purchasing}
-                  className="px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-500 transition-colors disabled:opacity-50">
-                  {purchasing ? "..." : "Free Download"}
+                  className="btn-pri justify-center disabled:opacity-50">
+                  <Download className="w-4 h-4" aria-hidden="true" />
+                  {purchasing ? "…" : "Free download"}
                 </button>
               ) : (
                 <button onClick={() => handlePurchase(selectedPhoto)} disabled={purchasing}
-                  className="px-6 py-2.5 rounded-lg bg-ocean-600 text-white hover:bg-ocean-500 transition-colors disabled:opacity-50">
-                  {purchasing ? "Processing..." : "Buy & Download"}
+                  className="btn-rec justify-center disabled:opacity-50">
+                  {purchasing ? "Processing…" : "Buy & download"}
+                  {!purchasing && <ArrowRight className="w-4 h-4" aria-hidden="true" />}
                 </button>
               )}
             </div>
-            <div className="px-4 pb-3">
+            <div className="px-4 sm:px-5 pb-4 border-t border-line pt-3">
               <button onClick={() => { openReport(selectedPhoto.id); setSelectedPhoto(null); }}
-                className="text-xs text-white/20 hover:text-white/40 transition-colors">
-                Report this photo
+                className="inline-flex items-center gap-1.5 text-xs text-dim hover:text-bone transition-colors">
+                <Flag className="w-3.5 h-3.5" aria-hidden="true" /> Report this photo
               </button>
             </div>
           </div>
@@ -541,26 +614,28 @@ export default function PhotoGrid({
 
       {/* Report modal */}
       {reportingPhoto && (
-        <div className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4" onClick={() => setReportingPhoto(null)}>
-          <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-sm p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 bg-ink/90 z-50 flex items-end sm:items-center justify-center sm:p-4" onClick={() => setReportingPhoto(null)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="report-title"
+            className="bg-char-2 border border-line w-full sm:max-w-sm p-6 pb-8 sm:pb-6" onClick={(e) => e.stopPropagation()}>
             {reportSent ? (
-              <div className="text-center py-4">
-                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-green-400 text-xl">✓</span>
+              <div className="text-center py-4" role="status">
+                <div className="w-12 h-12 grid place-items-center mx-auto mb-4 bg-ink">
+                  <Check className="w-6 h-6 text-bone" strokeWidth={2.5} aria-hidden="true" />
                 </div>
-                <p className="text-white font-medium mb-1">Report submitted</p>
-                <p className="text-sm text-white/40 mb-4">We&apos;ll review this within 48 hours and notify you by email.</p>
-                <button onClick={() => setReportingPhoto(null)} className="px-4 py-2 bg-ocean-500 text-white rounded-lg text-sm">Close</button>
+                <p id="report-title" className="disp text-[24px] text-bone mb-2">Report submitted</p>
+                <p className="text-sm text-mute mb-6">We&apos;ll review this within 48 hours and notify you by email.</p>
+                <button onClick={() => setReportingPhoto(null)} className="btn-pri !py-3 !text-sm">Close</button>
               </div>
             ) : (
               <>
-                <h2 className="text-lg font-bold text-white mb-1">Report Photo</h2>
-                <p className="text-sm text-white/40 mb-4">Request removal of this photo from the platform.</p>
-                <div className="space-y-3">
+                <p className="hud mb-2">Removal request</p>
+                <h2 id="report-title" className="disp text-[26px] text-bone mb-2">Report photo<span className="text-rec">.</span></h2>
+                <p className="text-sm text-mute mb-5">Request removal of this photo from the platform.</p>
+                <div className="space-y-4">
                   <div>
-                    <label className="block text-xs text-white/40 mb-1">Reason</label>
-                    <select value={reportReason} onChange={(e) => setReportReason(e.target.value)}
-                      className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm">
+                    <label htmlFor="report-reason" className="hud block mb-2">Reason</label>
+                    <select id="report-reason" value={reportReason} onChange={(e) => setReportReason(e.target.value)}
+                      className="w-full bg-ink border border-line text-bone px-3.5 py-3 text-sm focus:border-bone focus:outline-none">
                       <option value="thats_me">That&apos;s me — I want my photo removed</option>
                       <option value="inappropriate">Inappropriate content</option>
                       <option value="copyright">Copyright violation</option>
@@ -568,20 +643,20 @@ export default function PhotoGrid({
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs text-white/40 mb-1">Your email</label>
-                    <input type="email" value={reportEmail} onChange={(e) => setReportEmail(e.target.value)} required
-                      placeholder="your@email.com" className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-white/25" />
+                    <label htmlFor="report-email" className="hud block mb-2">Your email</label>
+                    <input id="report-email" type="email" value={reportEmail} onChange={(e) => setReportEmail(e.target.value)} required
+                      placeholder="your@email.com" className="w-full bg-ink border border-line text-bone placeholder:text-dim px-3.5 py-3 text-sm focus:border-bone focus:outline-none" />
                   </div>
                   <div>
-                    <label className="block text-xs text-white/40 mb-1">Details (optional)</label>
-                    <textarea value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} rows={2}
-                      placeholder="Any additional context..." className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm placeholder-white/25" />
+                    <label htmlFor="report-details" className="hud block mb-2">Details (optional)</label>
+                    <textarea id="report-details" value={reportDetails} onChange={(e) => setReportDetails(e.target.value)} rows={2}
+                      placeholder="Any additional context…" className="w-full bg-ink border border-line text-bone placeholder:text-dim px-3.5 py-3 text-sm focus:border-bone focus:outline-none" />
                   </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => setReportingPhoto(null)} className="flex-1 py-2 border border-white/10 text-white/50 rounded-lg text-sm hover:bg-white/5">Cancel</button>
+                  <div className="flex gap-2 pt-1">
+                    <button onClick={() => setReportingPhoto(null)} className="btn-sec flex-1 justify-center !py-3 !text-sm">Cancel</button>
                     <button onClick={handleReport} disabled={reportLoading || !reportEmail}
-                      className="flex-1 py-2 bg-red-600 text-white rounded-lg text-sm hover:bg-red-500 disabled:opacity-40">
-                      {reportLoading ? "..." : "Submit Report"}
+                      className="btn-rec flex-1 justify-center !py-3 !text-sm disabled:opacity-50">
+                      {reportLoading ? "Sending…" : "Submit report"}
                     </button>
                   </div>
                 </div>
