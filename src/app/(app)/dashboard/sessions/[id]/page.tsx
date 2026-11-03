@@ -4,6 +4,7 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { toastError } from "@/lib/toast";
 import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin } from "lucide-react";
 
 interface Photo {
@@ -77,18 +78,38 @@ export default function ManagePhotosPage() {
     if (ids.length === 0) return;
     if (!confirm(`Delete ${ids.length} photo${ids.length > 1 ? "s" : ""}? This cannot be undone.`)) return;
     setDeleting(true);
+    const deleted: string[] = [];
+    let blocked = 0;
+    let lastError = "";
     for (const id of ids) {
-      await fetch(`/api/photos/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/photos/${id}`, { method: "DELETE" });
+      if (res.ok) deleted.push(id);
+      else {
+        blocked++;
+        lastError = (await res.json().catch(() => ({}))).error || "";
+      }
     }
-    setPhotos((prev) => prev.filter((p) => !ids.includes(p.id)));
-    setSelected(new Set());
+    setPhotos((prev) => prev.filter((p) => !deleted.includes(p.id)));
+    setSelected(new Set(ids.filter((id) => !deleted.includes(id))));
     setDeleting(false);
-    if (session) setSession({ ...session, photoCount: session.photoCount - ids.length });
+    if (session) setSession({ ...session, photoCount: session.photoCount - deleted.length });
+    if (blocked > 0) {
+      toastError(
+        blocked === 1 && lastError
+          ? lastError
+          : `${blocked} photos weren't deleted — they were bought, and buyers keep access. Unpublish the session to hide them.`
+      );
+    }
   }
 
   async function handleDeleteOne(id: string) {
     if (!confirm("Delete this photo?")) return;
-    await fetch(`/api/photos/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/photos/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toastError(data.error || "Couldn't delete the photo");
+      return;
+    }
     setPhotos((prev) => prev.filter((p) => p.id !== id));
     setSelected((prev) => { const n = new Set(prev); n.delete(id); return n; });
     if (session) setSession({ ...session, photoCount: session.photoCount - 1 });
