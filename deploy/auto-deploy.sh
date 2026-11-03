@@ -1,0 +1,66 @@
+#!/bin/bash
+# CatchMyAction auto-deploy: poll origin/main, build in a separate checkout, health-check, swap, auto-rollback.
+# Installed on the EC2 host at ~/bin/auto-deploy.sh, run every 5 min by systemd user timer cma-autodeploy.timer.
+# Never touches postgres or the unrelated cafe-manager stack.
+set -uo pipefail
+
+APP=$HOME/app                      # live checkout (+ untracked .env.production, docker-compose.production.yml, .env)
+BUILD=$HOME/app-build              # separate checkout used only for building
+COMPOSE="docker-compose -f docker-compose.production.yml"
+LOG=$HOME/deploy.log
+FAILED=$HOME/.deploy-failed-sha
+
+log() { echo "$(date -u +%FT%TZ) $*" >> "$LOG"; }
+
+exec 9>"$HOME/.deploy.lock"
+flock -n 9 || exit 0
+
+cd "$APP" || exit 1
+git fetch -q origin main || { log "fetch failed"; exit 1; }
+LIVE=$(git rev-parse HEAD)
+TARGET=$(git rev-parse origin/main)
+[ "$LIVE" = "$TARGET" ] && exit 0
+[ -f "$FAILED" ] && [ "$(cat "$FAILED")" = "$TARGET" ] && exit 0   # already failed this commit; wait for a new one
+
+SHORT_LIVE=${LIVE:0:7}; SHORT_T=${TARGET:0:7}
+log "deploy start $SHORT_LIVE -> $SHORT_T"
+
+# 1. Build the candidate image from a separate checkout (live tree untouched on failure)
+[ -d "$BUILD/.git" ] || git clone -q https://github.com/igerasym/CatchMyAction.git "$BUILD"
+git -C "$BUILD" fetch -q origin main && git -C "$BUILD" checkout -q --detach "$TARGET" || { log "checkout failed"; exit 1; }
+set -a; . "$APP/.env"; set +a      # build-time public config (NEXT_PUBLIC_CARTO_KEY)
+if ! docker build -q --build-arg NEXT_PUBLIC_CARTO_KEY="${NEXT_PUBLIC_CARTO_KEY:-}" -t app-app:candidate "$BUILD" >> "$HOME/deploy-build.log" 2>&1; then
+  log "BUILD FAILED for $SHORT_T — prod stays on $SHORT_LIVE"
+  echo "$TARGET" > "$FAILED"
+  exit 1
+fi
+
+# 2. Swap: keep a rollback tag, point latest at the candidate, restart app only
+docker tag app-app:latest "app-app:rollback-$SHORT_LIVE"
+docker tag app-app:candidate app-app:latest
+git merge --ff-only -q "$TARGET" || { log "ff-merge failed (local changes on host?)"; }
+$COMPOSE up -d --no-deps app >> "$HOME/deploy-build.log" 2>&1
+
+# 3. Health check, auto-rollback on failure
+ok=0
+for i in $(seq 1 30); do
+  h=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || true)
+  a=$(curl -s -o /dev/null -w "%{http_code}" "http://localhost:3000/api/sessions?limit=1" || true)
+  [ "$h" = 200 ] && [ "$a" = 200 ] && { ok=1; break; }
+  sleep 3
+done
+if [ "$ok" != 1 ]; then
+  log "HEALTH FAILED for $SHORT_T (home=$h api=$a) — rolling back to $SHORT_LIVE"
+  docker tag "app-app:rollback-$SHORT_LIVE" app-app:latest
+  git checkout -q --detach "$LIVE"
+  $COMPOSE up -d --no-deps app >> "$HOME/deploy-build.log" 2>&1
+  echo "$TARGET" > "$FAILED"
+  exit 1
+fi
+log "deploy OK $SHORT_T"
+rm -f "$FAILED"
+
+# 4. Housekeeping: keep the 3 newest rollback tags, drop dangling layers
+docker images app-app --format '{{.Tag}} {{.CreatedAt}}' | grep '^rollback-' | sort -k2,3 -r | tail -n +4 | awk '{print $1}' \
+  | while read -r t; do docker rmi "app-app:$t" >/dev/null 2>&1; done
+docker image prune -f >/dev/null 2>&1
