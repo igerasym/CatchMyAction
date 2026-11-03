@@ -55,7 +55,7 @@ export default function PhotoGrid({
   const [purchasedIds, setPurchasedIds] = useState<Set<string>>(new Set());
   const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
-  const [purchaseSuccess, setPurchaseSuccess] = useState<{ count: number; downloadUrl?: string } | null>(null);
+  const [purchaseSuccess, setPurchaseSuccess] = useState<{ count: number; downloadUrl?: string; downloaded?: boolean } | null>(null);
   // Post-checkout status: confirming → success | slow (webhook late) · cancelled (came back from Stripe without paying)
   const [payState, setPayState] = useState<"confirming" | "slow" | "cancelled" | null>(null);
   const [reportingPhoto, setReportingPhoto] = useState<string | null>(null);
@@ -321,6 +321,10 @@ export default function PhotoGrid({
           return next;
         });
         setCartIds(new Set());
+        clearSavedCart();
+        // Free photos (or already owned): actually download them, not just mark them as owned
+        const done = await downloadPhotos(toBuy);
+        setPurchaseSuccess({ count: done, downloaded: true });
       } else {
         toastError(data.error || "Purchase failed");
       }
@@ -329,6 +333,28 @@ export default function PhotoGrid({
     } finally {
       setBulkBuying(false);
     }
+  }
+
+  /** Download owned photos one after another (browsers may ask once to allow multiple downloads). */
+  async function downloadPhotos(ids: string[]): Promise<number> {
+    let done = 0;
+    for (const id of ids) {
+      try {
+        const res = await fetch(`/api/photos/${id}/download`);
+        const d = await res.json();
+        if (!d.downloadUrl) continue;
+        const a = document.createElement("a");
+        a.href = d.downloadUrl;
+        a.download = "";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        done++;
+        await new Promise((r) => setTimeout(r, 700));
+      } catch {}
+    }
+    if (done < ids.length) toastError(`${ids.length - done} photo(s) didn't download — get them in My Actions.`);
+    return done;
   }
 
   function toggleCart(photoId: string) {
@@ -418,18 +444,22 @@ export default function PhotoGrid({
             </div>
             <div>
               <p className="disp text-[22px] text-bone">
-                {purchaseSuccess.count === 1 ? "Photo purchased" : `${purchaseSuccess.count} photos purchased`}
+                {purchaseSuccess.downloaded
+                  ? `${purchaseSuccess.count} ${purchaseSuccess.count === 1 ? "photo" : "photos"} downloaded`
+                  : purchaseSuccess.count === 1 ? "Photo purchased" : `${purchaseSuccess.count} photos purchased`}
                 <span className="text-rec">.</span>
               </p>
               <p className="text-sm text-mute mt-1">
-                {purchaseSuccess.downloadUrl ? "Your download should start automatically." : "Photos are now in My Actions."}
+                {purchaseSuccess.downloaded
+                  ? "Check your downloads folder. They're also saved in My Actions."
+                  : purchaseSuccess.downloadUrl ? "Your download should start automatically." : "Photos are now in My Actions."}
               </p>
             </div>
           </div>
           <div className="flex gap-2 shrink-0">
             {!purchaseSuccess.downloadUrl && (
               <a href="/my-photos" className="btn-pri !py-2.5 !px-4 !text-sm !gap-2">
-                <Download className="w-4 h-4" aria-hidden="true" /> Download in My Actions
+                <Download className="w-4 h-4" aria-hidden="true" /> {purchaseSuccess.downloaded ? "Open My Actions" : "Download in My Actions"}
               </a>
             )}
             {purchaseSuccess.downloadUrl && (
