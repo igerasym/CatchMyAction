@@ -13,10 +13,10 @@ export async function POST(
 
   const photo = await prisma.photo.findUnique({
     where: { id: params.id },
-    include: { session: { select: { pricePerPhoto: true, title: true } } },
+    include: { session: { select: { pricePerPhoto: true, title: true, published: true, photographerId: true } } },
   });
 
-  if (!photo) {
+  if (!photo || (!photo.session.published && photo.session.photographerId !== user.id)) {
     return NextResponse.json({ error: "Photo not found" }, { status: 404 });
   }
 

@@ -28,9 +28,12 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
 
   const title = `${session.title} — ${session.location}`;
   const description = `${session.photoCount} photos by ${session.photographer.name} · ${format(new Date(session.date), "MMM d, yyyy")} · ${session.location}`;
-  const imageUrl = session.photos[0] ? getPreviewUrl(session.photos[0].previewKey) : `${BASE_URL}/hero-bg.jpg`;
+  // Drafts don't leak a photo into link previews; they're also kept out of search engines
+  const imageUrl = session.published && session.photos[0] ? getPreviewUrl(session.photos[0].previewKey) : `${BASE_URL}/hero-bg.jpg`;
 
   return {
+    alternates: { canonical: `${BASE_URL}/sessions/${session.id}` },
+    ...(session.published ? {} : { robots: { index: false, follow: false } }),
     title,
     description,
     openGraph: {
@@ -75,9 +78,13 @@ export default async function SessionPage({
     }).catch(() => {});
   }
 
+  // Draft sessions: the public gets the "coming soon" page (QR shared before upload); owner sees photos
+  const isOwner = viewerId === session.photographerId;
+  const showPhotos = session.published || isOwner;
+
   // First page of photos (server-side)
   const photosRaw = await prisma.photo.findMany({
-    where: { sessionId: params.id },
+    where: { sessionId: params.id, ...(showPhotos ? {} : { id: "__none__" }) },
     select: {
       id: true,
       previewKey: true,
@@ -219,7 +226,7 @@ export default async function SessionPage({
         </div>
 
         <div className="mt-8">
-          {session.photoCount === 0 ? (
+          {session.photoCount === 0 || !showPhotos ? (
             <ComingSoon sessionId={session.id} />
           ) : (
             <PhotoGrid

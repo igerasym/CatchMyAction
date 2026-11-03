@@ -28,3 +28,9 @@ export async function verifySessionOwner(sessionId: string, userId: string): Pro
   });
   return session?.photographerId === userId;
 }
+
+/** Signed-in user id, or null for anonymous visitors (for routes that are public but owner-aware). */
+export async function getViewerId(): Promise<string | null> {
+  const session = await getServerSession(authOptions);
+  return ((session?.user as { id?: string } | undefined)?.id) ?? null;
+}

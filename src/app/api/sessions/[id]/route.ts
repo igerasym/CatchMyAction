@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
+import { getAuthUser, getViewerId, verifySessionOwner } from "@/lib/auth-helpers";
 import { deleteFaceCollection } from "@/lib/rekognition";
 import { sendSessionNotification } from "@/lib/email";
 import { geocodeLocation } from "@/lib/geocode";
@@ -25,6 +25,10 @@ export async function GET(
 
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
+  }
+  // Drafts: the public sees the session (QR "coming soon" page) but not its photos; the owner sees everything
+  if (!session.published && (await getViewerId()) !== session.photographerId) {
+    return NextResponse.json({ ...session, photos: [] });
   }
   return NextResponse.json(session);
 }
