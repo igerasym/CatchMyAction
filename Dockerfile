@@ -20,6 +20,9 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 # Dummy DATABASE_URL for build (Prisma needs it for static page generation)
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+# Public client-side config, inlined into the JS bundle at build time
+ARG NEXT_PUBLIC_CARTO_KEY=""
+ENV NEXT_PUBLIC_CARTO_KEY=$NEXT_PUBLIC_CARTO_KEY
 RUN npm run build
 
 # Production image

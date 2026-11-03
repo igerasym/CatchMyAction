@@ -35,9 +35,49 @@ Production runs on a single EC2 host. This file documents what exists and who/wh
 - **Rotation / removal:** IAM → Users → kiro-agent → Security credentials → deactivate/delete the key.
   Deleting the user removes all agent access.
 
+## Deploy (current manual process)
+```bash
+ssh ec2-user@52.39.186.224
+cd ~/app
+docker tag app-app:latest app-app:rollback-$(git rev-parse --short HEAD)   # rollback point
+git pull --ff-only origin main
+docker-compose -f docker-compose.production.yml build app                  # ~6-7 min on t4g.small
+docker-compose -f docker-compose.production.yml up -d --no-deps app        # only app; never touch postgres/cafe-manager
+curl -s -o /dev/null -w "%{http_code}\n" http://localhost:3000/
+```
+Rollback: `docker tag app-app:rollback-<sha> app-app:latest && docker-compose -f docker-compose.production.yml up -d --no-deps app`.
+
+### Build-time (public) config
+`NEXT_PUBLIC_*` values used in client code are inlined during `next build`, and `.env.*` is excluded from the
+Docker context, so they are passed as build args: `~/app/.env` (compose interpolation, chmod 600) holds
+`NEXT_PUBLIC_CARTO_KEY=...`, and `docker-compose.production.yml` → `app.build.args.NEXT_PUBLIC_CARTO_KEY: ${NEXT_PUBLIC_CARTO_KEY}`.
+- CARTO basemaps key: https://carto.com/basemaps/apikey (free commercial tier up to 1M tile requests/month;
+  keep it restricted to `catchmyactions.com` in the CARTO dashboard). Without it maps show "API KEY REQUIRED".
+
+### Deploy log
+| Date | Commit | By | Notes |
+|------|--------|----|-------|
+| 2026-11-03 | `b5726db` (PR #1) | kiro-agent | Phase 0 hotfixes. First deploy since 2026-03-28. Rollback image `app-app:rollback-757cc47`. |
+
+## Agent SSH access
+- Public key `kiro-agent-deploy` (ed25519, `SHA256:1YndMGkhsqCxN8Q20QbXcU12vyH47+wH1sECP5dElqM`) is in
+  `~ec2-user/.ssh/authorized_keys`. Private key lives only in the agent's session scratch dir.
+- Revoke: `sed -i '/kiro-agent-deploy/d' ~/.ssh/authorized_keys` on the host.
+
+## Backups
+- `~/bin/backup-db.sh`: `pg_dump` → `~/backups/catchmyaction-<ts>.sql.gz`, kept 14 days.
+- Runs daily 03:00 UTC via systemd **user** timer `cma-backup.timer` (linger enabled for `ec2-user`).
+  Check: `systemctl --user list-timers`; logs: `journalctl --user -u cma-backup`.
+- Off-host copy: if `~/bin/backup-offsite.sh` exists it is called with the dump path (owner-installed, uploads to
+  `s3://catchmyaction-originals-us-west-2/_backups/db/`).
+- Restore: `zcat <dump> | docker exec -i app-postgres-1 psql -U catchmyaction -d catchmyaction`.
+
 ## Known gaps (see `docs/review/REFACTORING_PLAN.md`)
+- ~~Disk ~90% full~~ — dangling images pruned 2026-11-03 (90% → 54%).
+- ~~Postgres published on 0.0.0.0:5432~~ — bound to `127.0.0.1:5432` 2026-11-03.
+- ~~Leaked DB password / guessable NEXTAUTH_SECRET~~ — both rotated 2026-11-03 (all sessions logged out).
+  Pre-rotation config copies `~/app/*.bak.20261103132327` contain the old values → delete after verifying.
 - Root user has an access key → delete it.
-- No backups (no EBS snapshots / DLM, no `pg_dump`).
-- SG exposes 22 and 3000 to `0.0.0.0/0`; Postgres container publishes `0.0.0.0:5432` (blocked only by SG).
+- No EBS snapshots / DLM policy yet.
+- SG exposes 22 and 3000 to `0.0.0.0/0`.
 - Cloudflare → origin is plain HTTP (no 443 on nginx).
-- The prod DB password was committed in git history before 2026-11-03 → rotate it on the server.
