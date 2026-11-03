@@ -19,25 +19,23 @@ export default function PurchaseSuccessPage() {
 
   if (status === "loading") {
     return (
-      <div className="text-center py-20">
-        <p className="text-gray-500">Confirming your purchase...</p>
+      <div className="text-center py-20" role="status">
+        <p className="hud">Confirming your purchase...</p>
       </div>
     );
   }
 
   if (status === "error") {
     return (
-      <div className="text-center py-20">
-        <h1 className="text-2xl font-bold text-red-600 mb-2">
-          Something went wrong
+      <div className="max-w-xl mx-auto py-16 md:py-24">
+        <p className="hud mb-5"><span className="text-rec">ERR</span> / Purchase</p>
+        <h1 className="disp text-[clamp(34px,5vw,56px)] text-bone mb-4">
+          Something went wrong<span className="text-rec">.</span>
         </h1>
-        <p className="text-gray-500">
+        <p className="text-mute">
           We couldn&apos;t confirm your purchase. Please contact support.
         </p>
-        <a
-          href="/"
-          className="inline-block mt-4 px-6 py-2 bg-ocean-600 text-white rounded-lg"
-        >
+        <a href="/" className="btn-sec mt-8">
           Back to Home
         </a>
       </div>
@@ -45,21 +43,23 @@ export default function PurchaseSuccessPage() {
   }
 
   return (
-    <div className="text-center py-20">
-      <div className="text-5xl mb-4">🎉</div>
-      <h1 className="text-2xl font-bold mb-2">Purchase Complete</h1>
-      <p className="text-gray-500 mb-6">
-        Your high-resolution photo is ready for download.
-      </p>
-      <p className="text-sm text-gray-400 mb-6">
-        You can download your photo from the session page (up to 5 times).
-      </p>
-      <a
-        href="/"
-        className="inline-block px-6 py-2 bg-ocean-600 text-white rounded-lg hover:bg-ocean-700"
-      >
-        Browse More Sessions
-      </a>
+    <div className="max-w-xl mx-auto py-16 md:py-24">
+      <div className="relative bg-char-2 border border-line px-7 py-10 sm:px-10">
+        <div className="brk brk-rec" aria-hidden="true" />
+        <p className="hud mb-5 flex items-center gap-2"><span className="rec-dot" aria-hidden="true" /> Purchase / Complete</p>
+        <h1 className="disp text-[clamp(34px,5vw,56px)] text-bone mb-4">
+          Purchase complete<span className="text-rec">.</span>
+        </h1>
+        <p className="text-mute mb-2">
+          Your high-resolution photo is ready for download.
+        </p>
+        <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-dim mb-8">
+          You can download your photo from the session page (up to 5 times).
+        </p>
+        <a href="/" className="btn-pri">
+          Browse more sessions
+        </a>
+      </div>
     </div>
   );
 }

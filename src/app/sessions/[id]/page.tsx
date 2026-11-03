@@ -108,50 +108,133 @@ export default async function SessionPage({
     thumbnailUrl: getPreviewUrl(p.thumbnailKey),
   }));
 
+  const coverUrl = photos[0]?.previewUrl;
+  const sessionDate = new Date(session.date);
+  const photographerInitials = session.photographer.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((w) => w[0]?.toUpperCase())
+    .join("");
+
   return (
-    <div>
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-white">{session.title}</h1>
-        <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-white/40 mt-1">
-          <span><IconPin /> {session.location}</span>
-          <span>
-            <IconCalendar /> {format(new Date(session.date), "MMMM d, yyyy")} ·{" "}
-            {session.startTime}–{session.endTime}
+    <main className="pb-28">
+      {/* ── Cover: full-bleed photo inside the viewfinder ── */}
+      <header className="relative bg-ink overflow-hidden min-h-[380px] sm:min-h-[460px] flex flex-col justify-end">
+        {coverUrl && (
+          <img
+            src={coverUrl}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+        <div
+          aria-hidden="true"
+          className="absolute inset-0"
+          style={{
+            background:
+              "linear-gradient(0deg, #1a1b1e 0%, rgba(26,27,30,0.85) 30%, rgba(26,27,30,0) 70%), linear-gradient(180deg, rgba(18,19,21,0.6), transparent 30%)",
+          }}
+        />
+        <div aria-hidden="true" className="absolute inset-3 sm:inset-5">
+          <div className="brk brk-soft brk-sm" />
+        </div>
+
+        {/* HUD strip on top of the cover */}
+        <div className="absolute top-6 left-6 right-6 sm:top-9 sm:left-9 sm:right-9 flex justify-between font-mono text-[10.5px] tracking-[0.12em] uppercase text-bone">
+          <span className="flex items-center gap-2">
+            <span className="rec-dot" aria-hidden="true" />
+            REC {session.startTime}–{session.endTime}
           </span>
-          <span><IconCamera /> {session.photoCount} photos</span>
+          <span className="text-mute">{session.photoCount} frames</span>
+        </div>
+
+        <div className="relative max-w-5xl w-full mx-auto px-6 sm:px-9 pb-7 pt-24">
+          <p className="hud text-mute mb-3 flex items-center gap-1.5">
+            <IconPin className="w-3.5 h-3.5" />
+            {session.location}
+          </p>
+          <h1 className="disp text-bone text-[clamp(40px,11vw,84px)]">
+            {session.title}
+            <span className="text-rec">.</span>
+          </h1>
+          <p className="mt-4 font-mono text-[12.5px] tracking-[0.08em] uppercase text-mute flex flex-wrap gap-x-4 gap-y-1">
+            <span className="inline-flex items-center gap-1.5">
+              <IconCalendar className="w-3.5 h-3.5" />
+              <time dateTime={sessionDate.toISOString()}>{format(sessionDate, "EEE d MMM yyyy")}</time>
+            </span>
+            <span>
+              {session.startTime}–{session.endTime}
+            </span>
+          </p>
+        </div>
+      </header>
+
+      <div className="max-w-5xl mx-auto px-5 sm:px-9">
+        {/* Photographer row */}
+        <div className="flex items-center gap-3 py-4 border-b border-line">
+          {session.photographer.avatarUrl ? (
+            <img
+              src={session.photographer.avatarUrl}
+              alt=""
+              className="w-10 h-10 rounded-full object-cover bg-char-3"
+            />
+          ) : (
+            <div
+              aria-hidden="true"
+              className="w-10 h-10 rounded-full bg-char-3 grid place-items-center text-[13px] font-bold text-bone"
+            >
+              {photographerInitials}
+            </div>
+          )}
+          <div className="leading-tight min-w-0">
+            <p className="font-mono text-[10.5px] tracking-[0.12em] uppercase text-dim">Shot by</p>
+            <p className="text-[15px] font-semibold text-bone truncate">{session.photographer.name}</p>
+          </div>
           <Link
             href={`/photographer/${session.photographer.id}`}
-            className="text-ocean-400 hover:underline"
+            className="ml-auto text-[13px] font-semibold text-bone underline underline-offset-4 decoration-line hover:text-rec transition-colors"
           >
-            by {session.photographer.name}
+            Profile
           </Link>
+          <span className="hidden sm:inline-flex items-center gap-1.5 hud ml-4">
+            <IconCamera className="w-3.5 h-3.5" />
+            {session.photoCount} photos
+          </span>
         </div>
-        {session.description && (
-          <p className="text-white/40 mt-2">{session.description}</p>
-        )}
-        <Conditions
-          waveHeight={(session as any).waveHeight}
-          wavePeriod={(session as any).wavePeriod}
-          waveDirection={(session as any).waveDirection}
-          windSpeed={(session as any).windSpeed}
-          windDirection={(session as any).windDirection}
-          waterTemp={(session as any).waterTemp}
-        />
-      </div>
 
-      {session.photoCount === 0 ? (
-        <ComingSoon sessionId={session.id} />
-      ) : (
-        <PhotoGrid
-          sessionId={session.id}
-          previewBaseUrl={previewBaseUrl}
-          initialPhotos={photos}
-          initialCursor={nextCursor}
-          purchasedPhotoId={searchParams.purchased}
-          bulkPurchasedIds={searchParams.bulkPurchased}
-          autoFindMe={searchParams.findme === "1"}
-        />
-      )}
-    </div>
+        {session.description && (
+          <p className="text-mute text-[15px] leading-relaxed mt-5 max-w-2xl">{session.description}</p>
+        )}
+
+        <div className="mt-6 empty:hidden">
+          <Conditions
+            waveHeight={(session as any).waveHeight}
+            wavePeriod={(session as any).wavePeriod}
+            waveDirection={(session as any).waveDirection}
+            windSpeed={(session as any).windSpeed}
+            windDirection={(session as any).windDirection}
+            waterTemp={(session as any).waterTemp}
+          />
+        </div>
+
+        <div className="mt-8">
+          {session.photoCount === 0 ? (
+            <ComingSoon sessionId={session.id} />
+          ) : (
+            <PhotoGrid
+              sessionId={session.id}
+              sessionTitle={session.title}
+              previewBaseUrl={previewBaseUrl}
+              initialPhotos={photos}
+              initialCursor={nextCursor}
+              purchasedPhotoId={searchParams.purchased}
+              bulkPurchasedIds={searchParams.bulkPurchased}
+              autoFindMe={searchParams.findme === "1"}
+            />
+          )}
+        </div>
+      </div>
+    </main>
   );
 }

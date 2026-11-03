@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { Send, Heart, Camera, Waves } from "lucide-react";
 import { toastSuccess, toastError } from "@/lib/toast";
+import { INPUT, LABEL, LINK } from "../ui";
 
 export default function ContactPage() {
   const [name, setName] = useState("");
@@ -35,64 +36,60 @@ export default function ContactPage() {
     }
   }
 
-  const inp = "w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent placeholder-white/20 transition-colors";
+  const inp = INPUT;
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-12 min-h-[80vh]">
+    <div className="max-w-2xl mx-auto py-12 md:py-16 min-h-[80vh]">
       {/* Header — built by riders */}
-      <div className="text-center mb-12">
-        <div className="flex justify-center gap-3 mb-6">
-          <div className="w-10 h-10 rounded-xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
-            <Waves className="w-5 h-5 text-ocean-400" />
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
-            <Camera className="w-5 h-5 text-ocean-400" />
-          </div>
-          <div className="w-10 h-10 rounded-xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
-            <Heart className="w-5 h-5 text-ocean-400" />
-          </div>
+      <div className="mb-12">
+        <div className="flex gap-2 mb-8" aria-hidden="true">
+          {[Waves, Camera, Heart].map((Icon, i) => (
+            <div key={i} className="w-10 h-10 border border-line bg-char-2 flex items-center justify-center">
+              <Icon className="w-5 h-5 text-bone" />
+            </div>
+          ))}
         </div>
-        <h1 className="text-3xl font-bold text-white mb-3">Get in Touch</h1>
-        <p className="text-white/50 max-w-md mx-auto leading-relaxed">
-          Built by riders, for riders. We're a small team of action sports enthusiasts 
+        <p className="hud mb-5">Contact / Say hi</p>
+        <h1 className="disp text-[clamp(34px,5vw,60px)] text-bone mb-4">Get in touch<span className="text-rec">.</span></h1>
+        <p className="text-mute max-w-md leading-relaxed">
+          Built by riders, for riders. We&apos;re a small team of action sports enthusiasts
           who believe every moment deserves to be captured and owned.
         </p>
-        <p className="text-white/30 text-sm mt-3">
-          Got a question, feedback, or just want to say hi? We'd love to hear from you.
+        <p className="text-dim text-sm mt-3">
+          Got a question, feedback, or just want to say hi? We&apos;d love to hear from you.
         </p>
       </div>
 
       {sent ? (
-        <div className="text-center py-16">
-          <div className="w-16 h-16 rounded-full bg-green-500/10 border border-green-500/20 flex items-center justify-center mx-auto mb-4">
-            <Send className="w-7 h-7 text-green-400" />
-          </div>
-          <h2 className="text-xl font-bold text-white mb-2">Message Sent!</h2>
-          <p className="text-white/40 mb-6">We'll get back to you as soon as possible.</p>
+        <div className="relative bg-char-2 border border-line px-7 py-12" role="status">
+          <div className="brk brk-sm" aria-hidden="true" />
+          <Send className="w-7 h-7 text-rec mb-5" aria-hidden="true" />
+          <h2 className="text-xl font-bold text-bone mb-2">Message sent</h2>
+          <p className="text-mute mb-6">We&apos;ll get back to you as soon as possible.</p>
           <button onClick={() => { setSent(false); setName(""); setEmail(""); setSubject(""); setMessage(""); }}
-            className="text-ocean-400 hover:underline text-sm">Send another message</button>
+            className="btn-sec">Send another message</button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="space-y-5 border-t border-line pt-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <div>
-              <label className="block text-xs text-white/40 mb-1.5">Your Name</label>
-              <input value={name} onChange={(e) => setName(e.target.value)} required
+              <label htmlFor="contact-name" className={LABEL}>Your name</label>
+              <input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} required autoComplete="name"
                 placeholder="How should we call you?" className={inp} />
             </div>
             <div>
-              <label className="block text-xs text-white/40 mb-1.5">Email</label>
-              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} required
+              <label htmlFor="contact-email" className={LABEL}>Email</label>
+              <input id="contact-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required autoComplete="email"
                 placeholder="your@email.com" className={inp} />
             </div>
           </div>
           <div>
-            <label className="block text-xs text-white/40 mb-1.5">Subject</label>
-            <select value={subject} onChange={(e) => setSubject(e.target.value)} required className={inp}>
-              <option value="">What's this about?</option>
+            <label htmlFor="contact-subject" className={LABEL}>Subject</label>
+            <select id="contact-subject" value={subject} onChange={(e) => setSubject(e.target.value)} required className={inp}>
+              <option value="">What&apos;s this about?</option>
               <option value="general">General Question</option>
-              <option value="photographer">I'm a Photographer</option>
-              <option value="athlete">I'm an Athlete / Looking for Photos</option>
+              <option value="photographer">I&apos;m a Photographer</option>
+              <option value="athlete">I&apos;m an Athlete / Looking for Photos</option>
               <option value="bug">Bug Report</option>
               <option value="feature">Feature Request</option>
               <option value="partnership">Partnership / Business</option>
@@ -100,17 +97,16 @@ export default function ContactPage() {
             </select>
           </div>
           <div>
-            <label className="block text-xs text-white/40 mb-1.5">Message</label>
-            <textarea value={message} onChange={(e) => setMessage(e.target.value)} required
+            <label htmlFor="contact-message" className={LABEL}>Message</label>
+            <textarea id="contact-message" value={message} onChange={(e) => setMessage(e.target.value)} required
               rows={5} placeholder="Tell us what's on your mind..." className={inp} />
           </div>
-          <button type="submit" disabled={sending}
-            className="w-full py-3.5 bg-ocean-500 text-white font-medium rounded-xl hover:bg-ocean-400 disabled:opacity-50 transition-all flex items-center justify-center gap-2">
-            <Send className="w-4 h-4" />
-            {sending ? "Sending..." : "Send Message"}
+          <button type="submit" disabled={sending} className="btn-pri w-full justify-center disabled:opacity-50">
+            <Send className="w-4 h-4" aria-hidden="true" />
+            {sending ? "Sending..." : "Send message"}
           </button>
-          <p className="text-center text-[11px] text-white/20">
-            Or email us directly at <a href="mailto:hello@catchmyactions.com" className="text-ocean-400 hover:underline">hello@catchmyactions.com</a>
+          <p className="text-sm text-dim">
+            Or email us directly at <a href="mailto:hello@catchmyactions.com" className={LINK}>hello@catchmyactions.com</a>
           </p>
         </form>
       )}

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSession } from "next-auth/react";
+import { Camera, Check } from "lucide-react";
 
 export default function ComingSoon({ sessionId }: { sessionId: string }) {
   const { data: session } = useSession();
@@ -28,44 +29,55 @@ export default function ComingSoon({ sessionId }: { sessionId: string }) {
   }
 
   return (
-    <div className="text-center py-16">
-      <div className="flex justify-center mb-4">
-        <div className="w-16 h-16 rounded-2xl bg-ocean-500/10 border border-ocean-500/20 flex items-center justify-center">
-          <svg className="w-8 h-8 text-ocean-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <rect x="3" y="6" width="18" height="13" rx="2" /><circle cx="12" cy="13" r="3.5" /><path d="M8 6V5a1 1 0 011-1h6a1 1 0 011 1v1" />
-          </svg>
+    <section className="relative bg-char-2 px-6 py-12 sm:py-16 text-center">
+      <span aria-hidden="true" className="brk brk-soft brk-sm" />
+      <div className="flex justify-center mb-6">
+        <div className="relative w-16 h-16 grid place-items-center bg-ink">
+          <span aria-hidden="true" className="brk brk-sm" style={{ ["--l" as any]: "8px" }} />
+          <Camera className="w-7 h-7 text-bone" strokeWidth={1.6} aria-hidden="true" />
         </div>
       </div>
-      <h2 className="text-xl font-bold text-white mb-2">Photos Coming Soon</h2>
-      <p className="text-white/40 mb-8 max-w-md mx-auto">
+      <p className="hud mb-3 flex items-center justify-center gap-2">
+        <span className="rec-dot blink" aria-hidden="true" />
+        Processing
+      </p>
+      <h2 className="disp text-bone text-[clamp(30px,8vw,44px)] mb-3">
+        Photos coming soon<span className="text-rec">.</span>
+      </h2>
+      <p className="text-mute mb-8 max-w-md mx-auto">
         The photographer is still shooting or processing photos.
-        Get notified when they&apos;re ready!
+        Get notified when they&apos;re ready.
       </p>
 
       {subscribed ? (
-        <div className="inline-flex items-center gap-2 px-5 py-3 bg-green-500/10 border border-green-500/20 rounded-xl text-green-400 text-sm">
-          ✓ We&apos;ll email you when photos are uploaded
-        </div>
+        <p role="status" className="inline-flex items-center gap-2 px-5 py-3 bg-ink border border-line text-bone text-sm">
+          <Check className="w-4 h-4 text-rec" aria-hidden="true" />
+          We&apos;ll email you when photos are uploaded
+        </p>
       ) : (
-        <form onSubmit={handleNotify} className="max-w-sm mx-auto flex gap-2">
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            placeholder="your@email.com"
-            className="flex-1 px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent placeholder-white/25"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="px-5 py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors text-sm whitespace-nowrap"
-          >
-            {loading ? "..." : "Notify Me"}
-          </button>
+        <form onSubmit={handleNotify} className="max-w-sm mx-auto text-left">
+          <label htmlFor="notify-email" className="hud block mb-2">Your email</label>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input
+              id="notify-email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              placeholder="your@email.com"
+              className="flex-1 min-w-0 bg-ink border border-line text-bone placeholder:text-dim px-3.5 py-3 text-sm focus:border-bone focus:outline-none"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="btn-pri justify-center !py-3 !text-sm whitespace-nowrap disabled:opacity-50"
+            >
+              {loading ? "Sending…" : "Notify me"}
+            </button>
+          </div>
         </form>
       )}
-      {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-    </div>
+      {error && <p role="alert" className="text-rec text-sm mt-3">{error}</p>}
+    </section>
   );
 }

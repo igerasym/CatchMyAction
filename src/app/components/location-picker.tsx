@@ -20,12 +20,12 @@ export default function LocationPicker({ onSelect, onClose, locationName }: Prop
   useEffect(() => {
     if (!mapRef.current || mapInstance.current) return;
 
-    // Fix Leaflet default marker icon path issue
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
-      iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
-      shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+    // REC-red square pin (matches the explore-map markers) — no external marker images
+    const pinIcon = L.divIcon({
+      html: '<div style="width:18px;height:18px;background:#ff4433;box-shadow:0 0 0 4px rgba(255,68,51,.25),0 0 0 1px #121315"></div>',
+      className: "",
+      iconSize: L.point(18, 18),
+      iconAnchor: L.point(9, 9),
     });
 
     const map = L.map(mapRef.current, {
@@ -45,7 +45,7 @@ export default function LocationPicker({ onSelect, onClose, locationName }: Prop
       if (markerRef.current) {
         markerRef.current.setLatLng([lat, lng]);
       } else {
-        markerRef.current = L.marker([lat, lng]).addTo(map);
+        markerRef.current = L.marker([lat, lng], { icon: pinIcon }).addTo(map);
       }
     });
 
@@ -54,28 +54,29 @@ export default function LocationPicker({ onSelect, onClose, locationName }: Prop
   }, []);
 
   return (
-    <div className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4" onClick={onClose}>
-      <div className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
-        <div className="p-4 border-b border-white/5">
-          <h2 className="text-base font-bold text-white">Pin location on map</h2>
-          <p className="text-xs text-white/40 mt-0.5">
-            We couldn't find "{locationName}" automatically. Click the map to set the location.
+    <div className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4" onClick={onClose}>
+      <div role="dialog" aria-modal="true" aria-labelledby="location-picker-title"
+        className="relative bg-char-2 border border-line w-full max-w-lg overflow-hidden" onClick={(e) => e.stopPropagation()}>
+        <div className="p-5 border-b border-line">
+          <p className="hud mb-2">Location / Pin</p>
+          <h2 id="location-picker-title" className="disp text-2xl text-bone">Pin location on map<span className="text-rec">.</span></h2>
+          <p className="text-sm text-mute mt-2">
+            We couldn&apos;t find &ldquo;{locationName}&rdquo; automatically. Click the map to set the location.
           </p>
         </div>
-        <div ref={mapRef} style={{ height: 350 }} />
-        <div className="p-4 flex justify-between items-center">
-          <p className="text-xs text-white/30">
+        <div ref={mapRef} style={{ height: 350, background: "#121315" }} />
+        <div className="p-4 border-t border-line flex flex-wrap gap-3 justify-between items-center">
+          <p className="font-mono text-[11px] tracking-[0.12em] uppercase text-dim" aria-live="polite">
             {selected ? `${selected.lat.toFixed(4)}, ${selected.lng.toFixed(4)}` : "Click the map to place a pin"}
           </p>
           <div className="flex gap-2">
-            <button onClick={onClose}
-              className="px-4 py-2 text-sm text-white/50 hover:text-white/70 transition-colors">
+            <button onClick={onClose} className="btn-sec py-2.5 px-4 text-sm">
               Skip
             </button>
             <button onClick={() => selected && onSelect(selected.lat, selected.lng)}
               disabled={!selected}
-              className="px-4 py-2 bg-ocean-500 text-white text-sm rounded-lg hover:bg-ocean-400 disabled:opacity-30 transition-colors">
-              Confirm Location
+              className="btn-pri py-2.5 px-4 text-sm disabled:opacity-40 disabled:pointer-events-none">
+              Confirm location
             </button>
           </div>
         </div>

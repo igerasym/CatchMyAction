@@ -2,6 +2,8 @@
 
 import { useState, useRef, useEffect } from "react";
 import DateTimeInput from "@/app/components/date-time-input";
+import { MapPin } from "lucide-react";
+import { INPUT, LABEL } from "../ui";
 
 interface SpotSuggestion {
   label: string;
@@ -69,27 +71,31 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
     setSaving(false);
   }
 
-  const inputClass =
-    "w-full px-3 py-2 bg-white/5 border border-white/10 rounded-lg text-white text-sm focus:ring-2 focus:ring-ocean-500 focus:border-transparent";
+  const inputClass = INPUT;
 
   return (
     <div
-      className="fixed inset-0 bg-black/70 z-50 flex items-center justify-center p-4"
+      className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4"
       onClick={onClose}
     >
       <div
-        className="bg-[#1a1a2e] border border-white/10 rounded-2xl w-full max-w-md p-6"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="edit-session-title"
+        className="bg-char-2 border border-line w-full max-w-md p-6 max-h-[92vh] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-bold text-white mb-4">Edit Session</h2>
-        <form onSubmit={handleSubmit} className="space-y-3">
+        <p className="hud mb-3">Session / Edit</p>
+        <h2 id="edit-session-title" className="disp text-2xl text-bone mb-6">Edit session<span className="text-rec">.</span></h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-xs text-white/40 mb-1">Title</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
+            <label htmlFor="edit-title" className={LABEL}>Title</label>
+            <input id="edit-title" value={title} onChange={(e) => setTitle(e.target.value)} required className={inputClass} />
           </div>
           <div className="relative" ref={spotRef}>
-            <label className="block text-xs text-white/40 mb-1">Location</label>
+            <label htmlFor="edit-location" className={LABEL}>Location</label>
             <input
+              id="edit-location"
               value={location}
               onChange={(e) => { setLocation(e.target.value); fetchSpots(e.target.value); }}
               onFocus={() => location.length >= 2 && spotMatches.length > 0 && setShowSpots(true)}
@@ -98,17 +104,17 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
               className={inputClass}
             />
             {showSpots && spotMatches.length > 0 && (
-              <ul className="absolute top-full left-0 right-0 mt-1 bg-[#1a1a2e] border border-white/10 rounded-lg shadow-xl max-h-40 overflow-y-auto z-50">
+              <ul className="absolute top-full left-0 right-0 mt-px bg-ink border border-line shadow-xl max-h-40 overflow-y-auto z-50">
                 {spotMatches.map((s, i) => (
                   <li key={`${s.type}-${s.label}-${i}`}>
                     <button
                       type="button"
                       onClick={() => { setLocation(s.label); setShowSpots(false); }}
-                      className="w-full text-left px-3 py-1.5 text-sm hover:bg-white/10 transition-colors"
+                      className="w-full text-left px-3.5 py-2 text-sm border-b border-line last:border-b-0 hover:bg-char-2 focus:bg-char-2 focus:outline-none transition-colors flex items-center gap-2"
                     >
-                      <span className="text-ocean-400 mr-1">📍</span>
-                      <span className="text-white">{s.label}</span>
-                      {s.sub && <span className="text-white/30 ml-1 text-xs">{s.sub}</span>}
+                      <MapPin className="w-3.5 h-3.5 text-dim flex-shrink-0" aria-hidden="true" />
+                      <span className="text-bone">{s.label}</span>
+                      {s.sub && <span className="font-mono text-[11px] tracking-[0.08em] uppercase text-dim">{s.sub}</span>}
                     </button>
                   </li>
                 ))}
@@ -117,41 +123,41 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
           </div>
           <div className="grid grid-cols-3 gap-2">
             <div>
-              <label className="block text-xs text-white/40 mb-1">Date</label>
-              <DateTimeInput type="date" value={date} onChange={(e) => setDate(e.target.value)} required
+              <label htmlFor="edit-date" className={LABEL}>Date</label>
+              <DateTimeInput id="edit-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} required
                 max={new Date(Date.now() + 7 * 86400000).toISOString().split("T")[0]}
                 min={`${new Date().getFullYear() - 1}-01-01`} className={inputClass} />
             </div>
             <div>
-              <label className="block text-xs text-white/40 mb-1">Start</label>
-              <DateTimeInput type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required className={inputClass} />
+              <label htmlFor="edit-start" className={LABEL}>Start</label>
+              <DateTimeInput id="edit-start" type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} required className={inputClass} />
             </div>
             <div>
-              <label className="block text-xs text-white/40 mb-1">End</label>
-              <DateTimeInput type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
+              <label htmlFor="edit-end" className={LABEL}>End</label>
+              <DateTimeInput id="edit-end" type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} required className={inputClass} />
             </div>
           </div>
           <div>
-            <label className="block text-xs text-white/40 mb-1">Price per Photo ($)</label>
-            <input type="number" value={price} onChange={(e) => setPrice(e.target.value)} required
+            <label htmlFor="edit-price" className={LABEL}>Price per Photo ($)</label>
+            <input id="edit-price" type="number" value={price} onChange={(e) => setPrice(e.target.value)} required
               min="0" max="999" step="0.01" className={inputClass} />
           </div>
           <div>
-            <label className="block text-xs text-white/40 mb-1">Description</label>
-            <textarea value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} />
+            <label htmlFor="edit-description" className={LABEL}>Description</label>
+            <textarea id="edit-description" value={description} onChange={(e) => setDescription(e.target.value)} rows={2} className={inputClass} />
           </div>
-          <div className="flex gap-2 pt-2">
+          <div className="flex gap-2 pt-4 border-t border-line">
             <button
               type="submit"
               disabled={saving}
-              className="flex-1 py-2 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors text-sm"
+              className="btn-pri flex-1 justify-center py-3 text-sm disabled:opacity-50"
             >
               {saving ? "Saving..." : "Save Changes"}
             </button>
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 border border-white/10 text-white/60 rounded-lg hover:bg-white/5 transition-colors text-sm"
+              className="btn-sec py-3 px-5 text-sm"
             >
               Cancel
             </button>

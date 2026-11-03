@@ -13,19 +13,6 @@ const config: Config = {
         mute: "#b3ada3", // 8.4:1 on char
         dim: "#948f86", // 5.6:1 on char
         rec: { DEFAULT: "#ff4433", ink: "#160806" },
-        ocean: {
-          50: "#f0f9ff",
-          100: "#e0f2fe",
-          200: "#bae6fd",
-          300: "#7dd3fc",
-          400: "#38bdf8",
-          500: "#0ea5e9",
-          600: "#0284c7",
-          700: "#0369a1",
-          800: "#075985",
-          900: "#0c4a6e",
-          950: "#082f49",
-        },
       },
       fontFamily: {
         sans: ["var(--font-archivo)", "system-ui", "sans-serif"],

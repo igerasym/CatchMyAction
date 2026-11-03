@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import PasswordInput from "@/app/components/password-input";
+import { Check } from "lucide-react";
+import { AuthShell, HINT, INPUT, LABEL, Notice } from "../ui";
 
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
@@ -28,34 +30,36 @@ export default function ResetPasswordPage() {
     else setError(data.error || "Reset failed");
   }
 
-  if (!token) return <p className="text-center py-16 text-red-400">Invalid reset link</p>;
+  if (!token) return (
+    <AuthShell kicker="01 / Account" title="Invalid link">
+      <Notice>Invalid reset link</Notice>
+    </AuthShell>
+  );
 
   return (
-    <div className="max-w-sm mx-auto mt-16">
-      <h1 className="text-2xl font-bold text-center mb-6 text-white">Set New Password</h1>
+    <AuthShell kicker="01 / Account" title="Set new password">
       {done ? (
-        <div className="text-center py-8">
-          <div className="text-5xl mb-4">✓</div>
-          <p className="text-sm text-white/50 mb-4">Password reset successfully!</p>
-          <Link href="/login" className="px-6 py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 transition-colors text-sm inline-block">
+        <div className="py-4" role="status">
+          <Check className="w-8 h-8 text-rec mb-5" aria-hidden="true" />
+          <p className="text-sm text-mute mb-6">Password reset successfully!</p>
+          <Link href="/login" className="btn-pri">
             Sign in
           </Link>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {error && <div className="bg-red-500/10 text-red-400 text-sm p-3 rounded-lg border border-red-500/20">{error}</div>}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {error && <Notice>{error}</Notice>}
           <div>
-            <label className="block text-sm font-medium text-white/50 mb-1">New Password</label>
-            <PasswordInput value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8}
-              className="w-full px-4 py-2.5 bg-white/5 border border-white/10 rounded-lg text-white focus:ring-2 focus:ring-ocean-500 focus:border-transparent" />
-            <p className="text-[11px] text-white/20 mt-1">Min 8 chars, 1 uppercase, 1 lowercase, 1 number</p>
+            <label htmlFor="new-password" className={LABEL}>New password</label>
+            <PasswordInput id="new-password" value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8}
+              autoComplete="new-password" className={`${INPUT} pr-10`} />
+            <p className={HINT}>Min 8 chars, 1 uppercase, 1 lowercase, 1 number</p>
           </div>
-          <button type="submit" disabled={loading}
-            className="w-full py-2.5 bg-ocean-500 text-white rounded-lg hover:bg-ocean-400 disabled:opacity-50 transition-colors">
-            {loading ? "Resetting..." : "Reset Password"}
+          <button type="submit" disabled={loading} className="btn-pri w-full justify-center disabled:opacity-50">
+            {loading ? "Resetting..." : "Reset password"}
           </button>
         </form>
       )}
-    </div>
+    </AuthShell>
   );
 }
