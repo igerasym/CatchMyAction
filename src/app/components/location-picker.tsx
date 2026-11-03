@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import { DARK_TILE_URL, TILE_ATTRIBUTION } from "@/lib/map-tiles";
 
 interface Props {
   onSelect: (lat: number, lng: number) => void;
@@ -33,8 +34,8 @@ export default function LocationPicker({ onSelect, onClose, locationName }: Prop
       zoomControl: true,
     });
 
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png", {
-      attribution: '&copy; OSM &copy; CARTO',
+    L.tileLayer(DARK_TILE_URL, {
+      attribution: TILE_ATTRIBUTION,
       maxZoom: 19,
     }).addTo(map);
 
