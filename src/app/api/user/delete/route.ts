@@ -17,6 +17,20 @@ export async function POST(req: NextRequest) {
   const valid = await bcrypt.compare(password, user.passwordHash);
   if (!valid) return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
 
+  // A photographer whose photos were bought can't self-delete: buyers would lose access.
+  const sold = await prisma.purchase.count({
+    where: { amountInCents: { gt: 0 }, photo: { session: { photographerId: user.id } } },
+  });
+  if (sold > 0) {
+    return NextResponse.json(
+      {
+        error: `People have bought ${sold} of your photos, so the account can't be deleted automatically — buyers keep access to them. Contact us via the Contact page and we'll handle it.`,
+        sold,
+      },
+      { status: 409 }
+    );
+  }
+
   // Delete all user data
   await prisma.purchase.deleteMany({ where: { userId: user.id } });
   await (prisma as any).photoClaim.deleteMany({ where: { userId: user.id } });

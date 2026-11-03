@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { toastSuccess, toastError, toastWarning } from "@/lib/toast";
@@ -213,7 +213,7 @@ export default function SettingsPage() {
             const data = await res.json();
             if (data.deleted) {
               toastSuccess("Account deleted.");
-              window.location.href = "/";
+              await signOut({ callbackUrl: "/" }); // clear the session cookie — it outlived the account before
             } else {
               toastError(data.error || "Failed to delete account");
             }

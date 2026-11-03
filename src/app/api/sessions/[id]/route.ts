@@ -4,6 +4,7 @@ import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
 import { deleteFaceCollection } from "@/lib/rekognition";
 import { sendSessionNotification } from "@/lib/email";
 import { geocodeLocation } from "@/lib/geocode";
+import { deleteObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
 import { parsePriceCents } from "@/lib/validation";
 
 /** GET /api/sessions/:id — get session (public) */
@@ -160,10 +161,38 @@ export async function DELETE(
     return NextResponse.json({ error: "Not your session" }, { status: 403 });
   }
 
-  // Clean up related data
+  // Buyers keep access to what they paid for: a session with sales can't be deleted
+  const paid = await prisma.purchase.count({
+    where: { photo: { sessionId: params.id }, amountInCents: { gt: 0 } },
+  });
+  if (paid > 0) {
+    return NextResponse.json(
+      {
+        error: `${paid} ${paid === 1 ? "photo" : "photos"} from this session ${paid === 1 ? "was" : "were"} bought, so the session can't be deleted — buyers keep access. Unpublish it to hide it instead.`,
+        sold: paid,
+      },
+      { status: 409 }
+    );
+  }
+
+  const photos = await prisma.photo.findMany({
+    where: { sessionId: params.id },
+    select: { originalKey: true, previewKey: true, thumbnailKey: true },
+  });
+
+  // Only free-download records remain; photos cascade with the session
   await prisma.purchase.deleteMany({ where: { photo: { sessionId: params.id } } });
   deleteFaceCollection(params.id).catch(() => {}); // Clean up Rekognition collection
   await prisma.session.delete({ where: { id: params.id } });
+
+  // Remove the files too (previously left orphaned in S3) — background, best effort
+  Promise.allSettled(
+    photos.flatMap((p) => [
+      deleteObject(BUCKET_ORIGINALS, p.originalKey),
+      deleteObject(BUCKET_PREVIEWS, p.previewKey),
+      deleteObject(BUCKET_PREVIEWS, p.thumbnailKey),
+    ])
+  ).catch(() => {});
 
   return NextResponse.json({ deleted: true });
 }

@@ -4,7 +4,9 @@ import { useSession } from "next-auth/react";
 import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
+import { toastError } from "@/lib/toast";
 import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin } from "lucide-react";
+import { loginHref } from "@/lib/redirect";
 
 interface Photo {
   id: string;
@@ -43,19 +45,33 @@ export default function ManagePhotosPage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
+    if (status === "unauthenticated") router.push(loginHref(window.location.pathname));
   }, [status, router]);
 
   useEffect(() => {
     if (!sessionId) return;
-    Promise.all([
-      fetch(`/api/sessions/${sessionId}`).then((r) => r.json()),
-      fetch(`/api/sessions/${sessionId}/photos?limit=500`).then((r) => r.json()),
-    ]).then(([sess, data]) => {
-      setSession(sess);
-      setPhotos(data.photos || []);
-      setLoading(false);
-    });
+    // The photos API pages at 50; sessions hold up to 200 — follow the cursor to load them all
+    async function loadAllPhotos() {
+      const all: any[] = [];
+      let cursor: string | null = null;
+      for (let page = 0; page < 10; page++) {
+        const res: Response = await fetch(
+          `/api/sessions/${sessionId}/photos?limit=50${cursor ? `&cursor=${cursor}` : ""}`
+        );
+        const data = await res.json();
+        all.push(...(data.photos || []));
+        cursor = data.nextCursor;
+        if (!cursor) break;
+      }
+      return all;
+    }
+    Promise.all([fetch(`/api/sessions/${sessionId}`).then((r) => r.json()), loadAllPhotos()]).then(
+      ([sess, all]) => {
+        setSession(sess);
+        setPhotos(all);
+        setLoading(false);
+      }
+    );
   }, [sessionId]);
 
   // --- Selection ---
@@ -77,18 +93,38 @@ export default function ManagePhotosPage() {
     if (ids.length === 0) return;
     if (!confirm(`Delete ${ids.length} photo${ids.length > 1 ? "s" : ""}? This cannot be undone.`)) return;
     setDeleting(true);
+    const deleted: string[] = [];
+    let blocked = 0;
+    let lastError = "";
     for (const id of ids) {
-      await fetch(`/api/photos/${id}`, { method: "DELETE" });
+      const res = await fetch(`/api/photos/${id}`, { method: "DELETE" });
+      if (res.ok) deleted.push(id);
+      else {
+        blocked++;
+        lastError = (await res.json().catch(() => ({}))).error || "";
+      }
     }
-    setPhotos((prev) => prev.filter((p) => !ids.includes(p.id)));
-    setSelected(new Set());
+    setPhotos((prev) => prev.filter((p) => !deleted.includes(p.id)));
+    setSelected(new Set(ids.filter((id) => !deleted.includes(id))));
     setDeleting(false);
-    if (session) setSession({ ...session, photoCount: session.photoCount - ids.length });
+    if (session) setSession({ ...session, photoCount: session.photoCount - deleted.length });
+    if (blocked > 0) {
+      toastError(
+        blocked === 1 && lastError
+          ? lastError
+          : `${blocked} photos weren't deleted — they were bought, and buyers keep access. Unpublish the session to hide them.`
+      );
+    }
   }
 
   async function handleDeleteOne(id: string) {
     if (!confirm("Delete this photo?")) return;
-    await fetch(`/api/photos/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/photos/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toastError(data.error || "Couldn't delete the photo");
+      return;
+    }
     setPhotos((prev) => prev.filter((p) => p.id !== id));
     setSelected((prev) => { const n = new Set(prev); n.delete(id); return n; });
     if (session) setSession({ ...session, photoCount: session.photoCount - 1 });
@@ -375,11 +411,11 @@ export default function ManagePhotosPage() {
               </div>
 
               {/* Action buttons — stop propagation so they don't toggle select */}
-              <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-0 group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-all">
+              <div className="absolute top-1.5 right-1.5 flex gap-1 opacity-100 [@media(hover:hover)]:opacity-0 [@media(hover:hover)]:group-hover:opacity-100 group-focus-within:opacity-100 focus-within:opacity-100 transition-all">
                 {!isCover(p.id) && (
                   <button
                     onClick={(e) => { e.stopPropagation(); handleSetCover(p.id); }}
-                    className="w-7 h-7 bg-ink/80 text-bone hover:bg-bone hover:text-ink flex items-center justify-center"
+                    className="w-10 h-10 md:w-7 md:h-7 bg-ink/80 text-bone hover:bg-bone hover:text-ink flex items-center justify-center"
                     title="Set as cover"
                     aria-label="Set as cover"
                   >
@@ -388,7 +424,7 @@ export default function ManagePhotosPage() {
                 )}
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteOne(p.id); }}
-                  className="w-7 h-7 bg-ink/80 text-bone hover:bg-rec hover:text-rec-ink flex items-center justify-center"
+                  className="w-10 h-10 md:w-7 md:h-7 bg-ink/80 text-bone hover:bg-rec hover:text-rec-ink flex items-center justify-center"
                   title="Delete"
                   aria-label="Delete photo"
                 >

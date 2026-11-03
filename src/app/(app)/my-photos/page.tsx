@@ -7,6 +7,7 @@ import Link from "next/link";
 import { toastError } from "@/lib/toast";
 import { ChevronLeft, ChevronRight, Download, ImageIcon, X } from "lucide-react";
 import { PageIntro } from "../ui";
+import { loginHref } from "@/lib/redirect";
 
 interface MyPhoto {
   id: string;
@@ -35,7 +36,7 @@ export default function MyPhotosPage() {
   const [buying, setBuying] = useState<string | null>(null);
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
+    if (status === "unauthenticated") router.push(loginHref("/my-photos"));
   }, [status, router]);
 
   useEffect(() => {
@@ -95,7 +96,7 @@ export default function MyPhotosPage() {
   }
 
   async function handleBuy(photoId: string) {
-    if (!user?.id) { router.push("/login"); return; }
+    if (!user?.id) { router.push(loginHref("/my-photos")); return; }
     setBuying(photoId);
     try {
       const res = await fetch(`/api/photos/${photoId}/purchase`, { method: "POST" });

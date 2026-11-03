@@ -32,6 +32,19 @@ export async function DELETE(
     return NextResponse.json({ error: "Not your photo" }, { status: 403 });
   }
 
+  // Buyers keep access to what they paid for: a sold photo can't be deleted
+  const paid = await prisma.purchase.count({ where: { photoId: photo.id, amountInCents: { gt: 0 } } });
+  if (paid > 0) {
+    return NextResponse.json(
+      {
+        error: `This photo was bought by ${paid} ${paid === 1 ? "person" : "people"}, so it can't be deleted — buyers keep access to it. Unpublish the session to hide it from new visitors.`,
+        sold: paid,
+      },
+      { status: 409 }
+    );
+  }
+
+  // Only free-download records remain
   await prisma.purchase.deleteMany({ where: { photoId: photo.id } });
   await prisma.photo.delete({ where: { id: photo.id } });
   await prisma.session.update({

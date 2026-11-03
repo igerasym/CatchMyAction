@@ -113,7 +113,13 @@ export default function DashboardPage() {
   async function handleDelete(id: string) {
     if (!confirm("Delete this session and all its photos? This cannot be undone.")) return;
     setDeleting(id);
-    await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    const res = await fetch(`/api/sessions/${id}`, { method: "DELETE" });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      toastError(data.error || "Couldn't delete the session");
+      setDeleting(null);
+      return;
+    }
     setSessions((prev) => prev.filter((s) => s.id !== id));
     setDeleting(null);
     refreshStats();

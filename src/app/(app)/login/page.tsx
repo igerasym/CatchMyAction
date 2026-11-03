@@ -6,13 +6,14 @@ import { useState } from "react";
 import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
 import { AuthShell, INPUT, LABEL, LINK, Notice } from "../ui";
+import { safeCallbackUrl } from "@/lib/redirect";
 
 export default function LoginPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const callbackUrl = searchParams.get("callbackUrl") || "/";
+  const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
   const verified = searchParams.get("verified");
   const tokenError = searchParams.get("error");
 
@@ -56,7 +57,7 @@ export default function LoginPage() {
         <Link href="/forgot-password" className={LINK}>Forgot password?</Link>
         <span>
           Don&apos;t have an account?{" "}
-          <Link href="/register" className={LINK}>Sign up</Link>
+          <Link href={callbackUrl === "/" ? "/register" : `/register?callbackUrl=${encodeURIComponent(callbackUrl)}`} className={LINK}>Sign up</Link>
         </span>
       </div>
     </AuthShell>
