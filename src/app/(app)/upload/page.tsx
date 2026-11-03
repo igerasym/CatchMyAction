@@ -241,7 +241,8 @@ export default function UploadPage() {
       }
       return;
     }
-    window.location.href = "/dashboard";
+    const data = await res.json().catch(() => ({}));
+    window.location.href = `/dashboard/sessions/${sessionId}?published=1&notified=${Number(data.notified) || 0}`;
   }
 
   const inputClass = INPUT;

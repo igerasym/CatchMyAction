@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser, getViewerId, verifySessionOwner } from "@/lib/auth-helpers";
 import { deleteFaceCollection } from "@/lib/rekognition";
-import { sendSessionNotification } from "@/lib/email";
+import { notifySubscribers } from "@/lib/notify";
 import { geocodeLocation } from "@/lib/geocode";
 import { deleteObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
 import { parsePriceCents } from "@/lib/validation";
@@ -128,26 +128,12 @@ export async function PATCH(
       });
     }
 
-    // Notify subscribers when session is published with photos
-    if (wasUnpublished && published === true && session.photoCount > 0) {
-      const subscribers = await prisma.sessionNotification.findMany({
-        where: { sessionId: params.id, notified: false },
-        select: { id: true, email: true },
-      });
-      if (subscribers.length > 0) {
-        // Send emails in background — don't block the response
-        Promise.all(
-          subscribers.map(async (sub) => {
-            await sendSessionNotification(sub.email, session.title, session.id);
-            await prisma.sessionNotification.update({ where: { id: sub.id }, data: { notified: true } });
-          })
-        ).catch((err) => console.error("Notification send error:", err));
-      }
-    }
+    // Notify subscribers when the session goes live with photos (once per subscriber)
+    const notified = wasUnpublished && published === true ? await notifySubscribers(params.id) : 0;
 
     // Flag if location was changed but couldn't be geocoded
     const needsLocation = location && !(coordsUpdate as any).locationLat && !locationLat;
-    return NextResponse.json({ ...session, needsLocation });
+    return NextResponse.json({ ...session, needsLocation, notified });
   } catch (err: any) {
     return NextResponse.json({ error: err.message || "Update failed" }, { status: 500 });
   }
