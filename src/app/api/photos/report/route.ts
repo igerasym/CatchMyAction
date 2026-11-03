@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
         <p style="color: #666;"><strong>Reason:</strong> ${escapeHtml(REASON_LABELS[reason] || reason)}</p>
         ${details ? '<p style="color: #666;"><strong>Details:</strong> ' + escapeHtml(details) + '</p>' : ''}
         <p style="color: #666;"><strong>Reporter:</strong> ${escapeHtml(email)}</p>
-        <a href="${manageLink}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
+        <a href="${manageLink}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #ff4433; color: #160806; text-decoration: none; border-radius: 8px; font-weight: 600;">
           Manage Photos
         </a>
         <p style="color: #999; font-size: 13px; margin-top: 32px;">Please review and remove the photo within 48 hours if the request is valid. — CatchMyAction</p>
