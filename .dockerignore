@@ -2,6 +2,11 @@ node_modules
 .next
 .env
 .env.local
+.env.*
+*.pem
+infra
+docs
+public/uploads
 *.md
 .git
-docker-compose.yml
+docker-compose*.yml

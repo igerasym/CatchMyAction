@@ -84,13 +84,14 @@ export default function PhotoGrid({
     if (!purchasedPhotoId || !userId || downloadTriggered.current) return;
     downloadTriggered.current = true;
 
-    // Clear the query param so reload doesn't re-trigger
+    // Read the Stripe checkout id, then clear the query so reload doesn't re-trigger
+    const cs = new URLSearchParams(window.location.search).get("cs") || "";
     window.history.replaceState({}, "", window.location.pathname);
 
     async function verifyAndDownload() {
       // Poll for purchase (webhook may be delayed)
       for (let i = 0; i < 5; i++) {
-        const res = await fetch(`/api/photos/${purchasedPhotoId}/verify-purchase?userId=${userId}`);
+        const res = await fetch(`/api/photos/${purchasedPhotoId}/verify-purchase?cs=${encodeURIComponent(cs)}`);
         const data = await res.json();
         if (data.purchased) {
           setPurchasedIds((prev) => new Set(prev).add(purchasedPhotoId!));
@@ -117,18 +118,20 @@ export default function PhotoGrid({
   useEffect(() => {
     if (!bulkPurchasedIds || !userId || bulkVerified.current) return;
     bulkVerified.current = true;
+    const cs = new URLSearchParams(window.location.search).get("cs") || "";
     window.history.replaceState({}, "", window.location.pathname);
+    if (!cs) return;
 
-    const ids = bulkPurchasedIds.split(",");
     async function verify() {
       for (let i = 0; i < 5; i++) {
         const res = await fetch("/api/photos/bulk-verify", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ photoIds: ids }),
+          body: JSON.stringify({ cs }),
         });
         const data = await res.json();
-        if (data.allPurchased) {
+        const ids: string[] = data.purchasedIds || [];
+        if (data.allPurchased && ids.length > 0) {
           setPurchasedIds((prev) => {
             const next = new Set(prev);
             ids.forEach((id) => next.add(id));
@@ -188,11 +191,7 @@ export default function PhotoGrid({
     setPurchasing(true);
     try {
       // Create a free "purchase" record
-      const res = await fetch(`/api/photos/${photo.id}/free-download`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
+      const res = await fetch(`/api/photos/${photo.id}/free-download`, { method: "POST" });
       const data = await res.json();
       if (data.downloadUrl) {
         setPurchasedIds((prev) => new Set(prev).add(photo.id));
@@ -217,11 +216,7 @@ export default function PhotoGrid({
     }
     setPurchasing(true);
     try {
-      const res = await fetch(`/api/photos/${photo.id}/purchase`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId }),
-      });
+      const res = await fetch(`/api/photos/${photo.id}/purchase`, { method: "POST" });
       const data = await res.json();
 
       // Already purchased — download directly
@@ -278,6 +273,8 @@ export default function PhotoGrid({
           return next;
         });
         setCartIds(new Set());
+      } else {
+        toastError(data.error || "Purchase failed");
       }
     } catch {
       toastError("Purchase failed");

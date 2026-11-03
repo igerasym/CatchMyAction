@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { sendEmail } from "@/lib/email";
+import { escapeHtml } from "@/lib/html";
+import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { validateEmail } from "@/lib/validation";
 
 const VALID_REASONS = ["thats_me", "inappropriate", "copyright", "other"];
 const REASON_LABELS: Record<string, string> = {
@@ -12,10 +15,24 @@ const REASON_LABELS: Record<string, string> = {
 
 /** POST /api/photos/report — report a photo for removal */
 export async function POST(req: NextRequest) {
-  const { photoId, email, reason, details } = await req.json();
+  if (!rateLimit(`report:${clientIp(req)}`, 5, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Too many reports. Please try again later." }, { status: 429 });
+  }
+
+  let payload: any;
+  try {
+    payload = await req.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { photoId, email, reason } = payload;
+  const details = typeof payload.details === "string" ? payload.details.slice(0, 1000) : "";
 
   if (!photoId || !email || !reason) {
     return NextResponse.json({ error: "photoId, email, and reason are required" }, { status: 400 });
+  }
+  if (typeof email !== "string" || !validateEmail(email)) {
+    return NextResponse.json({ error: "Please enter a valid email" }, { status: 400 });
   }
   if (!VALID_REASONS.includes(reason)) {
     return NextResponse.json({ error: "Invalid reason" }, { status: 400 });
@@ -57,14 +74,14 @@ export async function POST(req: NextRequest) {
     html: `
       <div style="font-family: -apple-system, sans-serif; max-width: 480px; margin: 0 auto; padding: 40px 20px;">
         <h2 style="color: #333;">Photo Removal Request</h2>
-        <p style="color: #666; line-height: 1.6;">Someone has requested removal of a photo from your session <strong>${photo.session.title}</strong>.</p>
+        <p style="color: #666; line-height: 1.6;">Someone has requested removal of a photo from your session <strong>${escapeHtml(photo.session.title)}</strong>.</p>
         <div style="margin: 16px 0; border-radius: 8px; overflow: hidden;">
           <img src="${previewUrl}" alt="Reported photo" style="width: 100%; max-width: 400px; border-radius: 8px; border: 1px solid #eee;" />
         </div>
         <p style="color: #666; font-size: 13px; margin-bottom: 12px;">Photo ID: ${photoId}</p>
-        <p style="color: #666;"><strong>Reason:</strong> ${REASON_LABELS[reason] || reason}</p>
-        ${details ? '<p style="color: #666;"><strong>Details:</strong> ' + details + '</p>' : ''}
-        <p style="color: #666;"><strong>Reporter:</strong> ${email}</p>
+        <p style="color: #666;"><strong>Reason:</strong> ${escapeHtml(REASON_LABELS[reason] || reason)}</p>
+        ${details ? '<p style="color: #666;"><strong>Details:</strong> ' + escapeHtml(details) + '</p>' : ''}
+        <p style="color: #666;"><strong>Reporter:</strong> ${escapeHtml(email)}</p>
         <a href="${manageLink}" style="display: inline-block; margin: 24px 0; padding: 14px 32px; background: #0ea5e9; color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">
           Manage Photos
         </a>

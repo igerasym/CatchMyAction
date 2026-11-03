@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { format } from "date-fns";
+import { escapeHtml } from "@/lib/html";
 
 if (typeof window !== "undefined") {
   (window as any).L = L;
@@ -144,19 +145,19 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, selectedLoc
       let popup: string;
       if (sessions.length === 1) {
         popup = '<div style="font-family:system-ui;min-width:180px">' +
-          '<h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">' + first.title + '</h3>' +
-          '<p style="font-size:12px;color:#888;margin:0 0 6px">' + first.location + ' · ' + format(new Date(first.date), "MMM d") + '</p>' +
+          '<h3 style="font-weight:600;font-size:14px;margin:0 0 4px;color:#f0f0f0">' + escapeHtml(first.title) + '</h3>' +
+          '<p style="font-size:12px;color:#888;margin:0 0 6px">' + escapeHtml(first.location) + ' · ' + format(new Date(first.date), "MMM d") + '</p>' +
           '<p style="font-size:12px;color:#888;margin:0 0 8px">' + first.photoCount + ' photos</p>' +
           '<a href="/sessions/' + first.id + '" style="font-size:12px;color:#38bdf8;font-weight:500;text-decoration:none">View Gallery →</a></div>';
       } else {
         const list = sessions.slice(0, 5).map((s) =>
           '<a href="/sessions/' + s.id + '" style="display:block;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.05);text-decoration:none">' +
-          '<span style="font-size:13px;color:#f0f0f0">' + s.title + '</span>' +
+          '<span style="font-size:13px;color:#f0f0f0">' + escapeHtml(s.title) + '</span>' +
           '<span style="font-size:11px;color:#888;display:block">' + format(new Date(s.date), "MMM d") + ' · ' + s.photoCount + ' photos</span></a>'
         ).join("");
         const more = sessions.length > 5 ? '<p style="font-size:11px;color:#666;padding-top:4px">+' + (sessions.length - 5) + ' more</p>' : "";
         popup = '<div style="font-family:system-ui;min-width:200px;max-height:280px;overflow-y:auto">' +
-          '<h3 style="font-weight:600;font-size:14px;margin:0 0 2px;color:#f0f0f0">' + first.location + '</h3>' +
+          '<h3 style="font-weight:600;font-size:14px;margin:0 0 2px;color:#f0f0f0">' + escapeHtml(first.location) + '</h3>' +
           '<p style="font-size:12px;color:#888;margin:0 0 8px">' + sessions.length + ' sessions · ' + totalPhotos + ' photos</p>' +
           list + more + '</div>';
       }

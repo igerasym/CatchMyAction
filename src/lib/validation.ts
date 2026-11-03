@@ -24,3 +24,27 @@ export async function validateEmailDomain(email: string): Promise<boolean> {
     return false;
   }
 }
+
+export const MAX_PRICE_CENTS = 99_900; // $999
+
+/** Validate a per-photo price in cents. Returns the price, or null if invalid. */
+export function parsePriceCents(value: unknown): number | null {
+  if (typeof value !== "number" || !Number.isInteger(value)) return null;
+  if (value < 0 || value > MAX_PRICE_CENTS) return null;
+  return value;
+}
+
+/** Return the URL if it is a plain http(s) URL, else null. Adds https:// to bare domains. */
+export function sanitizeHttpUrl(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  const withScheme = /^[a-z][a-z0-9+.-]*:/i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  try {
+    const url = new URL(withScheme);
+    if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
