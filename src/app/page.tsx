@@ -108,6 +108,8 @@ export default async function HomePage() {
     date: s.date.toISOString(),
     photoCount: s.photoCount,
     thumbnails: s.photos.slice(0, 3).map((p) => getPreviewUrl(p.thumbnailKey)),
+    lat: s.locationLat,
+    lng: s.locationLng,
   }));
   const staticNames = new Set(ACTION_SPOTS.map((s) => s.name.toLowerCase()));
   const allSpots = [

@@ -10,6 +10,8 @@ interface ActiveSession {
   date: string;
   photoCount: number;
   thumbnails: string[];
+  lat?: number | null;
+  lng?: number | null;
 }
 
 interface SpotInfo {
@@ -63,7 +65,7 @@ export default function SpotMap({
       activeSessions
         .map((s) => ({
           ...s,
-          coords: getCoordsForSpot(s.location),
+          coords: (s.lat != null && s.lng != null ? [s.lat, s.lng] : getCoordsForSpot(s.location)) as [number, number] | null,
           color: getMarkerColor(s.date),
           recent: true,
           type: "active" as const,

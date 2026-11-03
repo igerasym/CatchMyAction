@@ -58,8 +58,8 @@ export default function Featured({ session }: { session: FeaturedSession | null 
           {fig(1, a, "col-span-6 md:col-span-8 md:row-span-2 aspect-[3/2] md:aspect-auto", "FIG. 01")}
           {fig(2, b, "col-span-3 md:col-span-4 aspect-[3/2]")}
           {fig(3, c, "col-span-3 md:col-span-4 aspect-[3/2]", "FIG. 03")}
-          {fig(4, d, "col-span-3 md:col-span-5 aspect-[3/2]")}
-          {fig(5, e, "col-span-3 md:col-span-7 aspect-[3/2] md:aspect-[21/9]")}
+          {fig(4, d, "col-span-3 md:col-span-5 aspect-[3/2] md:aspect-auto md:h-[340px]")}
+          {fig(5, e, "col-span-3 md:col-span-7 aspect-[3/2] md:aspect-auto md:h-[340px]")}
         </div>
 
         <div className="mt-8 pt-6 border-t border-ink/15 flex flex-wrap items-center justify-between gap-4">
