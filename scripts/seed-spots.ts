@@ -4,8 +4,8 @@
  *   2. prisma/spots/legacy-manual.json (source "manual" — the old hand-written list, approx coords)
  *   3. every session with coordinates → linked to the nearest spot within 500 m, or a new spot (source "session")
  *
- *   npx tsx scripts/seed-spots.ts
- *   (prod) docker exec app-app-1 node_modules/.bin/tsx scripts/seed-spots.ts
+ *   npx tsx scripts/seed-spots.ts                       (local, repo root)
+ *   docker exec app-app-1 node scripts/dist/seed-spots.js  (prod container — compiled at image build)
  */
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -15,7 +15,8 @@ import { importSpots, parseSpotRecords, haversineKm, normName } from "./spot-imp
 async function main() {
   const prisma = new PrismaClient();
   try {
-    const dir = join(__dirname, "..", "prisma", "spots");
+    // Run from the repo root (local) or /app (container)
+    const dir = process.env.SPOTS_DIR || join(process.cwd(), "prisma", "spots");
     const load = (f: string) => parseSpotRecords(JSON.parse(readFileSync(join(dir, f), "utf8")));
 
     for (const f of readdirSync(dir).filter((f) => /^curated-.*\.json$/.test(f)).sort()) {

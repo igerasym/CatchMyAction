@@ -11,3 +11,4 @@ next-env.d.ts
 public/uploads/
 .DS_Store
 prisma/dev.db
+scripts/dist/

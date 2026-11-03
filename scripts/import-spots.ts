@@ -5,7 +5,7 @@
  *
  * On the server (inside the running app container):
  *   docker cp surf_spots.json app-app-1:/tmp/spots.json
- *   docker exec app-app-1 node_modules/.bin/tsx scripts/import-spots.ts /tmp/spots.json --source surfline --dry-run
+ *   docker exec app-app-1 node scripts/dist/import-spots.js /tmp/spots.json --source surfline --dry-run
  */
 import { readFileSync } from "node:fs";
 import { PrismaClient } from "@prisma/client";
