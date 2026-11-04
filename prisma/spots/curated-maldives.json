@@ -1,0 +1,18 @@
+[
+  { "sourceId": "mv-cokes", "name": "Cokes", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3734, "lng": 73.6485, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-chickens", "name": "Chickens", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3775, "lng": 73.6626, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-lohis", "name": "Lohis", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3509, "lng": 73.6180, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-ninjas", "name": "Ninjas", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3436, "lng": 73.6077, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-pasta-point", "name": "Pasta Point", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3192, "lng": 73.5910, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-sultans", "name": "Sultans", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3172, "lng": 73.5852, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-honkys", "name": "Honky's", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3148, "lng": 73.5830, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-jailbreaks", "name": "Jailbreaks", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.3085, "lng": 73.5714, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-tombstones", "name": "Tombstones", "region": "North Malé Atoll", "country": "Maldives", "lat": 4.2497, "lng": 73.5446, "accuracy": "island", "sports": ["surf"] },
+  { "sourceId": "mv-raalhugandu", "name": "Raalhugandu", "region": "Malé", "country": "Maldives", "lat": 4.1721, "lng": 73.5179, "accuracy": "exact", "sports": ["surf"] },
+  { "sourceId": "mv-kandooma-right", "name": "Kandooma Right", "region": "South Malé Atoll", "country": "Maldives", "lat": 3.9034, "lng": 73.4756, "accuracy": "exact", "sports": ["surf"] },
+  { "sourceId": "mv-foxys", "name": "Foxys", "region": "South Malé Atoll", "country": "Maldives", "lat": 3.8985, "lng": 73.4690, "accuracy": "approx", "sports": ["surf"] },
+  { "sourceId": "mv-riptides", "name": "Riptides", "region": "South Malé Atoll", "country": "Maldives", "lat": 3.8960, "lng": 73.4650, "accuracy": "approx", "sports": ["surf"] },
+  { "sourceId": "mv-quarters", "name": "Quarters", "region": "South Malé Atoll", "country": "Maldives", "lat": 3.9080, "lng": 73.4790, "accuracy": "approx", "sports": ["surf"] },
+  { "sourceId": "mv-natives", "name": "Natives", "region": "South Malé Atoll", "country": "Maldives", "lat": 3.9120, "lng": 73.4800, "accuracy": "approx", "sports": ["surf"] },
+  { "sourceId": "mv-twin-peaks", "name": "Twin Peaks", "region": "South Malé Atoll", "country": "Maldives", "lat": 3.9904, "lng": 73.5094, "accuracy": "approx", "sports": ["surf"] }
+]

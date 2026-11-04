@@ -7,6 +7,7 @@ interface Suggestion {
   label: string;
   type: string;
   sub?: string;
+  spot?: { id: string; lat: number; lng: number };
 }
 
 const ICONS: Record<string, LucideIcon> = { country: Globe, region: MapIcon, spot: MapPin, session: Camera };
@@ -14,6 +15,8 @@ const ICONS: Record<string, LucideIcon> = { country: Globe, region: MapIcon, spo
 interface Props {
   value: string;
   onChange: (v: string) => void;
+  /** Called with the catalogue spot when a spot suggestion is picked, and with null when the user types. */
+  onSelectSpot?: (spot: { id: string; name: string; lat: number; lng: number } | null) => void;
   label?: string;
   placeholder?: string;
   name?: string;
@@ -23,6 +26,7 @@ interface Props {
 export default function SpotAutocomplete({
   value,
   onChange,
+  onSelectSpot,
   label = "Location",
   placeholder = "Pipeline, Bali, or any location...",
   name = "location",
@@ -43,6 +47,7 @@ export default function SpotAutocomplete({
 
   function handleChange(q: string) {
     onChange(q);
+    onSelectSpot?.(null);
     if (q.length < 2) { setSuggestions([]); setOpen(false); return; }
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
@@ -79,7 +84,11 @@ export default function SpotAutocomplete({
             <li key={`${s.type}-${s.label}-${i}`} role="option" aria-selected={false}>
               <button
                 type="button"
-                onClick={() => { onChange(s.label); setOpen(false); }}
+                onClick={() => {
+                  onChange(s.label);
+                  onSelectSpot?.(s.spot ? { id: s.spot.id, name: s.label, lat: s.spot.lat, lng: s.spot.lng } : null);
+                  setOpen(false);
+                }}
                 className="w-full text-left px-3.5 py-2.5 text-sm border-b border-line last:border-b-0 hover:bg-char-2 focus:bg-char-2 focus:outline-none transition-colors flex items-center gap-2.5"
               >
                 {(() => { const Icon = ICONS[s.type] || MapPin; return <Icon className="w-3.5 h-3.5 flex-shrink-0 text-dim" aria-hidden="true" />; })()}

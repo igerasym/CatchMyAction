@@ -38,6 +38,8 @@ export default function UploadPage() {
   // Session form state — available to everyone
   const [title, setTitle] = useState("");
   const [location, setLocation] = useState("");
+  // Catalogue spot picked from suggestions (null = free text → server geocodes / asks for a pin)
+  const [spotId, setSpotId] = useState<string | null>(null);
   const [date, setDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -95,7 +97,7 @@ export default function UploadPage() {
     const res = await fetch("/api/sessions", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, location, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100), sportType }),
+      body: JSON.stringify({ title, location, spotId, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100), sportType }),
     });
     const data = await res.json();
     if (data.id) {
@@ -347,7 +349,7 @@ export default function UploadPage() {
             placeholder="Morning session at Pipeline" className={inputClass} />
         </div>
         <div>
-          <SpotAutocomplete value={location} onChange={setLocation} label="Location" />
+          <SpotAutocomplete value={location} onChange={setLocation} onSelectSpot={(sp) => setSpotId(sp?.id ?? null)} label="Spot" />
           <p className={HINT}>Pick from suggestions or type any spot name, e.g. &ldquo;La Cicer, Las Palmas&rdquo; or &ldquo;Dreamland, Bali&rdquo;</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

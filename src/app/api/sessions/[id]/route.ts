@@ -6,6 +6,7 @@ import { notifySubscribers } from "@/lib/notify";
 import { geocodeLocation } from "@/lib/geocode";
 import { deleteObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
 import { parsePriceCents } from "@/lib/validation";
+import { resolveSpotForCoords } from "@/lib/spots";
 
 /** GET /api/sessions/:id — get session (public) */
 export async function GET(
@@ -68,7 +69,7 @@ export async function PATCH(
 
   const current = await prisma.session.findUnique({
     where: { id: params.id },
-    select: { published: true, pricePerPhoto: true, photoCount: true },
+    select: { published: true, pricePerPhoto: true, photoCount: true, location: true, sportType: true },
   });
   if (!current) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
@@ -94,13 +95,27 @@ export async function PATCH(
     // Check if this is a publish action (was unpublished, now publishing)
     const wasUnpublished = published === true && !current.published;
 
-    // Re-geocode if location changed
-    let coordsUpdate = {};
-    if (location) {
+    // Location → catalogue spot. Order: picked spot > manual pin (lat/lng) > geocoded free text
+    let coordsUpdate: Record<string, unknown> = {};
+    const picked =
+      typeof body.spotId === "string"
+        ? await prisma.spot.findUnique({ where: { id: body.spotId }, select: { id: true, lat: true, lng: true } })
+        : null;
+    if (picked) {
+      coordsUpdate = { locationLat: picked.lat, locationLng: picked.lng, spotId: picked.id };
+    } else if (typeof locationLat === "number" && typeof locationLng === "number") {
+      coordsUpdate = {
+        spotId: await resolveSpotForCoords(location || current.location, locationLat, locationLng, current.sportType),
+      };
+    } else if (location) {
       const coords = await geocodeLocation(location);
       coordsUpdate = coords
-        ? { locationLat: coords.lat, locationLng: coords.lng }
-        : { locationLat: null, locationLng: null };
+        ? {
+            locationLat: coords.lat,
+            locationLng: coords.lng,
+            spotId: await resolveSpotForCoords(location, coords.lat, coords.lng, current.sportType),
+          }
+        : { locationLat: null, locationLng: null, spotId: null };
     }
 
     const session = await prisma.session.update({

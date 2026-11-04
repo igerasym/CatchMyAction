@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
-import { ACTION_SPOTS } from "@/lib/spots-database";
+import { allSpots as loadSpots } from "@/lib/spots";
 import Hero from "./components/home/hero";
 import FindMeSection from "./components/home/find-me-section";
 import SessionLog from "./components/home/session-log";
@@ -37,6 +37,7 @@ export default async function HomePage() {
       wavePeriod: true,
       windSpeed: true,
       coverPhotoId: true,
+      spot: { select: { lat: true, lng: true } },
       photos: {
         take: 6,
         orderBy: { createdAt: "asc" },
@@ -108,16 +109,17 @@ export default async function HomePage() {
     date: s.date.toISOString(),
     photoCount: s.photoCount,
     thumbnails: s.photos.slice(0, 3).map((p) => getPreviewUrl(p.thumbnailKey)),
-    lat: s.locationLat,
-    lng: s.locationLng,
+    lat: s.locationLat ?? s.spot?.lat ?? null,
+    lng: s.locationLng ?? s.spot?.lng ?? null,
   }));
-  const staticNames = new Set(ACTION_SPOTS.map((s) => s.name.toLowerCase()));
-  const allSpots = [
-    ...ACTION_SPOTS.map((s) => ({ name: s.name, region: s.region, country: s.country, lat: s.lat, lng: s.lng })),
-    ...sessions
-      .filter((s) => s.locationLat != null && s.locationLng != null && !staticNames.has(s.location.toLowerCase()))
-      .map((s) => ({ name: s.location, region: "", country: "", lat: s.locationLat!, lng: s.locationLng! })),
-  ];
+  // Background dots: the whole spot catalogue (DB)
+  const allSpots = (await loadSpots()).map((s) => ({
+    name: s.name,
+    region: s.region ?? "",
+    country: s.country ?? "",
+    lat: s.lat,
+    lng: s.lng,
+  }));
 
   return (
     <div className="min-h-screen">

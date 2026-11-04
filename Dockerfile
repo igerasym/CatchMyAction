@@ -24,6 +24,8 @@ ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 ARG NEXT_PUBLIC_CARTO_KEY=""
 ENV NEXT_PUBLIC_CARTO_KEY=$NEXT_PUBLIC_CARTO_KEY
 RUN npm run build
+# Compile maintenance scripts (spot seed/import) to plain JS — the runner has no TS toolchain
+RUN npx esbuild scripts/seed-spots.ts scripts/import-spots.ts --bundle --platform=node --target=node20 --format=cjs --external:@prisma/client --outdir=scripts/dist
 
 # Production image
 FROM base AS runner
@@ -42,6 +44,8 @@ COPY --from=builder /app/public ./public
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
+# Spot catalogue seed/import (run with: node scripts/dist/<name>.js)
+COPY --from=builder /app/scripts/dist ./scripts/dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
