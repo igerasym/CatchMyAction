@@ -27,7 +27,6 @@ export async function GET(req: Request) {
           id: true,
           thumbnailKey: true,
           previewKey: true,
-          originalKey: true,
           width: true,
           height: true,
           priceInCents: true,
@@ -52,16 +51,13 @@ export async function GET(req: Request) {
   });
   const purchasedSet = new Set(purchases.map((p) => p.photoId));
 
-  const isLocal = !process.env.AWS_REGION || process.env.USE_LOCAL_STORAGE === "true";
-
   const result = claims.map((c: any) => {
     const isPurchased = purchasedSet.has(c.photo.id);
     return {
       id: c.photo.id,
       claimId: c.id,
-      thumbnailUrl: isPurchased
-        ? (isLocal ? `/api/uploads/originals/${c.photo.originalKey}` : getPreviewUrl(c.photo.originalKey))
-        : getPreviewUrl(c.photo.thumbnailKey),
+      // Originals are private (the CDN returns 403) — buyers get the original via the signed download URL
+      thumbnailUrl: getPreviewUrl(c.photo.thumbnailKey),
       previewUrl: getPreviewUrl(c.photo.previewKey),
       width: c.photo.width,
       height: c.photo.height,

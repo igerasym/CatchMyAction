@@ -654,7 +654,9 @@ export default function PhotoGrid({
             onClick={(e) => e.stopPropagation()}>
             <div className="relative bg-ink">
               <img src={selectedPhoto.previewUrl}
-                alt={`Photo ${currentIndex + 1} from ${sessionTitle}`} className="w-full" />
+                draggable={false}
+                onContextMenu={(e) => e.preventDefault()}
+                alt={`Photo ${currentIndex + 1} from ${sessionTitle}`} className="w-full select-none" />
               {isSelectedMatched && (
                 <>
                   <span aria-hidden="true" className="brk brk-rec" style={{ inset: "10px" }} />

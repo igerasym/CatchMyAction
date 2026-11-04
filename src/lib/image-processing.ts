@@ -10,85 +10,81 @@ function orientedSize(meta: sharp.Metadata): { width: number; height: number } {
   return (meta.orientation ?? 1) >= 5 ? { width: h, height: w } : { width: w, height: h };
 }
 
-/** Create a watermarked preview (max 1200px wide, 60% quality) */
+const PREVIEW_LONG_SIDE = 1000; // enough for a phone screen, too small to publish as a full-res story/print
+const FEATURED_LONG_SIDE = 800; // homepage/OG showcase: clean, but not worth stealing
+
+function escapeXml(s: string): string {
+  return s.replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&apos;" })[c]!);
+}
+
+/** Target size that fits the oriented image inside a long-side box (never upscales). */
+function fitLongSide(size: { width: number; height: number }, longSide: number) {
+  const w = size.width || longSide;
+  const h = size.height || Math.round(longSide * 0.66);
+  const scale = Math.min(1, longSide / Math.max(w, h));
+  return { width: Math.round(w * scale), height: Math.round(h * scale) };
+}
+
+/**
+ * Watermarked preview: long side 1000px, JPEG q70, a tiled diagonal "CATCHMYACTIONS.COM" pattern
+ * across the whole frame (can't be cropped away), white text with a thin dark outline so it reads on
+ * bright water and dark rock alike, plus a small credit line along the bottom.
+ */
 export async function createPreview(
-  inputBuffer: Buffer
+  inputBuffer: Buffer,
+  opts: { credit?: string | null } = {}
 ): Promise<{ buffer: Buffer; width: number; height: number }> {
   // .rotate() with no args applies EXIF orientation (portrait shots were coming out sideways)
-  const image = sharp(inputBuffer).rotate();
-  const size = orientedSize(await sharp(inputBuffer).metadata());
+  const { width, height } = fitLongSide(orientedSize(await sharp(inputBuffer).metadata()), PREVIEW_LONG_SIDE);
 
-  const width = Math.min(size.width || 1200, 1200);
-  const height = Math.round(width * ((size.height || 800) / (size.width || 1200)));
+  const font = Math.max(14, Math.round(Math.max(width, height) / 42));
+  // Tile wider than the text (~16 font-widths) so marks in a row never run into each other
+  const tileW = Math.round(font * 20);
+  const tileH = Math.round(font * 6);
+  const credit = opts.credit ? `© ${escapeXml(opts.credit.slice(0, 60))} · PREVIEW` : "PREVIEW";
+  const creditFont = Math.max(11, Math.round(font * 0.62));
+  const mark = (x: number, y: number) =>
+    `<text x="${x}" y="${y}" font-family="DejaVu Sans, Arial, sans-serif" font-weight="700" font-size="${font}" letter-spacing="2" fill="rgba(255,255,255,0.30)" stroke="rgba(0,0,0,0.16)" stroke-width="1">CATCHMYACTIONS.COM</text>`;
 
-  const fontSize = Math.round(width / 18);
-  const smallFont = Math.round(fontSize * 0.45);
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <pattern id="wm" width="${tileW}" height="${tileH}" patternUnits="userSpaceOnUse" patternTransform="rotate(-28)">
+      ${mark(0, Math.round(tileH * 0.45))}
+      ${mark(Math.round(tileW / 2), Math.round(tileH * 0.95))}
+    </pattern>
+  </defs>
+  <rect width="100%" height="100%" fill="url(#wm)"/>
+  <rect x="0" y="${Math.round(height - creditFont * 2.4)}" width="${width}" height="${Math.round(creditFont * 2.4)}" fill="rgba(0,0,0,0.38)"/>
+  <text x="${creditFont}" y="${Math.round(height - creditFont * 0.85)}" font-family="DejaVu Sans Mono, monospace" font-size="${creditFont}" letter-spacing="1" fill="rgba(255,255,255,0.85)">${credit}</text>
+</svg>`;
 
-  // Stylish diagonal watermark pattern
-  const svgWatermark = `
-    <svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <style>
-          .brand { 
-            fill: rgba(255,255,255,0.18); 
-            font-family: Arial, Helvetica, sans-serif;
-            font-weight: 800;
-            letter-spacing: 2px;
-          }
-          .sub {
-            fill: rgba(255,255,255,0.12);
-            font-family: Arial, Helvetica, sans-serif;
-            font-weight: 400;
-            letter-spacing: 4px;
-          }
-        </style>
-      </defs>
-      <!-- Center watermark -->
-      <g transform="rotate(-25, ${width / 2}, ${height / 2})">
-        <text x="50%" y="45%" text-anchor="middle" dominant-baseline="middle"
-              class="brand" font-size="${fontSize}">
-          CATCH MY ACTION
-        </text>
-        <text x="50%" y="55%" text-anchor="middle" dominant-baseline="middle"
-              class="sub" font-size="${smallFont}">
-          catchmyaction.com
-        </text>
-      </g>
-      <!-- Repeating pattern corners -->
-      <g transform="rotate(-25, ${width * 0.2}, ${height * 0.2})">
-        <text x="${width * 0.2}" y="${height * 0.2}" text-anchor="middle"
-              class="sub" font-size="${smallFont}">
-          CATCH MY ACTION
-        </text>
-      </g>
-      <g transform="rotate(-25, ${width * 0.8}, ${height * 0.8})">
-        <text x="${width * 0.8}" y="${height * 0.8}" text-anchor="middle"
-              class="sub" font-size="${smallFont}">
-          CATCH MY ACTION
-        </text>
-      </g>
-      <g transform="rotate(-25, ${width * 0.15}, ${height * 0.75})">
-        <text x="${width * 0.15}" y="${height * 0.75}" text-anchor="middle"
-              class="sub" font-size="${smallFont}">
-          CATCH MY ACTION
-        </text>
-      </g>
-      <g transform="rotate(-25, ${width * 0.85}, ${height * 0.25})">
-        <text x="${width * 0.85}" y="${height * 0.25}" text-anchor="middle"
-              class="sub" font-size="${smallFont}">
-          CATCH MY ACTION
-        </text>
-      </g>
-    </svg>
-  `;
-
-  const buffer = await image
+  const buffer = await sharp(inputBuffer)
+    .rotate()
     .resize(width, height, { fit: "inside" })
-    .composite([{ input: Buffer.from(svgWatermark), gravity: "center" }])
-    .jpeg({ quality: 60 })
+    .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
+    .jpeg({ quality: 70, mozjpeg: true })
     .toBuffer();
 
   return { buffer, width, height };
+}
+
+/**
+ * Clean showcase rendition for photos the photographer explicitly featured (homepage, OG cards):
+ * long side 800px, no pattern, only a small corner mark.
+ */
+export async function createFeatured(inputBuffer: Buffer, opts: { credit?: string | null } = {}): Promise<Buffer> {
+  const { width, height } = fitLongSide(orientedSize(await sharp(inputBuffer).metadata()), FEATURED_LONG_SIDE);
+  const f = Math.max(10, Math.round(Math.max(width, height) / 70));
+  const label = escapeXml(opts.credit ? `CATCHMYACTIONS.COM · ${opts.credit.slice(0, 40)}` : "CATCHMYACTIONS.COM");
+  const svg = `<svg width="${width}" height="${height}" xmlns="http://www.w3.org/2000/svg">
+  <text x="${width - f}" y="${height - f}" text-anchor="end" font-family="DejaVu Sans Mono, monospace" font-size="${f}" letter-spacing="1" fill="rgba(255,255,255,0.75)" stroke="rgba(0,0,0,0.25)" stroke-width="0.6">${label}</text>
+</svg>`;
+  return sharp(inputBuffer)
+    .rotate()
+    .resize(width, height, { fit: "inside" })
+    .composite([{ input: Buffer.from(svg), top: 0, left: 0 }])
+    .jpeg({ quality: 82, mozjpeg: true })
+    .toBuffer();
 }
 
 /** Create a small thumbnail (400px wide) */

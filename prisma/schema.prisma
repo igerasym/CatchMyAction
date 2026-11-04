@@ -79,6 +79,7 @@ model Photo {
   originalKey  String // S3 key for original (private bucket)
   previewKey   String // S3 key for watermarked preview (public bucket)
   thumbnailKey String // S3 key for thumbnail
+  featuredKey  String? // S3 key for the clean showcase rendition; set = photographer featured it (homepage/OG)
   width        Int
   height       Int
   fileSize     Int // bytes

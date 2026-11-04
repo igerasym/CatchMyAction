@@ -45,7 +45,10 @@ export async function POST(req: NextRequest) {
   }
 
   // 2. Verify session exists and check limits
-  const session = await prisma.session.findUnique({ where: { id: sessionId } });
+  const session = await prisma.session.findUnique({
+    where: { id: sessionId },
+    include: { photographer: { select: { name: true } } },
+  });
   if (!session) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
   }
@@ -114,7 +117,7 @@ export async function POST(req: NextRequest) {
   const thumbnailKey = `sessions/${sessionId}/thumbnails/${photoId}.jpg`;
 
   const [preview, thumbnail] = await Promise.all([
-    createPreview(buffer),
+    createPreview(buffer, { credit: session.photographer.name }),
     createThumbnail(buffer),
   ]);
 

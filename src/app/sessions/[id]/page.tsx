@@ -25,11 +25,23 @@ export async function generateMetadata({ params }: { params: { id: string } }): 
     },
   });
   if (!session) return { title: "Session Not Found" };
+  // Link previews use a featured (clean) frame when the photographer picked one
+  const featuredFrame = session.published
+    ? await prisma.photo.findFirst({
+        where: { sessionId: session.id, featuredKey: { not: null } },
+        select: { featuredKey: true },
+        orderBy: { createdAt: "asc" },
+      })
+    : null;
 
   const title = `${session.title} — ${session.location}`;
   const description = `${session.photoCount} photos by ${session.photographer.name} · ${format(new Date(session.date), "MMM d, yyyy")} · ${session.location}`;
   // Drafts don't leak a photo into link previews; they're also kept out of search engines
-  const imageUrl = session.published && session.photos[0] ? getPreviewUrl(session.photos[0].previewKey) : `${BASE_URL}/hero-bg.jpg`;
+  const imageUrl = featuredFrame?.featuredKey
+    ? getPreviewUrl(featuredFrame.featuredKey)
+    : session.published && session.photos[0]
+      ? getPreviewUrl(session.photos[0].previewKey)
+      : `${BASE_URL}/hero-bg.jpg`;
 
   return {
     alternates: { canonical: `${BASE_URL}/sessions/${session.id}` },
