@@ -182,7 +182,7 @@ export async function DELETE(
 
   const photos = await prisma.photo.findMany({
     where: { sessionId: params.id },
-    select: { originalKey: true, previewKey: true, thumbnailKey: true },
+    select: { originalKey: true, previewKey: true, thumbnailKey: true, featuredKey: true },
   });
 
   // Only free-download records remain; photos cascade with the session
@@ -196,6 +196,7 @@ export async function DELETE(
       deleteObject(BUCKET_ORIGINALS, p.originalKey),
       deleteObject(BUCKET_PREVIEWS, p.previewKey),
       deleteObject(BUCKET_PREVIEWS, p.thumbnailKey),
+      ...(p.featuredKey ? [deleteObject(BUCKET_PREVIEWS, p.featuredKey)] : []),
     ])
   ).catch(() => {});
 

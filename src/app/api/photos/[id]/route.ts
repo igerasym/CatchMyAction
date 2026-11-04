@@ -19,6 +19,7 @@ export async function DELETE(
       originalKey: true,
       previewKey: true,
       thumbnailKey: true,
+      featuredKey: true,
       sessionId: true,
       session: { select: { photographerId: true } },
     },
@@ -57,6 +58,7 @@ export async function DELETE(
       deleteObject(BUCKET_ORIGINALS, photo.originalKey),
       deleteObject(BUCKET_PREVIEWS, photo.previewKey),
       deleteObject(BUCKET_PREVIEWS, photo.thumbnailKey),
+      ...(photo.featuredKey ? [deleteObject(BUCKET_PREVIEWS, photo.featuredKey)] : []),
     ]);
     // Clean up face vectors from Rekognition
     deleteFacesForPhoto(photo.sessionId, photo.id).catch(() => {});

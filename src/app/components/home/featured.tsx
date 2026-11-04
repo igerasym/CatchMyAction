@@ -12,6 +12,7 @@ export interface FeaturedSession {
   photoCount: number;
   description: string | null;
   previews: string[]; // up to 5
+  clean?: boolean; // photographer-featured renditions (no watermark pattern)
 }
 
 /** Editorial spread of one real session: big title, asymmetric mixed-proportion grid. */
@@ -64,7 +65,7 @@ export default function Featured({ session }: { session: FeaturedSession | null 
 
         <div className="mt-8 pt-6 border-t border-ink/15 flex flex-wrap items-center justify-between gap-4">
           <p className="font-mono text-[11px] tracking-[0.12em] text-[#5c5850]">
-            PREVIEWS ARE WATERMARKED · HD WITHOUT WATERMARK AFTER PURCHASE
+            {session.clean ? "PICKED BY THE PHOTOGRAPHER" : "PREVIEWS ARE WATERMARKED"} · HD WITHOUT WATERMARK AFTER PURCHASE
           </p>
           <Link href={`/sessions/${session.id}`} className="inline-flex items-center gap-3 bg-ink text-bone px-5 py-3.5 text-sm font-bold hover:bg-char transition-colors">
             Open session — {session.photoCount} photos <ArrowRight className="w-4 h-4" aria-hidden="true" />

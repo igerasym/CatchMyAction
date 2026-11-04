@@ -91,6 +91,16 @@ export async function getDownloadUrl(
   return getSignedUrl(s3!, command, { expiresIn });
 }
 
+/** Read an object into memory (S3 in prod, local in dev) */
+export async function getObjectBuffer(bucket: string, key: string): Promise<Buffer> {
+  if (IS_LOCAL) {
+    return fs.readFileSync(path.join(UPLOAD_DIR, bucket, key));
+  }
+  const res = await s3!.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
+  const bytes = await res.Body!.transformToByteArray();
+  return Buffer.from(bytes);
+}
+
 /** Delete an object */
 export async function deleteObject(
   bucket: string,

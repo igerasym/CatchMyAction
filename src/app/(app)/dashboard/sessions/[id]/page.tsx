@@ -5,13 +5,14 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import PublishedPanel from "../../published-panel";
-import { toastError } from "@/lib/toast";
-import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin } from "lucide-react";
+import { toastError, toastSuccess } from "@/lib/toast";
+import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin, Sparkles, RefreshCw } from "lucide-react";
 import { loginHref } from "@/lib/redirect";
 
 interface Photo {
   id: string;
   thumbnailKey: string;
+  featured?: boolean;
   thumbnailUrl?: string;
   width: number;
   height: number;
@@ -52,6 +53,8 @@ export default function ManagePhotosPage() {
     }
   }, []);
   const [dragging, setDragging] = useState(false);
+  const [featuring, setFeaturing] = useState<string | null>(null);
+  const [rebuilding, setRebuilding] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -148,6 +151,37 @@ export default function ManagePhotosPage() {
       body: JSON.stringify({ coverPhotoId: photoId }),
     });
     if (session) setSession({ ...session, coverPhotoId: photoId });
+  }
+
+  // --- Feature (clean showcase version on the homepage / link previews) ---
+  async function handleToggleFeatured(photo: Photo) {
+    setFeaturing(photo.id);
+    const res = await fetch(`/api/photos/${photo.id}/featured`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ featured: !photo.featured }),
+    });
+    const data = await res.json().catch(() => ({}));
+    setFeaturing(null);
+    if (!res.ok) {
+      toastError(data.error || "Couldn't update the photo");
+      return;
+    }
+    setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, featured: data.featured } : p)));
+  }
+
+  // --- Rebuild previews from originals (new watermark, EXIF rotation) ---
+  async function handleRebuildPreviews() {
+    if (!confirm("Re-render all previews of this session with the current watermark? Takes about a second per photo.")) return;
+    setRebuilding(true);
+    const res = await fetch(`/api/sessions/${sessionId}/rebuild-previews`, { method: "POST" });
+    const data = await res.json().catch(() => ({}));
+    setRebuilding(false);
+    if (!res.ok) {
+      toastError(data.error || "Couldn't start rebuilding previews");
+      return;
+    }
+    toastSuccess(`Rebuilding ${data.total} previews — refresh the page in a minute or two`);
   }
 
   // --- Upload ---
@@ -308,10 +342,23 @@ export default function ManagePhotosPage() {
               </button>
             </>
           )}
+          <button onClick={handleRebuildPreviews} disabled={rebuilding}
+            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold border border-line text-mute hover:text-bone hover:border-bone disabled:opacity-50 transition-colors">
+            <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
+            {rebuilding ? "Starting..." : "Rebuild previews"}
+          </button>
           <span className="hud ml-auto" aria-live="polite">
             {selected.size > 0 ? `${selected.size} selected` : `${photos.length} photos`}
           </span>
         </div>
+      )}
+
+      {photos.length > 0 && (
+        <p className="text-xs text-dim mb-4">
+          <Sparkles className="inline w-3.5 h-3.5 -mt-0.5 mr-1" aria-hidden="true" />
+          Feature your best shots: a featured photo is shown on the homepage and in link previews as a clean
+          800px version with a small corner mark instead of the watermark pattern. Up to 8 per session.
+        </p>
       )}
 
       {/* Photo grid */}
@@ -395,7 +442,7 @@ export default function ManagePhotosPage() {
               onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); toggleSelect(p.id); } }}
               role="checkbox"
               aria-checked={selected.has(p.id)}
-              aria-label={`Photo${isCover(p.id) ? " (cover)" : ""}`}
+              aria-label={`Photo${isCover(p.id) ? " (cover)" : ""}${p.featured ? " (featured)" : ""}`}
               tabIndex={0}
             >
               {/* Photo */}
@@ -413,10 +460,11 @@ export default function ManagePhotosPage() {
               {/* Frame: rec when selected, soft bone on hover */}
               <span className={`brk brk-sm ${selected.has(p.id) ? "brk-rec" : isCover(p.id) ? "" : "brk-hover"}`} aria-hidden="true" />
 
-              {/* Cover badge */}
-              {isCover(p.id) && (
-                <div className="absolute bottom-1.5 left-1.5 tag-ghost pointer-events-none">
-                  COVER
+              {/* Cover / featured badges */}
+              {(isCover(p.id) || p.featured) && (
+                <div className="absolute bottom-1.5 left-1.5 flex gap-1 pointer-events-none">
+                  {isCover(p.id) && <span className="tag-ghost">COVER</span>}
+                  {p.featured && <span className="tag-ghost">FEATURED</span>}
                 </div>
               )}
 
@@ -441,6 +489,18 @@ export default function ManagePhotosPage() {
                     <Star className="w-3.5 h-3.5" aria-hidden="true" />
                   </button>
                 )}
+                <button
+                  onClick={(e) => { e.stopPropagation(); handleToggleFeatured(p); }}
+                  disabled={featuring === p.id}
+                  className={`w-10 h-10 md:w-7 md:h-7 flex items-center justify-center disabled:opacity-50 ${
+                    p.featured ? "bg-bone text-ink hover:bg-ink/80 hover:text-bone" : "bg-ink/80 text-bone hover:bg-bone hover:text-ink"
+                  }`}
+                  title={p.featured ? "Unfeature" : "Feature on the homepage"}
+                  aria-label={p.featured ? "Unfeature photo" : "Feature photo on the homepage"}
+                  aria-pressed={!!p.featured}
+                >
+                  <Sparkles className="w-3.5 h-3.5" aria-hidden="true" />
+                </button>
                 <button
                   onClick={(e) => { e.stopPropagation(); handleDeleteOne(p.id); }}
                   className="w-10 h-10 md:w-7 md:h-7 bg-ink/80 text-bone hover:bg-rec hover:text-rec-ink flex items-center justify-center"

@@ -48,6 +48,20 @@ export default async function HomePage() {
     take: 50,
   });
 
+  // Photos the photographers explicitly featured: clean showcase renditions (no watermark pattern)
+  const featuredPhotos = await prisma.photo.findMany({
+    where: { featuredKey: { not: null }, session: { published: true } },
+    select: { sessionId: true, featuredKey: true },
+    orderBy: { createdAt: "asc" },
+    take: 200,
+  });
+  const featuredBySession = new Map<string, string[]>();
+  for (const p of featuredPhotos) {
+    const list = featuredBySession.get(p.sessionId) ?? [];
+    list.push(getPreviewUrl(p.featuredKey!));
+    featuredBySession.set(p.sessionId, list);
+  }
+
   const latest = sessions[0] ?? null;
   const spotCount = new Set(sessions.map((s) => s.location)).size;
   const sports = Array.from(new Set(sessions.map((s) => s.sportType)));
@@ -81,8 +95,11 @@ export default async function HomePage() {
     };
   });
 
-  // Feature the most recent session with enough frames for an editorial spread
-  const featuredSrc = sessions.find((s) => s.photos.length >= 5) ?? sessions.find((s) => s.photos.length >= 3) ?? null;
+  // Editorial spread: prefer the most recent session with 3+ featured (clean) photos; otherwise fall back
+  // to the most recent session with enough watermarked previews
+  const curated = sessions.find((s) => (featuredBySession.get(s.id)?.length ?? 0) >= 3) ?? null;
+  const featuredSrc =
+    curated ?? sessions.find((s) => s.photos.length >= 5) ?? sessions.find((s) => s.photos.length >= 3) ?? null;
   const featured = featuredSrc
     ? {
         id: featuredSrc.id,
@@ -93,13 +110,19 @@ export default async function HomePage() {
         endTime: featuredSrc.endTime,
         photoCount: featuredSrc.photoCount,
         description: featuredSrc.description,
-        previews: featuredSrc.photos.slice(0, 5).map((p) => getPreviewUrl(p.previewKey)),
+        previews: curated
+          ? featuredBySession.get(curated.id)!.slice(0, 5)
+          : featuredSrc.photos.slice(0, 5).map((p) => getPreviewUrl(p.previewKey)),
+        clean: !!curated,
       }
     : null;
 
   // Photographer CTA image: a frame from a different session than the feature, if possible
+  const ctaFeatured =
+    sessions.map((s) => featuredBySession.get(s.id)).find((list, i) => list?.length && sessions[i].id !== featured?.id) ??
+    featuredBySession.get(featured?.id ?? "")?.slice(-1);
   const ctaSrc = sessions.find((s) => s.id !== featured?.id && s.photos.length > 0) ?? latest;
-  const ctaImage = ctaSrc?.photos[0] ? getPreviewUrl(ctaSrc.photos[0].previewKey) : null;
+  const ctaImage = ctaFeatured?.[0] ?? (ctaSrc?.photos[0] ? getPreviewUrl(ctaSrc.photos[0].previewKey) : null);
 
   // Map data (existing SpotMap contract)
   const activeSessions = sessions.map((s) => ({

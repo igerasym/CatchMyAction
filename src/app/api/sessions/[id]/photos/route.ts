@@ -28,6 +28,7 @@ export async function GET(
       id: true,
       previewKey: true,
       thumbnailKey: true,
+      featuredKey: true,
       width: true,
       height: true,
       priceInCents: true,
@@ -40,8 +41,9 @@ export async function GET(
   const hasMore = photos.length > limit;
   const items = hasMore ? photos.slice(0, limit) : photos;
   const nextCursor = hasMore ? items[items.length - 1].id : null;
-  const result = items.map((p) => ({
+  const result = items.map(({ featuredKey, ...p }) => ({
     ...p,
+    featured: !!featuredKey,
     thumbnailUrl: getPreviewUrl(p.thumbnailKey),
     previewUrl: getPreviewUrl(p.previewKey),
   }));
