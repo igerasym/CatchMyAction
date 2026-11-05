@@ -48,8 +48,13 @@ COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/scripts/dist ./scripts/dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
+# Prisma CLI — auto-deploy runs `prisma migrate deploy` from the candidate image before swapping
+COPY --from=builder /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder /app/node_modules/tsx ./node_modules/tsx
 COPY --from=builder /app/node_modules/esbuild ./node_modules/esbuild
+
+# Next.js writes its image/ISR cache here at runtime (was EACCES: .next is root-owned after COPY)
+RUN mkdir -p /app/.next/cache && chown -R nextjs:nodejs /app/.next
 
 USER nextjs
 EXPOSE 3000
