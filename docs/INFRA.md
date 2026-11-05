@@ -73,8 +73,22 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - Log: `~/deploy.log` (one line per deploy), build output `~/deploy-build.log`.
   Status: `systemctl --user list-timers cma-autodeploy.timer`, `tail ~/deploy.log`.
 - Pause: `systemctl --user stop cma-autodeploy.timer` · resume: `start`.
-- Not covered: DB schema changes (still manual `prisma db push` — see refactoring plan), changes to the untracked
-  prod config (`.env.production`, `docker-compose.production.yml`, `.env`).
+- **DB migrations (since 2026-11-05):** after the build and before the swap the script runs
+  `prisma migrate deploy` from the candidate image. If the commit adds migrations it first dumps the DB to
+  `~/backups/pre-migrate-<sha>-<ts>.sql.gz`. A failed migration leaves prod on the old image (logged as
+  `MIGRATION FAILED`).
+- Not covered: changes to the untracked prod config (`.env.production`, `docker-compose.production.yml`, `.env`).
+
+## Schema changes (migrations)
+- `prisma db push` is retired (`npm run db:push` refuses). Change `schema.prisma`, then
+  `npm run db:migrate -- --name <what>` against a local/dev DB and commit the generated `prisma/migrations/<ts>_<what>/`.
+- **Expand-only per release:** add tables/nullable columns/indexes; never drop or rename something the currently
+  deployed code still reads. Remove it in a later PR once no code uses it. This keeps the old container working
+  during the swap and makes image rollback safe without a schema rollback.
+- CI (`.github/workflows/ci.yml`) applies all migrations to an empty Postgres and fails if the result differs from
+  `schema.prisma`, so a schema edit without a migration can't reach `main` green.
+- Baseline `20261105000000_baseline` = the schema as it was on prod on 2026-11-05. Prod was marked as already having
+  it (`prisma migrate resolve --applied 20261105000000_baseline`) — never run it there.
 - If the update script itself changes in git, reinstall it: `git -C ~/app show origin/main:deploy/auto-deploy.sh > ~/bin/auto-deploy.sh`.
 
 ## Agent SSH access

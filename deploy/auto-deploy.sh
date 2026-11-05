@@ -1,5 +1,6 @@
 #!/bin/bash
-# CatchMyAction auto-deploy: poll origin/main, build in a separate checkout, health-check, swap, auto-rollback.
+# CatchMyAction auto-deploy: poll origin/main, build in a separate checkout, migrate DB, swap, health-check,
+# auto-rollback.
 # Installed on the EC2 host at ~/bin/auto-deploy.sh, run every 5 min by systemd user timer cma-autodeploy.timer.
 # Never touches postgres or the unrelated cafe-manager stack.
 set -uo pipefail
@@ -9,6 +10,9 @@ BUILD=$HOME/app-build              # separate checkout used only for building
 COMPOSE="docker-compose -f docker-compose.production.yml"
 LOG=$HOME/deploy.log
 FAILED=$HOME/.deploy-failed-sha
+APP_CONTAINER=app-app-1
+DB_CONTAINER=app-postgres-1
+BACKUPS=$HOME/backups
 
 log() { echo "$(date -u +%FT%TZ) $*" >> "$LOG"; }
 
@@ -35,13 +39,31 @@ if ! docker build -q --build-arg NEXT_PUBLIC_CARTO_KEY="${NEXT_PUBLIC_CARTO_KEY:
   exit 1
 fi
 
-# 2. Swap: keep a rollback tag, point latest at the candidate, restart app only
+# 2. Database migrations, run from the candidate image BEFORE the swap. Migrations must be
+#    expand-only (add tables/columns, never drop/rename in the same release) so the old code that is
+#    still serving keeps working — and so a rollback of the image never needs a schema rollback.
+fail_migrate() { log "MIGRATION FAILED for $SHORT_T ($1) — prod stays on $SHORT_LIVE, image not swapped"; echo "$TARGET" > "$FAILED"; exit 1; }
+DBURL=$(docker exec "$APP_CONTAINER" printenv DATABASE_URL) || fail_migrate "cannot read DATABASE_URL"
+NET=$(docker inspect "$APP_CONTAINER" --format '{{range $k, $v := .NetworkSettings.Networks}}{{$k}} {{end}}' | awk '{print $1}')
+[ -n "$NET" ] || fail_migrate "cannot find app network"
+if ! git -C "$BUILD" diff --quiet "$LIVE" "$TARGET" -- prisma/migrations; then
+  mkdir -p "$BACKUPS"
+  DUMP="$BACKUPS/pre-migrate-$SHORT_T-$(date -u +%Y%m%dT%H%M%SZ).sql.gz"
+  docker exec "$DB_CONTAINER" sh -c 'pg_dump -U "$POSTGRES_USER" "$POSTGRES_DB"' | gzip > "$DUMP" \
+    || fail_migrate "pre-migration backup failed"
+  log "new migrations in $SHORT_T — backup $DUMP"
+fi
+DATABASE_URL="$DBURL" docker run --rm --network "$NET" -e DATABASE_URL app-app:candidate \
+  node node_modules/prisma/build/index.js migrate deploy >> "$HOME/deploy-build.log" 2>&1 \
+  || fail_migrate "prisma migrate deploy"
+
+# 3. Swap: keep a rollback tag, point latest at the candidate, restart app only
 docker tag app-app:latest "app-app:rollback-$SHORT_LIVE"
 docker tag app-app:candidate app-app:latest
 git merge --ff-only -q "$TARGET" || { log "ff-merge failed (local changes on host?)"; }
 $COMPOSE up -d --no-deps app >> "$HOME/deploy-build.log" 2>&1
 
-# 3. Health check, auto-rollback on failure
+# 4. Health check, auto-rollback on failure
 ok=0
 for i in $(seq 1 30); do
   h=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/ || true)
@@ -60,7 +82,7 @@ fi
 log "deploy OK $SHORT_T"
 rm -f "$FAILED"
 
-# 4. Housekeeping: keep the 3 newest rollback tags, drop dangling layers
+# 5. Housekeeping: keep the 3 newest rollback tags, drop dangling layers
 docker images app-app --format '{{.Tag}} {{.CreatedAt}}' | grep '^rollback-' | sort -k2,3 -r | tail -n +4 | awk '{print $1}' \
   | while read -r t; do docker rmi "app-app:$t" >/dev/null 2>&1; done
 docker image prune -f >/dev/null 2>&1
