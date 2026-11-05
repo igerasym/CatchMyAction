@@ -16,8 +16,11 @@ BACKUPS=$HOME/backups
 
 log() { echo "$(date -u +%FT%TZ) $*" >> "$LOG"; }
 
+# Lock shared with ~/bin/cafe-auto-deploy.sh (the 2 GB host can't run two docker builds at once). Both timers fire
+# in the same second, so WAIT for the lock instead of `-n`: with `-n` the cafe run always won the race and every
+# CatchMyAction deploy was silently skipped (2026-11-05, 20:15-22:56 UTC).
 exec 9>"$HOME/.deploy.lock"
-flock -n 9 || exit 0
+flock -w 900 9 || { log "lock busy for 15 min (another deploy running?) — skipping this tick"; exit 0; }
 
 cd "$APP" || exit 1
 git fetch -q origin main || { log "fetch failed"; exit 1; }
