@@ -101,8 +101,12 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - `~/bin/backup-db.sh`: `pg_dump` → `~/backups/catchmyaction-<ts>.sql.gz`, kept 14 days.
 - Runs daily 03:00 UTC via systemd **user** timer `cma-backup.timer` (linger enabled for `ec2-user`).
   Check: `systemctl --user list-timers`; logs: `journalctl --user -u cma-backup`.
-- Off-host copy: if `~/bin/backup-offsite.sh` exists it is called with the dump path (owner-installed, uploads to
-  `s3://catchmyaction-originals-us-west-2/_backups/db/`).
+- Off-host copy: `~/bin/backup-offsite.sh` (= `deploy/backup-offsite.sh`) is called with the dump path and uploads to
+  the dedicated private bucket `catchmyaction-db-backups-923917779583` (us-west-2): Block Public Access, SSE-S3,
+  versioning, TLS-only bucket policy, lifecycle 35 days (+30 for overwritten versions).
+  The instance role `CatchMyActions-EC2-Role` has inline policy `db-backup-write` = `s3:PutObject` on `db/*` only
+  (no read/list/delete — a compromised host can't destroy the off-site copies).
+  Restore from S3 (owner, from the Mac): `aws s3 cp s3://catchmyaction-db-backups-923917779583/db/<file> . --profile catchmyaction`.
 - Restore: `zcat <dump> | docker exec -i app-postgres-1 psql -U catchmyaction -d catchmyaction`.
 
 ## Known gaps (see `docs/review/REFACTORING_PLAN.md`)
