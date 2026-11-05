@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createHash } from "crypto";
-import { v4 as uuid } from "uuid";
+import { randomUUID } from "crypto";
 import { prisma } from "@/lib/db";
 import { putObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS, getPreviewUrl } from "@/lib/s3";
 import { createPreview, createThumbnail, getImageMetadata, extractExif } from "@/lib/image-processing";
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     }, { status: 400 });
   }
 
-  const photoId = uuid();
+  const photoId = randomUUID();
   const originalKey = `sessions/${sessionId}/originals/${photoId}.jpg`;
   const previewKey = `sessions/${sessionId}/previews/${photoId}.jpg`;
   const thumbnailKey = `sessions/${sessionId}/thumbnails/${photoId}.jpg`;
