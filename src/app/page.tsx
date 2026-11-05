@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
 import { allSpots as loadSpots } from "@/lib/spots";
@@ -11,14 +12,46 @@ import HowItWorks from "./components/home/how-it-works";
 import PhotographerCta from "./components/home/photographer-cta";
 import Footer from "./components/footer";
 
-export const revalidate = 60;
+// Rendered per request (cheap), but the DB reads below are cached for 60 s across requests.
+// Not ISR: the Docker build has no database, and a build-time snapshot would ship an empty homepage.
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   alternates: { canonical: "https://catchmyactions.com" },
 };
 
+const loadHomeData = unstable_cache(
+  async () => {
+    const sessions = await querySessions();
+    // Photos the photographers explicitly featured: clean showcase renditions (no watermark pattern)
+    const featuredPhotos = await prisma.photo.findMany({
+      where: { featuredKey: { not: null }, session: { published: true } },
+      select: { sessionId: true, featuredKey: true },
+      orderBy: { createdAt: "asc" },
+      take: 200,
+    });
+    return { sessions, featuredPhotos, spots: await loadSpots() };
+  },
+  ["home-data"],
+  { revalidate: 60 }
+);
+
 export default async function HomePage() {
-  const sessions = await prisma.session.findMany({
+  const data = await loadHomeData();
+  // unstable_cache round-trips through JSON: revive Dates
+  const sessions = data.sessions.map((s) => ({ ...s, date: new Date(s.date) }));
+  const featuredPhotos = data.featuredPhotos;
+  const featuredBySession = new Map<string, string[]>();
+  for (const p of featuredPhotos) {
+    const list = featuredBySession.get(p.sessionId) ?? [];
+    list.push(getPreviewUrl(p.featuredKey!));
+    featuredBySession.set(p.sessionId, list);
+  }
+  return renderHome(sessions, featuredBySession, data.spots);
+}
+
+function querySessions() {
+  return prisma.session.findMany({
     where: { published: true, photoCount: { gt: 0 } },
     select: {
       id: true,
@@ -47,21 +80,12 @@ export default async function HomePage() {
     orderBy: { date: "desc" },
     take: 50,
   });
+}
 
-  // Photos the photographers explicitly featured: clean showcase renditions (no watermark pattern)
-  const featuredPhotos = await prisma.photo.findMany({
-    where: { featuredKey: { not: null }, session: { published: true } },
-    select: { sessionId: true, featuredKey: true },
-    orderBy: { createdAt: "asc" },
-    take: 200,
-  });
-  const featuredBySession = new Map<string, string[]>();
-  for (const p of featuredPhotos) {
-    const list = featuredBySession.get(p.sessionId) ?? [];
-    list.push(getPreviewUrl(p.featuredKey!));
-    featuredBySession.set(p.sessionId, list);
-  }
+type HomeSession = Awaited<ReturnType<typeof querySessions>>[number];
+type CatalogueSpot = Awaited<ReturnType<typeof loadSpots>>[number];
 
+function renderHome(sessions: HomeSession[], featuredBySession: Map<string, string[]>, spots: CatalogueSpot[]) {
   const latest = sessions[0] ?? null;
   const spotCount = new Set(sessions.map((s) => s.location)).size;
   const sports = Array.from(new Set(sessions.map((s) => s.sportType)));
@@ -136,7 +160,7 @@ export default async function HomePage() {
     lng: s.locationLng ?? s.spot?.lng ?? null,
   }));
   // Background dots: the whole spot catalogue (DB)
-  const allSpots = (await loadSpots()).map((s) => ({
+  const allSpots = spots.map((s) => ({
     name: s.name,
     region: s.region ?? "",
     country: s.country ?? "",

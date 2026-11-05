@@ -1,11 +1,10 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import "./globals.css";
 import Providers from "./providers";
 import NavBar from "./navbar";
 import ToastBanner from "./components/toast-banner";
 import { archivo, mono } from "./fonts";
-
-export const dynamic = "force-dynamic";
 
 const BASE_URL = "https://catchmyactions.com";
 
@@ -72,7 +71,10 @@ export default function RootLayout({
       <body className="bg-char text-bone min-h-screen">
         <Providers>
           <NavBar />
-          <ToastBanner />
+          {/* reads useSearchParams — must sit in Suspense so static pages can prerender */}
+          <Suspense fallback={null}>
+            <ToastBanner />
+          </Suspense>
           {children}
         </Providers>
       </body>
