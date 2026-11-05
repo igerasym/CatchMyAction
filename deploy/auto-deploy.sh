@@ -16,18 +16,19 @@ BACKUPS=$HOME/backups
 
 log() { echo "$(date -u +%FT%TZ) $*" >> "$LOG"; }
 
-# Lock shared with ~/bin/cafe-auto-deploy.sh (the 2 GB host can't run two docker builds at once). Both timers fire
-# in the same second, so WAIT for the lock instead of `-n`: with `-n` the cafe run always won the race and every
-# CatchMyAction deploy was silently skipped (2026-11-05, 20:15-22:56 UTC).
-exec 9>"$HOME/.deploy.lock"
-flock -w 900 9 || { log "lock busy for 15 min (another deploy running?) — skipping this tick"; exit 0; }
-
+# Cheap "anything to deploy?" check runs WITHOUT the lock (systemd never overlaps two runs of this unit).
 cd "$APP" || exit 1
 git fetch -q origin main || { log "fetch failed"; exit 1; }
 LIVE=$(git rev-parse HEAD)
 TARGET=$(git rev-parse origin/main)
 [ "$LIVE" = "$TARGET" ] && exit 0
 [ -f "$FAILED" ] && [ "$(cat "$FAILED")" = "$TARGET" ] && exit 0   # already failed this commit; wait for a new one
+
+# Lock shared with ~/bin/cafe-auto-deploy.sh: the 2 GB host can't run two docker builds at once. Taken only when
+# there is real work, and WAITED for (not `-n`): both timers fire in the same second, and with `-n` on both sides
+# one of them lost every tick (2026-11-05: every CatchMyAction deploy silently skipped 20:15-22:56 UTC).
+exec 9>"$HOME/.deploy.lock"
+flock -w 900 9 || { log "lock busy for 15 min (cafe deploy running?) — retry next tick"; exit 0; }
 
 SHORT_LIVE=${LIVE:0:7}; SHORT_T=${TARGET:0:7}
 log "deploy start $SHORT_LIVE -> $SHORT_T"
