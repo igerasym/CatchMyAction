@@ -92,9 +92,10 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - If the update script itself changes in git, reinstall it: `git -C ~/app show origin/main:deploy/auto-deploy.sh > ~/bin/auto-deploy.sh`.
 
 ## Agent SSH access
-- Public key `kiro-agent-deploy` (ed25519, `SHA256:1YndMGkhsqCxN8Q20QbXcU12vyH47+wH1sECP5dElqM`) is in
-  `~ec2-user/.ssh/authorized_keys`. Private key lives only in the agent's session scratch dir.
-- Revoke: `sed -i '/kiro-agent-deploy/d' ~/.ssh/authorized_keys` on the host.
+- Durable agent key (since 2026-11-05): `~/.ssh/kiro-cma-deploy` on the owner's Mac, public key comment
+  `kiro-cma-deploy` in `~ec2-user/.ssh/authorized_keys`. Survives agent sessions (scratch-dir keys did not).
+  Use: `ssh -i ~/.ssh/kiro-cma-deploy ec2-user@52.39.186.224`.
+- Revoke: `sed -i '/kiro-cma-deploy/d' ~/.ssh/authorized_keys` on the host.
 
 ## Backups
 - `~/bin/backup-db.sh`: `pg_dump` → `~/backups/catchmyaction-<ts>.sql.gz`, kept 14 days.
