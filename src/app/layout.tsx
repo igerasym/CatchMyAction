@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Suspense } from "react";
 import "./globals.css";
 import Providers from "./providers";
@@ -7,6 +7,13 @@ import ToastBanner from "./components/toast-banner";
 import { archivo, mono } from "./fonts";
 
 const BASE_URL = "https://catchmyactions.com";
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover", // use the full screen behind the iPhone notch
+  themeColor: "#0c1222",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
@@ -21,9 +28,18 @@ export const metadata: Metadata = {
     "triathlon photos", "MTB photos", "find yourself in action", "sports photographer",
     "buy action photos", "face recognition photos",
   ],
+  manifest: "/manifest.webmanifest",
   icons: {
-    icon: "/icon.svg",
-    apple: "/apple-icon.svg",
+    icon: [
+      { url: "/icon.svg", type: "image/svg+xml" },
+      { url: "/icons/pwa-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: "/icons/apple-touch-icon.png",
+  },
+  appleWebApp: {
+    capable: true,
+    title: "CatchMyAction",
+    statusBarStyle: "black-translucent",
   },
   openGraph: {
     type: "website",
