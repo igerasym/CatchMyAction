@@ -118,3 +118,14 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - No EBS snapshots / DLM policy yet.
 - SG exposes 22 and 3000 to `0.0.0.0/0`.
 - Cloudflare → origin is plain HTTP (no 443 on nginx).
+
+## Photographer payouts
+
+- Checkout uses a Stripe destination charge when the photographer has an active Connect account: 18% goes to the platform (`PLATFORM_FEE_BPS` in `src/lib/stripe.ts`), the rest to them. The destination is stored in the checkout metadata as `payoutAccount`.
+- `fulfillCheckoutSession` records `Purchase.photographerShareCents` and `Purchase.payoutStatus`: `sent` (routed at payment time), `pending` (no active Stripe account, so the platform holds the money) or `null` (rows from before tracking).
+- The dashboard Earnings tab and `/api/photographer/earnings` read these fields. Do not recompute the share from a hardcoded percentage.
+- Not built yet: moving `pending` money to the photographer after they connect Stripe (needs `stripe.transfers.create` with `source_transaction` and an idempotency key per purchase).
+
+## Photo uploads
+
+Both upload screens use `useUploadQueue` (`src/hooks/use-upload-queue.ts`) on top of `uploadPhoto` (`src/lib/upload-client.ts`): 3 files at a time, up to 3 retries for network errors, 429 and 5xx, a retry button for failed files, and a warning when the tab is closed mid-upload. A 409 duplicate on a retry counts as success because the first attempt reached the server.

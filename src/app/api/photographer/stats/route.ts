@@ -63,7 +63,14 @@ export async function GET(req: NextRequest) {
     }),
   ]);
 
+  // Money the platform still holds for this photographer (no active Stripe account at sale time).
+  const pending = await prisma.purchase.aggregate({
+    where: { ...purchaseWhere, payoutStatus: "pending" },
+    _sum: { photographerShareCents: true },
+  });
+
   return NextResponse.json({
+    pendingPayout: pending._sum.photographerShareCents || 0,
     sessions: sessionCount,
     photos: photoCount,
     photosSold: sales._count,

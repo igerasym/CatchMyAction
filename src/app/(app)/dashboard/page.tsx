@@ -35,6 +35,7 @@ interface Stats {
   photos: number;
   photosSold: number;
   revenue: number;
+  pendingPayout: number;
   totalViews: number;
   recentSales: any[];
 }
@@ -42,6 +43,8 @@ interface Stats {
 interface Earnings {
   totalGross: number;
   totalNet: number;
+  sentNet: number;
+  pendingNet: number;
   platformFee: number;
   totalSales: number;
   dailyRevenue: { date: string; gross: number; net: number }[];
@@ -50,7 +53,7 @@ interface Earnings {
     sales: number; gross: number; net: number; views: number;
   }[];
   transactions: {
-    id: string; amount: number; net: number; date: string;
+    id: string; amount: number; net: number; payout: "sent" | "pending"; date: string;
     buyerName: string; sessionTitle: string; thumbnailUrl: string;
   }[];
 }
@@ -216,11 +219,13 @@ export default function DashboardPage() {
         <div className="mb-8 p-4 bg-ink border border-line border-l-2 border-l-rec flex flex-wrap items-center justify-between gap-4" role="status">
           <div>
             <p className="text-sm text-bone font-bold">
-              {stats && stats.photosSold > 0
-                ? `You have $${((stats.revenue * 0.82) / 100).toFixed(2)} in earnings`
+              {stats && stats.pendingPayout > 0
+                ? `$${(stats.pendingPayout / 100).toFixed(2)} is waiting for you`
                 : stripeStatus === "incomplete" ? "Complete your Stripe setup to receive payouts" : "Connect Stripe to get paid"}
             </p>
-            <p className="font-mono text-[11px] tracking-[0.1em] uppercase text-dim mt-1">You keep 82% of each sale.</p>
+            <p className="font-mono text-[11px] tracking-[0.1em] uppercase text-dim mt-1">
+              {stats && stats.pendingPayout > 0 ? "Connect Stripe so we can send it. You keep 82% of each sale." : "You keep 82% of each sale."}
+            </p>
           </div>
           <a href="/settings" className="btn-rec py-2.5 px-4 text-sm whitespace-nowrap">
             {stripeStatus === "incomplete" ? "Complete Setup" : "Connect Stripe"}
@@ -360,6 +365,14 @@ function EarningsTab({ data, loading, range, setRange }: {
               <p className="font-mono text-[11px] tracking-[0.06em] text-dim mt-2">
                 {data.totalSales > 0 ? `avg $${(data.totalNet / data.totalSales / 100).toFixed(2)} per photo` : "no sales yet"}
               </p>
+              {data.totalSales > 0 && (
+                <p className="font-mono text-[11px] tracking-[0.06em] mt-3 space-y-1">
+                  <span className="block text-bone">Sent to your Stripe: ${(data.sentNet / 100).toFixed(2)}</span>
+                  {data.pendingNet > 0 && (
+                    <span className="block text-rec">Waiting for Stripe setup: ${(data.pendingNet / 100).toFixed(2)}</span>
+                  )}
+                </p>
+              )}
             </div>
             <div className="p-6 bg-char-2">
               <div className="flex items-center gap-2 mb-2">
@@ -426,7 +439,12 @@ function EarningsTab({ data, loading, range, setRange }: {
                       <p className="text-sm text-bone truncate">{t.sessionTitle}</p>
                       <p className="font-mono text-[11px] tracking-[0.06em] text-dim mt-0.5">{t.buyerName} · {new Date(t.date).toLocaleDateString()}</p>
                     </div>
-                    <p className="font-mono text-sm text-bone font-bold flex-shrink-0">+${(t.net / 100).toFixed(2)}</p>
+                    <div className="text-right flex-shrink-0">
+                      <p className="font-mono text-sm text-bone font-bold">+${(t.net / 100).toFixed(2)}</p>
+                      <p className={`font-mono text-[10px] tracking-[0.1em] uppercase mt-0.5 ${t.payout === "pending" ? "text-rec" : "text-dim"}`}>
+                        {t.payout === "pending" ? "Waiting for Stripe" : "Sent"}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>

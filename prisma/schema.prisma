@@ -116,6 +116,13 @@ model Purchase {
   maxDownloads    Int      @default(5)
   createdAt       DateTime @default(now())
 
+  // Photographer's cut in cents (amount minus platform fee), fixed at fulfilment time.
+  photographerShareCents Int?
+  // "sent" = routed to the photographer's Stripe account at payment time,
+  // "pending" = platform holds the money (photographer had no active Stripe account),
+  // null = recorded before this field existed.
+  payoutStatus String?
+
   userId  String
   user    User   @relation(fields: [userId], references: [id])
   photoId String

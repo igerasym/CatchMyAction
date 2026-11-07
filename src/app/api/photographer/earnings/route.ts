@@ -3,6 +3,17 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
+import { platformFee } from "@/lib/stripe";
+
+/** Photographer's cut of one purchase; prefers the value stored at payment time. */
+function shareOf(p: { amountInCents: number; photographerShareCents: number | null }): number {
+  return p.photographerShareCents ?? p.amountInCents - platformFee(p.amountInCents);
+}
+
+/** "pending" means the platform still holds the money; rows without a status predate tracking. */
+function payoutOf(p: { payoutStatus: string | null }): "sent" | "pending" {
+  return p.payoutStatus === "pending" ? "pending" : "sent";
+}
 
 /** GET /api/photographer/earnings — detailed earnings data */
 export async function GET(req: NextRequest) {
@@ -29,6 +40,8 @@ export async function GET(req: NextRequest) {
     select: {
       id: true,
       amountInCents: true,
+      photographerShareCents: true,
+      payoutStatus: true,
       createdAt: true,
       photo: {
         select: {
@@ -43,41 +56,41 @@ export async function GET(req: NextRequest) {
 
   // Totals
   const totalGross = purchases.reduce((sum, p) => sum + p.amountInCents, 0);
-  const platformFee = Math.round(totalGross * 0.18);
-  const totalNet = totalGross - platformFee;
+  const totalNet = purchases.reduce((sum, p) => sum + shareOf(p), 0);
+  const platformFeeTotal = totalGross - totalNet;
+  const pendingNet = purchases.filter((p) => payoutOf(p) === "pending").reduce((sum, p) => sum + shareOf(p), 0);
+  const sentNet = totalNet - pendingNet;
   const totalSales = purchases.length;
 
   // Daily revenue for chart (last N days)
-  const dailyMap = new Map<string, number>();
+  const dailyMap = new Map<string, { gross: number; net: number }>();
   const days = range === "all" ? 90 : parseInt(range);
   for (let i = 0; i < days; i++) {
     const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
-    dailyMap.set(d.toISOString().split("T")[0], 0);
+    dailyMap.set(d.toISOString().split("T")[0], { gross: 0, net: 0 });
   }
   purchases.forEach((p) => {
     const day = p.createdAt.toISOString().split("T")[0];
-    dailyMap.set(day, (dailyMap.get(day) || 0) + p.amountInCents);
+    const cur = dailyMap.get(day) || { gross: 0, net: 0 };
+    dailyMap.set(day, { gross: cur.gross + p.amountInCents, net: cur.net + shareOf(p) });
   });
   const dailyRevenue = Array.from(dailyMap.entries())
-    .map(([date, gross]) => ({
-      date,
-      gross,
-      net: Math.round(gross * 0.82),
-    }))
+    .map(([date, v]) => ({ date, gross: v.gross, net: v.net }))
     .sort((a, b) => a.date.localeCompare(b.date));
 
   // Per-session breakdown — enrich with viewCount
   const sessionMap = new Map<string, {
     id: string; title: string; location: string;
-    sales: number; gross: number;
+    sales: number; gross: number; net: number;
   }>();
   purchases.forEach((p) => {
     const s = p.photo.session;
     const existing = sessionMap.get(s.id) || {
-      id: s.id, title: s.title, location: s.location, sales: 0, gross: 0,
+      id: s.id, title: s.title, location: s.location, sales: 0, gross: 0, net: 0,
     };
     existing.sales++;
     existing.gross += p.amountInCents;
+    existing.net += shareOf(p);
     sessionMap.set(s.id, existing);
   });
 
@@ -92,14 +105,15 @@ export async function GET(req: NextRequest) {
   const viewMap = new Map(sessionViews.map((s) => [s.id, s.viewCount]));
 
   const perSession = Array.from(sessionMap.values())
-    .map((s) => ({ ...s, net: Math.round(s.gross * 0.82), views: viewMap.get(s.id) || 0 }))
+    .map((s) => ({ ...s, views: viewMap.get(s.id) || 0 }))
     .sort((a, b) => b.gross - a.gross);
 
   // Recent transactions
   const transactions = purchases.slice(0, 20).map((p) => ({
     id: p.id,
     amount: p.amountInCents,
-    net: Math.round(p.amountInCents * 0.82),
+    net: shareOf(p),
+    payout: payoutOf(p),
     date: p.createdAt.toISOString(),
     buyerName: p.user.name,
     sessionTitle: p.photo.session.title,
@@ -109,7 +123,9 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     totalGross,
     totalNet,
-    platformFee,
+    platformFee: platformFeeTotal,
+    sentNet,
+    pendingNet,
     totalSales,
     dailyRevenue,
     perSession,
