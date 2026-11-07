@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { getPreviewUrl } from "@/lib/s3";
-import { createPhotoCheckout, getConnectDestination, paymentsMode } from "@/lib/stripe";
+import { countPriorSales, createPhotoCheckout, getConnectDestination, paymentsMode } from "@/lib/stripe";
 
 const MAX_PHOTOS_PER_CHECKOUT = 100; // Stripe line-item limit
 
@@ -98,6 +98,7 @@ export async function POST(req: NextRequest) {
         select: { stripeAccountId: true },
       });
       const destination = await getConnectDestination(photographer?.stripeAccountId);
+      const priorSales = await countPriorSales(prisma, paid[0].session.photographerId);
 
       const checkoutSession = await createPhotoCheckout({
         items: paid.map((photo) => ({
@@ -110,6 +111,7 @@ export async function POST(req: NextRequest) {
         successUrl: `${baseUrl}/sessions/${returnSessionId}?bulkPurchased=1&cs={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${baseUrl}/sessions/${returnSessionId}?cancelled=1`,
         photographerAccountId: destination,
+        priorSales,
       });
 
       return NextResponse.json({ checkoutUrl: checkoutSession.url, count: paid.length, freeIds });

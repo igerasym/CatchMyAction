@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { getPreviewUrl } from "@/lib/s3";
-import { createPhotoCheckout, getConnectDestination, paymentsMode } from "@/lib/stripe";
+import { countPriorSales, createPhotoCheckout, getConnectDestination, paymentsMode } from "@/lib/stripe";
 
 /** POST /api/photos/:id/purchase — create a Stripe Checkout session for the signed-in user */
 export async function POST(
@@ -55,6 +55,7 @@ export async function POST(
         select: { stripeAccountId: true },
       });
       const destination = await getConnectDestination(photographer?.stripeAccountId);
+      const priorSales = await countPriorSales(prisma, photo.session.photographerId);
 
       const checkoutSession = await createPhotoCheckout({
         items: [
@@ -69,6 +70,7 @@ export async function POST(
         successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}&cs={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${baseUrl}/sessions/${photo.session.id}?cancelled=1`,
         photographerAccountId: destination,
+        priorSales,
       });
       return NextResponse.json({ checkoutUrl: checkoutSession.url });
     } catch (err) {

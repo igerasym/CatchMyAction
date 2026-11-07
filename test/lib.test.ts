@@ -74,7 +74,7 @@ describe("validation", () => {
     expect(validatePassword("GoodPass1")).toBeNull();
   });
 
-  it("platform fee is 18%", () => {
+  it("standard platform fee is 18%", () => {
     expect(platformFee(1000)).toBe(180);
   });
 });

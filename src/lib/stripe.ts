@@ -4,11 +4,28 @@ export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_unset", {
   apiVersion: "2024-04-10",
 });
 
-/** Platform fee in basis points (1800 = 18%). Single source of truth for fee math. */
+/** Standard platform fee in basis points (1800 = 18%). */
 export const PLATFORM_FEE_BPS = 1800;
 
-export function platformFee(amountInCents: number): number {
-  return Math.round((amountInCents * PLATFORM_FEE_BPS) / 10_000);
+/** Reduced fee for a photographer's first sales, to make joining worth it. */
+export const LAUNCH_FEE_BPS = 1000;
+/** How many paid sales get the reduced fee, counted per photographer across all sessions. */
+export const LAUNCH_SALES_LIMIT = 10;
+
+export function platformFee(amountInCents: number, feeBps: number = PLATFORM_FEE_BPS): number {
+  return Math.round((amountInCents * feeBps) / 10_000);
+}
+
+/**
+ * Fee for each item of a checkout, in order. `priorSales` is how many paid sales the photographer
+ * already has. Each new item takes the reduced rate while the launch allowance lasts, so a
+ * bulk cart of 3 photos at 9 prior sales charges 10%, 18%, 18%.
+ */
+export function feeBpsPerItem(priorSales: number, itemCount: number): number[] {
+  const left = Math.max(0, LAUNCH_SALES_LIMIT - priorSales);
+  return Array.from({ length: itemCount }, (_, i) =>
+    i < left ? LAUNCH_FEE_BPS : PLATFORM_FEE_BPS
+  );
 }
 
 export type PaymentsMode = "stripe" | "mock" | "disabled";
@@ -63,6 +80,19 @@ export function decodePhotoIds(metadata: Stripe.Metadata | null | undefined): st
  * Return the photographer's Connect account id only if it can actually receive funds.
  * Otherwise null (platform collects; to be reconciled — see docs/review/REFACTORING_PLAN.md).
  */
+/** Number of paid purchases of this photographer's photos, across all their sessions. */
+export async function countPriorSales(
+  prisma: { purchase: { count: (args: any) => Promise<number> } },
+  photographerId: string
+): Promise<number> {
+  return prisma.purchase.count({
+    where: {
+      amountInCents: { gt: 0 },
+      photo: { session: { photographerId } },
+    },
+  });
+}
+
 export async function getConnectDestination(accountId: string | null | undefined): Promise<string | null> {
   if (!accountId) return null;
   try {
@@ -88,9 +118,12 @@ export async function createPhotoCheckout(params: {
   successUrl: string; // may contain {CHECKOUT_SESSION_ID}
   cancelUrl: string;
   photographerAccountId: string | null;
+  /** Paid sales the photographer already has, for the launch-fee allowance. */
+  priorSales?: number;
 }): Promise<Stripe.Checkout.Session> {
   const { items } = params;
-  const total = items.reduce((sum, i) => sum + i.priceInCents, 0);
+  const feeBps = feeBpsPerItem(params.priorSales ?? LAUNCH_SALES_LIMIT, items.length);
+  const applicationFee = items.reduce((sum, item, i) => sum + platformFee(item.priceInCents, feeBps[i]), 0);
   const isBulk = items.length > 1;
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
@@ -113,6 +146,8 @@ export async function createPhotoCheckout(params: {
       type: isBulk ? "bulk" : "single",
       // Recorded so fulfilment can tell whether the money went straight to the photographer.
       ...(params.photographerAccountId ? { payoutAccount: params.photographerAccountId } : {}),
+      // Fee per photo, in the same order as the items, so fulfilment reproduces Stripe's split exactly.
+      feeBps: feeBps.join(","),
       ...(isBulk ? encodePhotoIds(items.map((i) => i.photoId)) : { photoId: items[0].photoId }),
     },
     success_url: params.successUrl,
@@ -121,7 +156,7 @@ export async function createPhotoCheckout(params: {
 
   if (params.photographerAccountId) {
     sessionParams.payment_intent_data = {
-      application_fee_amount: platformFee(total),
+      application_fee_amount: applicationFee,
       transfer_data: { destination: params.photographerAccountId },
     };
   }

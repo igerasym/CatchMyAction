@@ -32,3 +32,11 @@ describe("fulfillCheckoutSession payout tracking", () => {
     expect(create.photographerShareCents).toBe(820);
   });
 });
+
+describe("fulfilment uses the fee Stripe was charged with", () => {
+  it("applies the launch rate recorded in checkout metadata", async () => {
+    await fulfillCheckoutSession(session({ userId: "u1", photoId: "p1", payoutAccount: "acct_1", feeBps: "1000" }));
+    const { create } = db.purchase.upsert.mock.calls[0][0];
+    expect(create.photographerShareCents).toBe(900); // 10% fee on 1000
+  });
+});

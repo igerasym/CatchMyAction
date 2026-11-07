@@ -129,3 +129,9 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 ## Photo uploads
 
 Both upload screens use `useUploadQueue` (`src/hooks/use-upload-queue.ts`) on top of `uploadPhoto` (`src/lib/upload-client.ts`): 3 files at a time, up to 3 retries for network errors, 429 and 5xx, a retry button for failed files, and a warning when the tab is closed mid-upload. A 409 duplicate on a retry counts as success because the first attempt reached the server.
+
+## Launch fee
+
+- A photographer's first 10 paid sales (counted across all their sessions, free photos excluded) take a 10% platform fee (`LAUNCH_FEE_BPS`, `LAUNCH_SALES_LIMIT`). After that the standard 18% applies (`PLATFORM_FEE_BPS`).
+- In a bulk cart the rate is applied item by item: with 9 prior sales, a 3-photo cart is 10%, 18%, 18%. The per-item rates go into checkout metadata as `feeBps`, and fulfilment reads them back, so the stored share always matches what Stripe charged.
+- Changing the launch rules does not touch existing purchases. Their share is fixed when the payment is fulfilled.

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { prisma } from "@/lib/db";
-import { stripe, decodePhotoIds, platformFee } from "@/lib/stripe";
+import { stripe, decodePhotoIds, platformFee, PLATFORM_FEE_BPS } from "@/lib/stripe";
 
 /**
  * Turn a paid Stripe Checkout session into Purchase rows. Idempotent (upsert on userId+photoId),
@@ -24,6 +24,12 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
   const isBulk = photoIds.length > 1;
 
   const payoutStatus = session.metadata?.payoutAccount ? "sent" : "pending";
+  // Same rates createPhotoCheckout sent to Stripe, by photo order. Falls back to the standard fee.
+  const rates = (session.metadata?.feeBps || "").split(",").map(Number);
+  const rateFor = (photoId: string) => {
+    const idx = photoIds.indexOf(photoId);
+    return rates[idx] || PLATFORM_FEE_BPS;
+  };
 
   const owned: string[] = [];
   for (const photoId of photoIds) {
@@ -36,7 +42,7 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
         userId,
         photoId,
         amountInCents: amount,
-        photographerShareCents: amount - platformFee(amount),
+        photographerShareCents: amount - platformFee(amount, rateFor(photoId)),
         payoutStatus,
         // Both columns are unique, so bulk rows get a per-photo suffix.
         stripePaymentId: isBulk ? `${paymentIntent}_${photoId}` : paymentIntent,
