@@ -124,7 +124,10 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - Checkout uses a Stripe destination charge when the photographer has an active Connect account: 18% goes to the platform (`PLATFORM_FEE_BPS` in `src/lib/stripe.ts`), the rest to them. The destination is stored in the checkout metadata as `payoutAccount`.
 - `fulfillCheckoutSession` records `Purchase.photographerShareCents` and `Purchase.payoutStatus`: `sent` (routed at payment time), `pending` (no active Stripe account, so the platform holds the money) or `null` (rows from before tracking).
 - The dashboard Earnings tab and `/api/photographer/earnings` read these fields. Do not recompute the share from a hardcoded percentage.
-- Not built yet: moving `pending` money to the photographer after they connect Stripe (needs `stripe.transfers.create` with `source_transaction` and an idempotency key per purchase).
+- Releasing `pending` money: `payOutPending` (`src/lib/payouts.ts`) runs from `GET /api/stripe/connect` when the photographer's account has `charges_enabled`, in the background, up to 50 purchases per run. Each share is sent as `stripe.transfers.create` with `source_transaction` = the original charge, `metadata.purchaseId` and idempotency key `payout-<purchaseId>`, then the purchase becomes `sent`.
+- Duplicate protection: before paying, existing transfers to the account are scanned for `metadata.purchaseId` (idempotency keys expire after 24h). `transfer_group` is deliberately not used; Stripe sets it from the charge when `source_transaction` is given.
+- `held`: the charge was refunded or disputed, so nothing is sent. It shows as "On hold" in Earnings and needs a human decision. Stripe does not reverse an existing transfer when a charge is refunded; that needs a manual transfer reversal.
+- Known limits: Stripe only supports separate-charges-and-transfers between the US, Canada, UK, EEA and Switzerland (other regions need the same region as the platform), so a transfer to a photographer elsewhere fails, is logged, and stays `pending` until the next dashboard load.
 
 ## Photo uploads
 

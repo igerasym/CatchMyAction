@@ -45,6 +45,7 @@ interface Earnings {
   totalNet: number;
   sentNet: number;
   pendingNet: number;
+  heldNet: number;
   platformFee: number;
   totalSales: number;
   dailyRevenue: { date: string; gross: number; net: number }[];
@@ -53,7 +54,7 @@ interface Earnings {
     sales: number; gross: number; net: number; views: number;
   }[];
   transactions: {
-    id: string; amount: number; net: number; payout: "sent" | "pending"; date: string;
+    id: string; amount: number; net: number; payout: "sent" | "pending" | "held"; date: string;
     buyerName: string; sessionTitle: string; thumbnailUrl: string;
   }[];
 }
@@ -371,6 +372,9 @@ function EarningsTab({ data, loading, range, setRange }: {
                   {data.pendingNet > 0 && (
                     <span className="block text-rec">Waiting for Stripe setup: ${(data.pendingNet / 100).toFixed(2)}</span>
                   )}
+                  {data.heldNet > 0 && (
+                    <span className="block text-dim">On hold (refunded or disputed): ${(data.heldNet / 100).toFixed(2)}</span>
+                  )}
                 </p>
               )}
             </div>
@@ -442,7 +446,7 @@ function EarningsTab({ data, loading, range, setRange }: {
                     <div className="text-right flex-shrink-0">
                       <p className="font-mono text-sm text-bone font-bold">+${(t.net / 100).toFixed(2)}</p>
                       <p className={`font-mono text-[10px] tracking-[0.1em] uppercase mt-0.5 ${t.payout === "pending" ? "text-rec" : "text-dim"}`}>
-                        {t.payout === "pending" ? "Waiting for Stripe" : "Sent"}
+                        {t.payout === "pending" ? "Waiting for Stripe" : t.payout === "held" ? "On hold" : "Sent"}
                       </p>
                     </div>
                   </div>
