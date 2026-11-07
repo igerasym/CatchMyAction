@@ -16,6 +16,11 @@ export function isStandalone(matchMediaStandalone: boolean, iosStandalone?: bool
   return matchMediaStandalone || iosStandalone === true;
 }
 
+/** Install is a tool for photographers, who come back often to upload. Buyers just visit the site. */
+export function canInstall(role: string | undefined | null): boolean {
+  return role === "PHOTOGRAPHER";
+}
+
 /** Show the banner unless it is already installed or the user dismissed it. */
 export function shouldShowBanner(opts: {
   standalone: boolean;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { detectPlatform, isStandalone, shouldShowBanner } from "@/lib/install-prompt";
+import { canInstall, detectPlatform, isStandalone, shouldShowBanner } from "@/lib/install-prompt";
 
 const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15";
 const IPAD_DESKTOP_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15";
@@ -52,5 +52,15 @@ describe("shouldShowBanner", () => {
 
   it("on desktop, stays hidden", () => {
     expect(shouldShowBanner({ ...base, platform: "other" })).toBe(false);
+  });
+});
+
+describe("canInstall", () => {
+  it("is for photographers only", () => {
+    expect(canInstall("PHOTOGRAPHER")).toBe(true);
+    expect(canInstall("SURFER")).toBe(false);
+    expect(canInstall("ATHLETE")).toBe(false);
+    expect(canInstall(undefined)).toBe(false);
+    expect(canInstall(null)).toBe(false);
   });
 });

@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSession } from "next-auth/react";
 import {
   DISMISS_KEY,
+  canInstall,
   detectPlatform,
   isStandalone,
   shouldShowBanner,
@@ -16,45 +18,46 @@ interface BeforeInstallPromptEvent extends Event {
 
 /** Offers to add CatchMyAction to the home screen. Android gets a button, iPhone gets steps. */
 export default function InstallBanner() {
+  const { data: session } = useSession();
+  const eligible = canInstall((session?.user as { role?: string } | undefined)?.role);
   const [platform, setPlatform] = useState<InstallPlatform>("other");
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
   // A ref, not state: the timer below must read the latest prompt, not the value from first render.
   const promptRef = useRef<BeforeInstallPromptEvent | null>(null);
 
+  // The browser fires beforeinstallprompt once, often before the session has loaded.
+  // Always listen, so the event is never missed while we are still finding out the role.
   useEffect(() => {
-    const detected = detectPlatform(navigator.userAgent, navigator.maxTouchPoints);
-    const standalone = isStandalone(
-      window.matchMedia("(display-mode: standalone)").matches,
-      (navigator as Navigator & { standalone?: boolean }).standalone
-    );
-    const dismissed = localStorage.getItem(DISMISS_KEY) === "1";
-    setPlatform(detected);
-
+    setPlatform(detectPlatform(navigator.userAgent, navigator.maxTouchPoints));
     const onPrompt = (e: Event) => {
       e.preventDefault(); // hold it back, so our own button can trigger the install
       promptRef.current = e as BeforeInstallPromptEvent;
       setDeferred(e as BeforeInstallPromptEvent);
     };
     window.addEventListener("beforeinstallprompt", onPrompt);
+    return () => window.removeEventListener("beforeinstallprompt", onPrompt);
+  }, []);
 
-    // Android fires beforeinstallprompt after first paint. Wait briefly for it, then decide.
+  // Decide whether to show once we know the role. Android may deliver the prompt shortly after load.
+  useEffect(() => {
+    if (!eligible) {
+      setVisible(false);
+      return;
+    }
+    const detected = detectPlatform(navigator.userAgent, navigator.maxTouchPoints);
+    const standalone = isStandalone(
+      window.matchMedia("(display-mode: standalone)").matches,
+      (navigator as Navigator & { standalone?: boolean }).standalone
+    );
+    const dismissed = localStorage.getItem(DISMISS_KEY) === "1";
     const t = setTimeout(() => {
       setVisible(
-        shouldShowBanner({
-          standalone,
-          dismissed,
-          platform: detected,
-          hasNativePrompt: promptRef.current !== null,
-        })
+        shouldShowBanner({ standalone, dismissed, platform: detected, hasNativePrompt: promptRef.current !== null })
       );
     }, 1500);
-
-    return () => {
-      clearTimeout(t);
-      window.removeEventListener("beforeinstallprompt", onPrompt);
-    };
-  }, []);
+    return () => clearTimeout(t);
+  }, [eligible]);
 
   function dismiss() {
     localStorage.setItem(DISMISS_KEY, "1");
@@ -70,14 +73,14 @@ export default function InstallBanner() {
     promptRef.current = null;
   }
 
-  if (!visible) return null;
+  if (!eligible || !visible) return null;
 
   return (
     <div role="dialog" aria-label="Add CatchMyAction to your home screen"
       className="fixed inset-x-3 bottom-3 z-50 mx-auto max-w-md border border-line bg-char-2 p-4 shadow-lg">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
-          <p className="text-bone font-bold text-sm">Get CatchMyAction on your home screen</p>
+          <p className="text-bone font-bold text-sm">Upload faster from your home screen</p>
           {platform === "ios" ? (
             <p className="text-mute text-sm mt-1">
               Tap <strong>Share</strong> in Safari, then <strong>Add to Home Screen</strong>. It opens full-screen, like an app.
