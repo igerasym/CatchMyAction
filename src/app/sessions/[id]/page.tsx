@@ -8,6 +8,7 @@ import Link from "next/link";
 import PhotoGrid from "./photo-grid";
 import ComingSoon from "./coming-soon";
 import Conditions from "./conditions";
+import { SportIcon } from "@/app/components/sport-icon";
 import type { Metadata } from "next";
 import { IconPin, IconCalendar, IconCamera } from "@/app/components/icons";
 
@@ -165,7 +166,10 @@ export default async function SessionPage({
             <span className="rec-dot" aria-hidden="true" />
             REC {session.startTime}–{session.endTime}
           </span>
-          <span className="text-mute">{session.photoCount} frames</span>
+          <span className="flex items-center gap-2 text-mute">
+            <SportIcon sport={session.sportType} className="w-4 h-4 text-bone" />
+            {session.sportType} · {session.photoCount} frames
+          </span>
         </div>
 
         <div className="relative max-w-5xl w-full mx-auto px-6 sm:px-9 pb-7 pt-24">

@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LocateFixed, X } from "lucide-react";
 import SpotAutocomplete from "@/app/components/spot-autocomplete";
 import { conditionChips, CHIP_LEGEND } from "@/lib/condition-chips";
+import { SportBadge } from "@/app/components/sport-icon";
 
 interface Session {
   id: string;
@@ -80,7 +81,11 @@ function LogRow({ s, n }: { s: Session; n: number }) {
           </span>
         </span>
         <span className="hidden md:block text-sm text-bone/85 truncate">
-          {s.location} <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-dim ml-1">{s.sportType}</span>
+          <span className="inline-flex items-center gap-2.5">
+            <SportBadge sport={s.sportType} size="w-7 h-7" />
+            <span className="truncate">{s.location}</span>
+            <span className="font-mono text-[10.5px] uppercase tracking-[0.12em] text-dim">{s.sportType}</span>
+          </span>
         </span>
         <span className="hidden md:flex flex-wrap gap-1.5">
           <span className="font-mono text-[11px] text-mute mr-1">{format(new Date(s.date), "d MMM yyyy")}</span>

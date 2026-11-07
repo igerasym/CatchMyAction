@@ -48,6 +48,7 @@ body {
   }
   .brk-rec { --c: #ff4433; }
   .brk-soft { --c: rgba(242, 237, 228, 0.55); }
+  .brk-xs { --l: 6px; --w: 1.5px; }
   .brk-sm { --l: 12px; }
   .brk-lg { --l: 56px; --w: 3px; }
   .brk-hover { opacity: 0; inset: 10px; }
