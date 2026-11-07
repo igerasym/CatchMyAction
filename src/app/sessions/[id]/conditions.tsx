@@ -17,7 +17,7 @@ function kmhToMs(kmh: number): string {
 
 function Cell({ label, icon, value, sub }: { label: string; icon?: React.ReactNode; value: string; sub?: string | null }) {
   return (
-    <div className="p-3 border-r border-b border-line">
+    <div className="p-2.5 sm:p-3 border-r border-b border-line">
       <dt className="font-mono text-[10.5px] tracking-[0.12em] uppercase text-dim mb-1.5 flex items-center gap-1.5">
         {icon}
         {label}
@@ -35,10 +35,14 @@ export default function Conditions(props: Props) {
 
   if (!waveHeight && !windSpeed) return null;
 
+  // One row on phones when there are up to three values, so the Find Me button stays on the first screen.
+  const count = [waveHeight, wavePeriod, windSpeed, waterTemp].filter((v) => v != null).length;
+  const cols = count <= 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4";
+
   return (
     <section aria-label="Conditions during the session">
       <p className="hud mb-3">Conditions</p>
-      <dl className="grid grid-cols-2 sm:grid-cols-4 border-t border-l border-line">
+      <dl className={`grid ${cols} border-t border-l border-line`}>
         {waveHeight != null && (
           <Cell
             label="Swell"

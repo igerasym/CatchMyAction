@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { format, formatDistanceToNowStrict } from "date-fns";
 import { ArrowRight } from "lucide-react";
+import { conditionChips, CHIP_LEGEND } from "@/lib/condition-chips";
 
 export interface LogSession {
   id: string;
@@ -17,14 +18,6 @@ export interface LogSession {
   windSpeed: number | null; // km/h
 }
 
-function chips(s: LogSession): string[] {
-  const out: string[] = [];
-  if (s.waveHeight != null) out.push(`H ${s.waveHeight.toFixed(1)}m`);
-  if (s.wavePeriod != null) out.push(`T ${Math.round(s.wavePeriod)}s`);
-  if (s.windSpeed != null) out.push(`${Math.round(s.windSpeed / 1.852)}kn`);
-  return out;
-}
-
 /** "Film log" of real published sessions — one dense row per session, newest first. */
 export default function SessionLog({ sessions, sports }: { sessions: LogSession[]; sports: string[] }) {
   if (sessions.length === 0) return null;
@@ -38,6 +31,7 @@ export default function SessionLog({ sessions, sports }: { sessions: LogSession[
           </div>
           <p className="font-mono text-xs tracking-[0.12em] text-mute">
             {sessions.length} SESSIONS · {sports.join(" / ").toUpperCase()}
+            <span className="hidden md:block mt-1.5 text-dim normal-case tracking-normal text-[11px]">{CHIP_LEGEND}</span>
           </p>
         </div>
 
@@ -64,8 +58,8 @@ export default function SessionLog({ sessions, sports }: { sessions: LogSession[
                 </span>
                 <span className="hidden md:flex flex-wrap gap-1.5">
                   <span className="font-mono text-[11px] text-mute mr-1">{format(new Date(s.date), "d MMM yyyy")}</span>
-                  {chips(s).map((c) => (
-                    <span key={c} className="font-mono text-[10.5px] px-1.5 py-0.5 bg-char-2 text-bone/85">{c}</span>
+                  {conditionChips(s).map((c) => (
+                    <span key={c.text} title={c.label} aria-label={c.label} className="font-mono text-[10.5px] px-1.5 py-0.5 bg-char-2 text-bone/85">{c.text}</span>
                   ))}
                 </span>
                 <span className="text-right md:text-left">

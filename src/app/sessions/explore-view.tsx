@@ -5,6 +5,7 @@ import { format, formatDistanceToNowStrict } from "date-fns";
 import Link from "next/link";
 import { LocateFixed, X } from "lucide-react";
 import SpotAutocomplete from "@/app/components/spot-autocomplete";
+import { conditionChips, CHIP_LEGEND } from "@/lib/condition-chips";
 
 interface Session {
   id: string;
@@ -58,14 +59,6 @@ const AUTOCOMPLETE_SKIN = [
   "[&_li_button>span:last-child>span:nth-child(2)]:text-dim",
 ].join(" ");
 
-function chips(s: Session): string[] {
-  const out: string[] = [];
-  if (s.waveHeight != null) out.push(`H ${s.waveHeight.toFixed(1)}m`);
-  if (s.wavePeriod != null) out.push(`T ${Math.round(s.wavePeriod)}s`);
-  if (s.windSpeed != null) out.push(`${Math.round(s.windSpeed / 1.852)}kn`);
-  return out;
-}
-
 /** One "session log" row — mirrors src/app/components/home/session-log.tsx */
 function LogRow({ s, n }: { s: Session; n: number }) {
   return (
@@ -91,8 +84,8 @@ function LogRow({ s, n }: { s: Session; n: number }) {
         </span>
         <span className="hidden md:flex flex-wrap gap-1.5">
           <span className="font-mono text-[11px] text-mute mr-1">{format(new Date(s.date), "d MMM yyyy")}</span>
-          {chips(s).map((c) => (
-            <span key={c} className="font-mono text-[10.5px] px-1.5 py-0.5 bg-char-2 text-bone/85">{c}</span>
+          {conditionChips(s).map((c) => (
+            <span key={c.text} title={c.label} aria-label={c.label} className="font-mono text-[10.5px] px-1.5 py-0.5 bg-char-2 text-bone/85">{c.text}</span>
           ))}
         </span>
         <span className="text-right md:text-left">
@@ -226,6 +219,7 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
             </div>
             <p className="font-mono text-xs tracking-[0.12em] text-mute">
               {sessions.length} SESSIONS · {locationCount} LOCATIONS
+              <span className="hidden md:block mt-1.5 text-dim normal-case tracking-normal text-[11px]">{CHIP_LEGEND}</span>
             </p>
           </div>
 

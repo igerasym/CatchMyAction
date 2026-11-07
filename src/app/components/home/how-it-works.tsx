@@ -2,17 +2,17 @@ const STEPS = [
   {
     n: "01",
     title: "Photographers upload",
-    body: "Every session is pinned to a spot, a date and a time window — conditions attached automatically.",
+    body: "Every session is pinned to a spot, a date and a time, with the conditions attached.",
   },
   {
     n: "02",
     title: "You find yourself",
-    body: "Scan the QR on the beach or pick the session here, then take one selfie. Face matching pulls your frames.",
+    body: "Scan the QR on the beach or pick the session, then take one selfie.",
   },
   {
     n: "03",
     title: "Buy & download",
-    body: "Pay per photo with Stripe and get the full-resolution file without a watermark.",
+    body: "Pay per photo and download the full-resolution file, no watermark. You only pay for the shots you keep.",
   },
 ];
 
