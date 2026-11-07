@@ -10,9 +10,15 @@ function shareOf(p: { amountInCents: number; photographerShareCents: number | nu
   return p.photographerShareCents ?? p.amountInCents - platformFee(p.amountInCents);
 }
 
-/** "pending" means the platform still holds the money; rows without a status predate tracking. */
-function payoutOf(p: { payoutStatus: string | null }): "sent" | "pending" {
-  return p.payoutStatus === "pending" ? "pending" : "sent";
+/**
+ * "pending": the platform holds the money until Stripe is connected.
+ * "held": payment was refunded or disputed, so it is not paid out.
+ * Rows without a status predate tracking and count as sent.
+ */
+function payoutOf(p: { payoutStatus: string | null }): "sent" | "pending" | "held" {
+  if (p.payoutStatus === "pending") return "pending";
+  if (p.payoutStatus === "held") return "held";
+  return "sent";
 }
 
 /** GET /api/photographer/earnings — detailed earnings data */
@@ -59,7 +65,8 @@ export async function GET(req: NextRequest) {
   const totalNet = purchases.reduce((sum, p) => sum + shareOf(p), 0);
   const platformFeeTotal = totalGross - totalNet;
   const pendingNet = purchases.filter((p) => payoutOf(p) === "pending").reduce((sum, p) => sum + shareOf(p), 0);
-  const sentNet = totalNet - pendingNet;
+  const heldNet = purchases.filter((p) => payoutOf(p) === "held").reduce((sum, p) => sum + shareOf(p), 0);
+  const sentNet = totalNet - pendingNet - heldNet;
   const totalSales = purchases.length;
 
   // Daily revenue for chart (last N days)
@@ -126,6 +133,7 @@ export async function GET(req: NextRequest) {
     platformFee: platformFeeTotal,
     sentNet,
     pendingNet,
+    heldNet,
     totalSales,
     dailyRevenue,
     perSession,

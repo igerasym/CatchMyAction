@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
+import { payOutPending } from "@/lib/payouts";
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
 
@@ -68,6 +69,11 @@ export async function GET() {
 
   try {
     const account = await stripe.accounts.retrieve(dbUser.stripeAccountId);
+    // Money that was collected before this account could receive it is sent now. Runs in the
+    // background so the dashboard is not slowed down; failures are logged and retried next load.
+    if (account.charges_enabled) {
+      payOutPending(user.id).catch((err) => console.error("Pending payout run failed:", err));
+    }
     return NextResponse.json({
       connected: true,
       chargesEnabled: account.charges_enabled,
