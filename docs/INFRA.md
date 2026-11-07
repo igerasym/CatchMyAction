@@ -77,6 +77,12 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   `prisma migrate deploy` from the candidate image. If the commit adds migrations it first dumps the DB to
   `~/backups/pre-migrate-<sha>-<ts>.sql.gz`. A failed migration leaves prod on the old image (logged as
   `MIGRATION FAILED`).
+- **Disk guard (since 2026-11-07):** the Docker build cache is not covered by `docker image prune` and grew to 19.5 GB,
+  leaving 8 MB free. Before building, the script now checks for 3 GB free; if short it runs `docker builder prune -af`
+  and, if that is still not enough, logs `not deploying … will retry next tick` and exits **without** marking the commit
+  failed. After a successful deploy it drops build cache older than 48 h. `docker builder prune` only removes build
+  cache (not containers, images or volumes), so it does not touch `cafe-manager`; its next build just starts colder.
+  Do not use `--max-used-space` here: the host's buildkit is older than 0.17 and rejects it.
 - Not covered: changes to the untracked prod config (`.env.production`, `docker-compose.production.yml`, `.env`).
 
 ## Schema changes (migrations)
@@ -110,7 +116,9 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - Restore: `zcat <dump> | docker exec -i app-postgres-1 psql -U catchmyaction -d catchmyaction`.
 
 ## Known gaps (see `docs/review/REFACTORING_PLAN.md`)
-- ~~Disk ~90% full~~ — dangling images pruned 2026-11-03 (90% → 54%).
+- ~~Disk ~90% full~~ — dangling images pruned 2026-11-03 (90% → 54%). Filled to 100% again on 2026-11-07 from 19.5 GB
+  of build cache; cleared (100% → 53%) and now guarded by the auto-deploy script (see above).
+- `/var/log` is ~2 GB on the host; worth capping (journald / docker log rotation) before it matters.
 - ~~Postgres published on 0.0.0.0:5432~~ — bound to `127.0.0.1:5432` 2026-11-03.
 - ~~Leaked DB password / guessable NEXTAUTH_SECRET~~ — both rotated 2026-11-03 (all sessions logged out).
   Pre-rotation config copies `~/app/*.bak.20261103132327` contain the old values → delete after verifying.
