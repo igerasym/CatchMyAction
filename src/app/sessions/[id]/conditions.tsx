@@ -1,4 +1,4 @@
-import { degreesToCompass } from "@/lib/marine-conditions";
+import { conditionsAttribution, degreesToCompass } from "@/lib/marine-conditions";
 import { IconWave, IconWind } from "@/app/components/icons";
 
 interface Props {
@@ -35,6 +35,8 @@ export default function Conditions(props: Props) {
 
   if (!waveHeight && !windSpeed) return null;
 
+  const credit = conditionsAttribution();
+
   // One row on phones when there are up to three values, so the Find Me button stays on the first screen.
   const count = [waveHeight, wavePeriod, windSpeed, waterTemp].filter((v) => v != null).length;
   const cols = count <= 3 ? "grid-cols-3" : "grid-cols-2 sm:grid-cols-4";
@@ -62,6 +64,11 @@ export default function Conditions(props: Props) {
         )}
         {waterTemp != null && <Cell label="Water" value={`${waterTemp.toFixed(0)}°C`} />}
       </dl>
+      <p className="font-mono text-[10.5px] text-dim mt-1.5">
+        <a href={credit.url} target="_blank" rel="noopener noreferrer" className="underline-offset-2 hover:underline">
+          {credit.text}
+        </a>
+      </p>
     </section>
   );
 }
