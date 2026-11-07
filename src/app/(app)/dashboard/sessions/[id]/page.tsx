@@ -8,6 +8,7 @@ import PublishedPanel from "../../published-panel";
 import { toastError, toastSuccess } from "@/lib/toast";
 import { useUploadQueue } from "@/hooks/use-upload-queue";
 import { UploadStatus } from "@/app/components/upload-status";
+import { ResumeUploadBanner } from "@/app/components/resume-upload-banner";
 import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin, Sparkles, RefreshCw } from "lucide-react";
 import { loginHref } from "@/lib/redirect";
 
@@ -271,6 +272,14 @@ export default function ManagePhotosPage() {
           </button>
         </div>
       </div>
+
+      {uploads.resumable && !uploads.inProgress && (
+        <ResumeUploadBanner
+          summary={uploads.resumable}
+          onResume={uploads.resume}
+          onDiscard={uploads.discardResumable}
+        />
+      )}
 
       <div className="mb-6">
         <UploadStatus

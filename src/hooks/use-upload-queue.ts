@@ -2,6 +2,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { uploadPhoto } from "@/lib/upload-client";
+import { itemId, putItems, removeItem, setStatus, pendingForSession, clearSession, type StoredItem } from "@/lib/upload-store";
+import { filesToResume, summarise, type ResumeSummary } from "@/lib/upload-resume";
 
 export interface FailedUpload {
   file: File;
@@ -33,12 +35,16 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
       const file = queue.current.shift() as File;
       running.current++;
       setActive(running.current);
+      const id = itemId(sessionId, file);
       uploadPhoto<T>(file, sessionId).then((outcome) => {
         if (outcome.ok) {
           setDone((n) => n + 1);
           if (outcome.data) callback.current?.(outcome.data);
+          removeItem(id).catch(() => {});
         } else {
           setFailed((f) => [...f, { file, message: outcome.message, retryable: outcome.retryable }]);
+          // "retryable" marks network trouble; anything else is the server rejecting the photo.
+          setStatus(id, "failed", outcome.retryable ? "retryable" : outcome.message).catch(() => {});
         }
         running.current--;
         setActive(running.current);
@@ -49,13 +55,53 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
 
   const add = useCallback(
     (files: File[]) => {
-      if (files.length === 0) return;
+      if (files.length === 0 || !sessionId) return;
       setTotal((n) => n + files.length);
       queue.current.push(...files);
+      // Write the batch to durable storage before sending, so an interruption loses nothing.
+      const items: StoredItem[] = files.map((f) => ({
+        id: itemId(sessionId, f),
+        sessionId,
+        name: f.name,
+        size: f.size,
+        lastModified: f.lastModified,
+        status: "pending",
+        blob: f,
+        attempts: 0,
+      }));
+      putItems(items).catch(() => {});
       pump();
     },
-    [pump]
+    [pump, sessionId]
   );
+
+  /**
+   * On mount, pick up whatever a previous visit left unfinished for this session. Those files
+   * are not in memory anymore, so the photographer re-selects them; we only report the count.
+   */
+  const [resumable, setResumable] = useState<ResumeSummary | null>(null);
+  useEffect(() => {
+    if (!sessionId) return;
+    pendingForSession(sessionId)
+      .then((items) => {
+        const summary = summarise(items);
+        if (summary.pending + summary.failed > 0) setResumable(summary);
+      })
+      .catch(() => {});
+  }, [sessionId]);
+
+  /** Resume a previous batch from storage: the blobs are still in IndexedDB, so no re-picking. */
+  const resume = useCallback(async () => {
+    if (!sessionId) return;
+    const stored = await pendingForSession(sessionId);
+    const toSend = filesToResume(stored);
+    if (toSend.length === 0) return setResumable(null);
+    const files = toSend.map((i) => new File([i.blob], i.name, { lastModified: i.lastModified }));
+    setResumable(null);
+    setTotal((n) => n + files.length);
+    queue.current.push(...files);
+    pump();
+  }, [pump, sessionId]);
 
   /** Re-queue everything that failed for a reason other than the server rejecting the photo. */
   const retryFailed = useCallback(() => {
@@ -85,5 +131,15 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
     return () => window.removeEventListener("beforeunload", warn);
   }, [inProgress]);
 
-  return { total, done, failed, inProgress, retryableCount, add, retryFailed, dismissFailed };
+  /** Forget the stored batch for this session, e.g. when the photographer chooses to discard it. */
+  const discardResumable = useCallback(async () => {
+    if (!sessionId) return;
+    await clearSession(sessionId).catch(() => {});
+    setResumable(null);
+  }, [sessionId]);
+
+  return {
+    total, done, failed, inProgress, retryableCount, add, retryFailed, dismissFailed,
+    resumable, resume, discardResumable,
+  };
 }
