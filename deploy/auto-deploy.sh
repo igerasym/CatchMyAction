@@ -31,6 +31,21 @@ exec 9>"$HOME/.deploy.lock"
 flock -w 900 9 || { log "lock busy for 15 min (cafe deploy running?) — retry next tick"; exit 0; }
 
 SHORT_LIVE=${LIVE:0:7}; SHORT_T=${TARGET:0:7}
+
+# 0. Disk guard. A full disk fails the build half-way and stops Postgres from writing (2026-11-07: docker build
+#    cache had grown to 19 GB and left 8 MB free). Build cache is regenerable, so free it first. If that is not
+#    enough, stop WITHOUT marking the commit as failed, so the next tick retries once there is room.
+MIN_FREE_KB=$((3 * 1024 * 1024))
+free_kb() { df --output=avail -k / | tail -1 | tr -d ' '; }
+if [ "$(free_kb)" -lt "$MIN_FREE_KB" ]; then
+  log "low disk ($(( $(free_kb) / 1024 )) MB free) — pruning docker build cache before building $SHORT_T"
+  docker builder prune -af >/dev/null 2>&1
+  if [ "$(free_kb)" -lt "$MIN_FREE_KB" ]; then
+    log "only $(( $(free_kb) / 1024 )) MB free after pruning — not deploying $SHORT_T, will retry next tick"
+    exit 0
+  fi
+fi
+
 log "deploy start $SHORT_LIVE -> $SHORT_T"
 
 # 1. Build the candidate image from a separate checkout (live tree untouched on failure)
@@ -86,7 +101,11 @@ fi
 log "deploy OK $SHORT_T"
 rm -f "$FAILED"
 
-# 5. Housekeeping: keep the 3 newest rollback tags, drop dangling layers
+# 5. Housekeeping: keep the 3 newest rollback tags, drop dangling layers, and drop build cache older than 2 days.
+#    `image prune` does not touch build cache, which is what filled the disk; two days of cache keeps back-to-back
+#    deploys fast. (--max-used-space would be nicer but needs buildkit 0.17+; this host's is older, and the
+#    step 0 guard above clears everything if space still runs low.)
 docker images app-app --format '{{.Tag}} {{.CreatedAt}}' | grep '^rollback-' | sort -k2,3 -r | tail -n +4 | awk '{print $1}' \
   | while read -r t; do docker rmi "app-app:$t" >/dev/null 2>&1; done
 docker image prune -f >/dev/null 2>&1
+docker builder prune -af --filter until=48h >/dev/null 2>&1 || log "build cache prune failed"
