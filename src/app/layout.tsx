@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import Providers from "./providers";
 import NavBar from "./navbar";
+import ServiceWorkerRegister from "./components/sw-register";
 import ToastBanner from "./components/toast-banner";
 import { archivo, mono } from "./fonts";
 
@@ -85,6 +86,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`dark ${archivo.variable} ${mono.variable}`}>
       <body className="bg-char text-bone min-h-screen">
+        <ServiceWorkerRegister />
         <Providers>
           <NavBar />
           {/* reads useSearchParams — must sit in Suspense so static pages can prerender */}
