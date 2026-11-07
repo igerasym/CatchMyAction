@@ -96,11 +96,11 @@ export default function NavBar() {
                         <MenuItem href="/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" onClick={() => setMenuOpen(false)} />
                         <MenuItem href={`/photographer/${user?.id}`} icon={<UserCircle className="w-4 h-4" />} label="Public Profile" onClick={() => setMenuOpen(false)} />
                         <MenuItem href="/guide" icon={<BookOpen className="w-4 h-4" />} label="Photographer Guide" onClick={() => setMenuOpen(false)} />
+                        <MenuItem href="/install" icon={<Smartphone className="w-4 h-4" />} label="Add to home screen" onClick={() => setMenuOpen(false)} />
                         <div className="border-t border-line my-1" />
                       </>
                     )}
                     <MenuItem href="/my-photos" icon={<Images className="w-4 h-4" />} label="My Actions" onClick={() => setMenuOpen(false)} />
-                    <MenuItem href="/install" icon={<Smartphone className="w-4 h-4" />} label="Add to home screen" onClick={() => setMenuOpen(false)} />
                     <MenuItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" onClick={() => setMenuOpen(false)} />
                     <div className="border-t border-line my-1" />
                     <button

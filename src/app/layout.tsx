@@ -88,8 +88,8 @@ export default function RootLayout({
     <html lang="en" className={`dark ${archivo.variable} ${mono.variable}`}>
       <body className="bg-char text-bone min-h-screen">
         <ServiceWorkerRegister />
-        <InstallBanner />
         <Providers>
+          <InstallBanner />
           <NavBar />
           {/* reads useSearchParams — must sit in Suspense so static pages can prerender */}
           <Suspense fallback={null}>
