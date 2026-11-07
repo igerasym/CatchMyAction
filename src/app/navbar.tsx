@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Logo from "./components/logo";
-import { LayoutDashboard, UserCircle, Images, Settings, LogOut, BookOpen } from "lucide-react";
+import { LayoutDashboard, UserCircle, Images, Settings, LogOut, BookOpen, Smartphone } from "lucide-react";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -35,6 +35,7 @@ export default function NavBar() {
 
   return (
     <nav
+      style={{ paddingTop: "env(safe-area-inset-top)" }}
       className={`top-0 z-50 w-full transition-colors duration-300 ${
         isHome
           ? `fixed ${scrolled ? "bg-ink/90 backdrop-blur border-b border-line" : "bg-transparent border-b border-transparent"}`
@@ -99,6 +100,7 @@ export default function NavBar() {
                       </>
                     )}
                     <MenuItem href="/my-photos" icon={<Images className="w-4 h-4" />} label="My Actions" onClick={() => setMenuOpen(false)} />
+                    <MenuItem href="/install" icon={<Smartphone className="w-4 h-4" />} label="Add to home screen" onClick={() => setMenuOpen(false)} />
                     <MenuItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" onClick={() => setMenuOpen(false)} />
                     <div className="border-t border-line my-1" />
                     <button

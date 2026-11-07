@@ -41,7 +41,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     title: "CatchMyAction",
-    statusBarStyle: "black-translucent",
+    statusBarStyle: "default", // solid status bar, so content never slides under it
   },
   openGraph: {
     type: "website",
