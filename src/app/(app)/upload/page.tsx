@@ -6,6 +6,8 @@ import SpotAutocomplete from "@/app/components/spot-autocomplete";
 import PasswordInput from "@/app/components/password-input";
 import DateTimeInput from "@/app/components/date-time-input";
 import { toastError, toastWarning } from "@/lib/toast";
+import { useUploadQueue } from "@/hooks/use-upload-queue";
+import { UploadStatus } from "@/app/components/upload-status";
 import dynamic from "next/dynamic";
 import { UploadCloud, Camera } from "lucide-react";
 import { CHECKBOX, HINT, INPUT, LABEL, LINK, Notice, PageIntro } from "../ui";
@@ -22,13 +24,6 @@ interface Draft {
   endTime: string;
   description: string;
   price?: string;
-}
-
-interface UploadState {
-  total: number;
-  completed: number;
-  failed: number;
-  inProgress: boolean;
 }
 
 export default function UploadPage() {
@@ -61,10 +56,7 @@ export default function UploadPage() {
 
   // Upload state
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [uploadState, setUploadState] = useState<UploadState>({
-    total: 0, completed: 0, failed: 0, inProgress: false,
-  });
-  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
+  const uploads = useUploadQueue(sessionId);
   const [dragging, setDragging] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
@@ -180,42 +172,13 @@ export default function UploadPage() {
   }
 
   // Upload photos
-  async function uploadFiles(files: File[]) {
-    if (files.length === 0 || !sessionId) return;
-    // Accumulate — don't reset previous successful uploads
-    setUploadState((p) => ({
-      total: p.total + files.length,
-      completed: p.completed,
-      failed: p.failed,
-      inProgress: true,
-    }));
-    for (let i = 0; i < files.length; i += 3) {
-      const batch = files.slice(i, i + 3);
-      const results = await Promise.allSettled(
-        batch.map(async (file) => {
-          const fd = new FormData();
-          fd.append("file", file);
-          fd.append("sessionId", sessionId);
-          const res = await fetch("/api/photos/upload", { method: "POST", body: fd });
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(`${file.name}: ${data.error || "Upload failed"}`);
-          }
-        })
-      );
-      const ok = results.filter((r) => r.status === "fulfilled").length;
-      const failed = results.filter((r) => r.status === "rejected");
-      const newErrors = failed.map((r) => (r as PromiseRejectedResult).reason?.message || "Unknown error");
-      setUploadState((p) => ({ ...p, completed: p.completed + ok, failed: p.failed + failed.length }));
-      if (newErrors.length) setUploadErrors((prev) => [...prev, ...newErrors]);
-    }
-    setUploadState((p) => ({ ...p, inProgress: false }));
-  }
+  const uploadFiles = uploads.add;
 
   async function handleUploadPhotos() {
     const files = fileInputRef.current?.files;
     if (!files) return;
-    await uploadFiles(Array.from(files));
+    uploadFiles(Array.from(files));
+    if (fileInputRef.current) fileInputRef.current.value = "";
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -282,50 +245,28 @@ export default function UploadPage() {
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden"
               onChange={handleUploadPhotos} />
           </div>
-          {uploadState.total > 0 && (
-            <div className="bg-char-2 border border-line p-4" role="status" aria-live="polite">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-bone font-bold">{uploadState.completed} uploaded successfully</span>
-                {uploadState.failed > 0 && <span className="text-rec font-bold">{uploadState.failed} rejected</span>}
-              </div>
-              <div className="flex justify-between hud mb-2.5">
-                <span>{uploadState.completed + uploadState.failed} / {uploadState.total} processed</span>
-                {uploadState.inProgress && <span className="flex items-center gap-2 text-bone"><span className="rec-dot blink" aria-hidden="true" />uploading...</span>}
-              </div>
-              <div className="w-full bg-ink h-1">
-                <div className="bg-rec h-1 transition-all"
-                  style={{ width: `${((uploadState.completed + uploadState.failed) / uploadState.total) * 100}%` }} />
-              </div>
-            </div>
-          )}
+          <UploadStatus
+            total={uploads.total} done={uploads.done} failed={uploads.failed}
+            inProgress={uploads.inProgress} retryableCount={uploads.retryableCount}
+            onRetry={uploads.retryFailed} onDismiss={uploads.dismissFailed}
+          />
           <div className="flex gap-3">
-            {uploadState.completed > 0 && !uploadState.inProgress && (
+            {uploads.done > 0 && !uploads.inProgress && (
               <button onClick={handlePublish}
                 className="btn-pri flex-1 justify-center">
-                Publish Session ({uploadState.completed} photos)
+                Publish Session ({uploads.done} photos)
               </button>
             )}
           </div>
 
-          {uploadErrors.length > 0 && (
-            <div className="bg-ink border border-line border-l-2 border-l-rec p-4" role="alert">
-              <p className="hud text-rec mb-2">{uploadErrors.length} photo{uploadErrors.length > 1 ? "s" : ""} rejected (others uploaded fine)</p>
-              <ul className="text-sm text-mute space-y-1">
-                {uploadErrors.map((err, i) => (
-                  <li key={i}>— {err}</li>
-                ))}
-              </ul>
-            </div>
-          )}
-
           {/* Skip upload — go to manage page with QR */}
-          {!uploadState.inProgress && (
+          {!uploads.inProgress && (
             <div className="pt-6 border-t border-line">
               <button
                 onClick={() => window.location.href = `/dashboard/sessions/${sessionId}`}
                 className="btn-sec text-sm"
               >
-                {uploadState.completed > 0 ? "Manage Session →" : "Skip — Upload Later & Get QR Code"}
+                {uploads.done > 0 ? "Manage Session →" : "Skip — Upload Later & Get QR Code"}
               </button>
             </div>
           )}

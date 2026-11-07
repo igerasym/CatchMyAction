@@ -111,6 +111,8 @@ export async function createPhotoCheckout(params: {
     metadata: {
       userId: params.userId,
       type: isBulk ? "bulk" : "single",
+      // Recorded so fulfilment can tell whether the money went straight to the photographer.
+      ...(params.photographerAccountId ? { payoutAccount: params.photographerAccountId } : {}),
       ...(isBulk ? encodePhotoIds(items.map((i) => i.photoId)) : { photoId: items[0].photoId }),
     },
     success_url: params.successUrl,

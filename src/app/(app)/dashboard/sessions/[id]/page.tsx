@@ -6,6 +6,8 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import PublishedPanel from "../../published-panel";
 import { toastError, toastSuccess } from "@/lib/toast";
+import { useUploadQueue } from "@/hooks/use-upload-queue";
+import { UploadStatus } from "@/app/components/upload-status";
 import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin, Sparkles, RefreshCw } from "lucide-react";
 import { loginHref } from "@/lib/redirect";
 
@@ -39,9 +41,6 @@ export default function ManagePhotosPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [deleting, setDeleting] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState({ done: 0, total: 0 });
-  const [uploadErrors, setUploadErrors] = useState<string[]>([]);
   const [showQR, setShowQR] = useState(false);
   // ?published=1&notified=N — arrived straight from publishing
   const [justPublished, setJustPublished] = useState<{ notified: number } | null>(null);
@@ -185,42 +184,22 @@ export default function ManagePhotosPage() {
   }
 
   // --- Upload ---
-  async function uploadFiles(arr: File[]) {
-    if (arr.length === 0) return;
-    setUploading(true);
-    setUploadErrors([]);
-    setUploadProgress({ done: 0, total: arr.length });
-    for (let i = 0; i < arr.length; i += 3) {
-      const batch = arr.slice(i, i + 3);
-      const results = await Promise.allSettled(
-        batch.map(async (file) => {
-          const fd = new FormData();
-          fd.append("file", file);
-          fd.append("sessionId", sessionId);
-          const res = await fetch("/api/photos/upload", { method: "POST", body: fd });
-          if (!res.ok) {
-            const data = await res.json().catch(() => ({}));
-            throw new Error(`${file.name}: ${data.error || "Upload failed"}`);
-          }
-          return res.json();
-        })
-      );
-      const ok = results.filter((r) => r.status === "fulfilled").map((r) => (r as any).value);
-      const failed = results.filter((r) => r.status === "rejected");
-      const newErrors = failed.map((r) => (r as PromiseRejectedResult).reason?.message || "Unknown error");
-      setPhotos((prev) => [...prev, ...ok]);
-      setUploadProgress((prev) => ({ ...prev, done: prev.done + ok.length }));
-      if (newErrors.length) setUploadErrors((prev) => [...prev, ...newErrors]);
+  const uploads = useUploadQueue<any>(sessionId, (photo) => setPhotos((prev) => [...prev, photo]));
+  const uploadFiles = uploads.add;
+
+  // Refresh the session counters once a batch is done.
+  const wasUploading = useRef(false);
+  useEffect(() => {
+    if (wasUploading.current && !uploads.inProgress) {
+      fetch(`/api/sessions/${sessionId}`).then((r) => r.json()).then(setSession);
     }
-    setUploading(false);
-    if (fileRef.current) fileRef.current.value = "";
-    const sess = await fetch(`/api/sessions/${sessionId}`).then((r) => r.json());
-    setSession(sess);
-  }
+    wasUploading.current = uploads.inProgress;
+  }, [uploads.inProgress, sessionId]);
 
   function handleUpload() {
     const files = fileRef.current?.files;
     if (files) uploadFiles(Array.from(files));
+    if (fileRef.current) fileRef.current.value = "";
   }
 
   function handleDrop(e: React.DragEvent) {
@@ -293,34 +272,13 @@ export default function ManagePhotosPage() {
         </div>
       </div>
 
-      {/* Upload progress */}
-      {uploading && (
-        <div className="mb-6 bg-char-2 border border-line p-4" role="status" aria-live="polite">
-          <div className="flex justify-between hud mb-2">
-            <span className="flex items-center gap-2"><span className="rec-dot blink" aria-hidden="true" /> Uploading...</span>
-            <span className="text-bone">{uploadProgress.done}/{uploadProgress.total}</span>
-          </div>
-          <div className="w-full bg-ink h-1">
-            <div className="bg-rec h-1 transition-all"
-              style={{ width: `${(uploadProgress.done / uploadProgress.total) * 100}%` }} />
-          </div>
-        </div>
-      )}
-
-      {/* Upload errors */}
-      {uploadErrors.length > 0 && (
-        <div className="mb-6 bg-ink border border-line border-l-2 border-l-rec p-4" role="alert">
-          <p className="hud text-rec mb-2">Some photos were rejected</p>
-          <ul className="text-sm text-mute space-y-1">
-            {uploadErrors.map((err, i) => (
-              <li key={i}>— {err}</li>
-            ))}
-          </ul>
-          <button onClick={() => setUploadErrors([])} className="hud hover:text-bone mt-3">
-            Dismiss
-          </button>
-        </div>
-      )}
+      <div className="mb-6">
+        <UploadStatus
+          total={uploads.total} done={uploads.done} failed={uploads.failed}
+          inProgress={uploads.inProgress} retryableCount={uploads.retryableCount}
+          onRetry={uploads.retryFailed} onDismiss={uploads.dismissFailed}
+        />
+      </div>
 
       {/* Toolbar */}
       {photos.length > 0 && (
