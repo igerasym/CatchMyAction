@@ -53,8 +53,7 @@ export default function FindMeSection({ sessions }: { sessions: FindMeSession[] 
             </h2>
           </div>
           <p className="md:col-span-4 text-mute leading-relaxed">
-            Face matching runs across every frame of a session in seconds. Your selfie is used for that search
-            and isn&apos;t kept.
+            Your selfie is only used for the search and isn&apos;t kept.
           </p>
         </div>
 
@@ -157,7 +156,7 @@ export default function FindMeSection({ sessions }: { sessions: FindMeSession[] 
             </div>
             <div className="mt-5 flex flex-wrap items-center justify-between gap-4">
               <p className="text-sm text-mute max-w-md">
-                Matches get framed like this. You only pay for the shots you keep.
+                Matches get framed like this.
               </p>
               <Link href={`/sessions/${selected.id}`} className="inline-flex items-center gap-2 text-sm font-bold text-bone hover:text-rec transition-colors">
                 Browse the session <ArrowRight className="w-4 h-4" aria-hidden="true" />

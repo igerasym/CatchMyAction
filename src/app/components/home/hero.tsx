@@ -72,8 +72,7 @@ export default function Hero({
             in Action<span className="text-rec">.</span>
           </h1>
           <p className="mt-6 max-w-md text-[17px] leading-relaxed text-bone/80">
-            Photographers shoot the session. You take one selfie. We pull every frame you&apos;re in — ready
-            to buy in HD.
+            Photographers shoot the session. You take one selfie. We find every frame you&apos;re in.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
             <Link href="#find-me" className="btn-pri">

@@ -2,10 +2,9 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const POINTS = [
-  { k: "Reach", t: "Customers who were in your frame.", d: "QR codes at the spot, session pages and selfie search bring them to you." },
-  { k: "Monetize", t: "Old sessions keep selling.", d: "Upload an archive once — every session stays searchable." },
-  { k: "Automate", t: "Discovery runs itself.", d: "Spot, time and face indexing happen on upload." },
-  { k: "Control", t: "Your price, your sessions.", d: "Set the price per photo, publish or unpublish any time. Payouts via Stripe." },
+  { k: "Reach", t: "Customers who were in your frame.", d: "A QR code at the spot sends them to your session." },
+  { k: "Monetize", t: "Old sessions keep selling.", d: "Upload once, and every session stays searchable." },
+  { k: "Control", t: "Your price, your sessions.", d: "Set the price per photo. Payouts via Stripe." },
 ];
 
 /** Split section: action photo on one side, the photographer pitch on the other. */
