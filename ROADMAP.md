@@ -196,6 +196,27 @@ selling frames.
 A cheaper intermediate: a short silent preview clip (about 15 s) attached to a session, no face search, while photos
 stay the thing that is sold.
 
+### Instagram auto-posting (paused)
+Added 2026-11-08. Goal: publish a photo or carousel to our Instagram account from the admin side, each post approved
+by a human first.
+
+Status: **paused.** In the Meta App Dashboard (app "CatchMyActions") the use case "Instagram API" offers only
+"API setup with Unified login" (requires a business portfolio) and the legacy "Facebook login" setup. The simpler
+Instagram-login-only setup was not available. Until there are first photographers and sales, posts are made by hand or
+with the Meta Business Suite scheduler (no API, no tokens, $0).
+
+Options if we come back to it:
+- **Facebook login via Graph API Explorer:** a Facebook Page linked to the Instagram professional account, a user token
+  with `instagram_basic`, `instagram_content_publish`, `pages_show_list`, `pages_read_engagement`. Works for our own
+  account in development mode. Legacy path.
+- **Unified login:** needs a new business portfolio just for CatchMyAction (never reuse portfolios of other
+  businesses), a login flow with `config_id`, and a system-user token. Heavy for the benefit.
+
+Facts from Meta docs (re-check before building): the account must be professional; images are published from a public
+JPEG `image_url` via a media container and `/media_publish`; carousels allow up to 20 items; roughly 100 API posts per
+24 h; long-lived tokens last 60 days and need refreshing. The token lives only in `~/app/.env.production` on the
+server, never in chat or the repo.
+
 ### Auto-post published sessions to Instagram
 Added 2026-11-08. When a photographer publishes a session, post one photo from it, with a banner naming the spot, to a
 CatchMyAction brand account. Free reach for the photographer, and a signal for athletes at that spot: "your session is up,
