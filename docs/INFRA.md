@@ -124,7 +124,10 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   Pre-rotation config copies `~/app/*.bak.20261103132327` contain the old values → delete after verifying.
 - Root user has an access key → delete it.
 - No EBS snapshots / DLM policy yet.
-- SG exposes 22 and 3000 to `0.0.0.0/0`.
+- SG exposes 22 and 3000 to `0.0.0.0/0`. Port 3000 lets anyone reach the app directly, bypassing Cloudflare, and set
+  `cf-connecting-ip` / `x-forwarded-for` themselves. That defeats every per-IP rate limit (`clientIp` in
+  `src/lib/rate-limit.ts`): anonymous Find Me (paid Rekognition calls), forgot/reset password, photo reports. Fix: close
+  3000 in the SG (nginx already proxies to it locally) and allow 80/443 only from Cloudflare's IP ranges. See "Find Me".
 - Cloudflare → origin is plain HTTP (no 443 on nginx).
 
 ## Photographer payouts
@@ -148,6 +151,51 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   real sale: add the endpoint `https://<domain>/api/webhooks/stripe` in the Stripe dashboard (events
   `checkout.session.completed`, `checkout.session.async_payment_succeeded`) and put its signing secret in `.env.production`.
 - Known limits: Stripe only supports separate-charges-and-transfers between the US, Canada, UK, EEA and Switzerland (other regions need the same region as the platform), so a transfer to a photographer elsewhere fails, is logged, and stays `pending` until the next dashboard load.
+
+### Payout and fee risks (as of 2026-11-08)
+
+- **Commission-free sales cost the platform money.** With destination charges the platform pays Stripe's card fee.
+  On a commission-free sale there is no application fee to cover it, so each of the first 5 sales per photographer is a
+  loss of roughly Stripe's fee (about $0.59 on a $10 photo at standard US pricing of 2.9% + $0.30; check the account's
+  real pricing). Small prices make it relatively worse. Change `FREE_SALES_PER_PHOTOGRAPHER` in `src/lib/stripe.ts` to
+  adjust, and update the copy in the guide, dashboard and settings, which repeat "5" and "82%" as text.
+- **Race at the free-sales boundary.** The sold count is read when a checkout is created and no slot is reserved. Two
+  checkouts opened at the same time, or one opened before an earlier one is paid, can both get the last free slot.
+  Worst case: a few extra commission-free sales. The photographer never gets less than promised. A real fix needs a
+  reservation table; not done.
+- **Not verified against real Stripe:**
+  - that a destination charge with `transfer_data` and no `application_fee_amount` is accepted;
+  - that a later transfer of 100% of a charge (`source_transaction`, waived fee on a `pending` sale) succeeds when
+    the platform balance is low.
+
+  Run `test/stripe-sandbox.test.ts` in test mode with a waived sale before the first real one.
+- **Pending money moves only when the photographer opens the app.** `payOutPending` has no webhook or cron trigger:
+  it runs on `GET /api/stripe/connect` (dashboard and settings load). A photographer who connects Stripe and never comes
+  back is not paid. Fix later with an `account.updated` webhook or a daily job. The guide says "the next time you open
+  your dashboard", which matches this.
+- **Copy depends on this behaviour.** The guide "How you get paid" section, dashboard Stripe nudge and settings Payouts
+  text describe the rules above. Change them together.
+
+## Find Me (selfie face search)
+
+- Since 2026-11-08 anyone can search a **published** session without an account (`src/app/api/sessions/[id]/find-me/route.ts`);
+  drafts stay owner-only. Sign-in is needed only to buy, download or save matches ("That's me" is kept in
+  `sessionStorage` and claimed after login, `src/lib/find-me-pending.ts`). Explicit consent (`consent=1`) is still required.
+- Every search is a paid Rekognition `SearchFacesByImage` call. Limits (`src/lib/find-me-limits.ts`), per hour:
+  15 per account when signed in, 8 per IP when anonymous, 30 per IP for everyone.
+
+### Risks
+
+- **Rate limits are in memory.** They reset on every deploy or restart and are not shared between processes. Fine for
+  one container; move to Redis or the database before scaling out.
+- **Per-IP limits trust client headers.** `clientIp` reads `cf-connecting-ip`, then `x-real-ip`, then `x-forwarded-for`.
+  Behind Cloudflare that is reliable. Anyone who reaches the origin directly (port 3000 is open, see Known gaps) can fake
+  the header and run unlimited paid searches. Close the origin to everything except Cloudflare.
+- **No global spend cap.** Many IPs (or a spoofed header, above) can still run up the Rekognition bill. Consider a daily
+  cap on anonymous searches across all IPs and a CloudWatch billing alarm on Rekognition.
+- **Privacy.** Anonymous search lets someone look for a specific person's face in a session. Gallery photos are already
+  public, the search is per session, and the selfie is not stored, so nothing new is exposed, but it is now faster to find
+  one person. Keep the consent step, and revisit if sessions ever become non-public.
 
 ## Photo uploads
 
