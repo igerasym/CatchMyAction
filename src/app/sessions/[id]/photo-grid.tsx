@@ -7,6 +7,7 @@ import dynamic from "next/dynamic";
 import { toastError } from "@/lib/toast";
 import { ArrowRight, Check, ChevronLeft, ChevronRight, Download, Flag, Loader2, Plus, X } from "lucide-react";
 import { loginHref } from "@/lib/redirect";
+import { browserSessionStorage, clearPendingMatches, readPendingMatches } from "@/lib/find-me-pending";
 
 const FindMe = dynamic(() => import("./find-me"), { ssr: false });
 
@@ -67,13 +68,31 @@ export default function PhotoGrid({
 
   const sentinelRef = useRef<HTMLDivElement>(null);
 
+  // Find Me picks made before signing in: show them again after the login round trip
+  useEffect(() => {
+    const pending = readPendingMatches(browserSessionStorage(), sessionId);
+    if (pending.length) setMatchedIds((prev) => new Set([...Array.from(prev), ...pending]));
+  }, [sessionId]);
+
   // Load user's purchased photo IDs on mount
   useEffect(() => {
     if (!userId) return;
-    Promise.all([
+    // Signed in now: claim pending Find Me picks once, before reading claims back
+    const store = browserSessionStorage();
+    const pending = readPendingMatches(store, sessionId);
+    const claimed = pending.length
+      ? fetch("/api/photos/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoIds: pending }),
+        })
+          .then((r) => { if (r.ok) clearPendingMatches(store, sessionId); })
+          .catch(() => {})
+      : Promise.resolve();
+    claimed.then(() => Promise.all([
       fetch("/api/user/purchases").then((r) => r.json()),
       fetch("/api/user/claims?sessionId=" + sessionId).then((r) => r.json()),
-    ]).then(([pData, cData]) => {
+    ])).then(([pData, cData]) => {
       if (pData.purchases) {
         const ids = new Set<string>(pData.purchases.map((p: any) => p.id));
         setPurchasedIds(ids);
@@ -82,7 +101,9 @@ export default function PhotoGrid({
         setOriginalUrls(urls);
       }
       if (cData.claims) {
-        setMatchedIds(new Set<string>(cData.claims.map((c: any) => c.id)));
+        // Keep any picks whose claim didn't go through yet
+        const still = readPendingMatches(browserSessionStorage(), sessionId);
+        setMatchedIds(new Set<string>([...cData.claims.map((c: any) => c.id), ...still]));
       }
     }).catch(() => {});
   }, [userId]);
@@ -501,6 +522,14 @@ export default function PhotoGrid({
               <p className="font-mono text-[11.5px] font-bold tracking-[0.14em] uppercase text-rec mt-1.5 flex items-center gap-2">
                 <span className="rec-dot !w-1.5 !h-1.5" aria-hidden="true" />
                 It&apos;s you · {matchedCount}
+              </p>
+            )}
+            {matchedCount > 0 && !userId && (
+              <p className="text-[13px] text-mute mt-1.5">
+                <a href={loginHref(`/sessions/${sessionId}`)} className="text-bone underline underline-offset-2 hover:text-rec">
+                  Sign in
+                </a>{" "}
+                to save these to My Actions.
               </p>
             )}
           </div>

@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { searchFacesBySelfie } from "@/lib/rekognition";
-import { getAuthUser } from "@/lib/auth-helpers";
+import { getViewerId } from "@/lib/auth-helpers";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
+import { FIND_ME_WINDOW_MS, canSearchSession, findMeRateRules } from "@/lib/find-me-limits";
 
 const MAX_BYTES = 5 * 1024 * 1024; // Rekognition Image.Bytes limit (client downscales to ~1600px first)
 const MATCH_THRESHOLD = 80; // was 70 — fewer strangers tagged as "you"
@@ -12,11 +13,12 @@ export async function POST(
   req: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const user = await getAuthUser();
-  if (user instanceof NextResponse) return user;
+  // Anonymous visitors may search published sessions; sign-in is only needed to buy/download/claim
+  const viewerId = await getViewerId();
 
-  // Each search is a paid Rekognition call — throttle per account and per IP
-  if (!rateLimit(`findme:u:${user.id}`, 15, 60 * 60 * 1000) || !rateLimit(`findme:ip:${clientIp(req)}`, 30, 60 * 60 * 1000)) {
+  // Each search is a paid Rekognition call — per account (or a stricter per-IP bucket when anonymous), plus per IP for everyone
+  const ip = clientIp(req);
+  if (!findMeRateRules(viewerId, ip).every((r) => rateLimit(r.key, r.max, FIND_ME_WINDOW_MS))) {
     return NextResponse.json(
       { error: "Too many searches in a short time. Please try again in a little while.", code: "rate_limited" },
       { status: 429 }
@@ -27,7 +29,7 @@ export async function POST(
     where: { id: params.id },
     select: { published: true, photographerId: true },
   });
-  if (!session || (!session.published && session.photographerId !== user.id)) {
+  if (!canSearchSession(session, viewerId)) {
     return NextResponse.json({ error: "Session not found", code: "not_found" }, { status: 404 });
   }
 
