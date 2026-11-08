@@ -23,6 +23,8 @@ vi.mock("stripe", () => ({
 
 import {
   FREE_SALES_PER_PHOTOGRAPHER,
+  cardFeeEstimate,
+  commissionFreeItems,
   createPhotoCheckout,
   feesForItems,
   freeSalesLeft,
@@ -36,15 +38,39 @@ beforeEach(() => {
   db.photo.findUnique.mockImplementation(async ({ where }: any) => ({ id: where.id }));
 });
 
+describe("card fee estimate", () => {
+  it("is 2.9% + $0.30 per checkout, and nothing for a free checkout", () => {
+    expect(cardFeeEstimate(1000)).toBe(59); // 29 + 30
+    expect(cardFeeEstimate(3500)).toBe(132); // 101.5 -> 102, + 30
+    expect(cardFeeEstimate(0)).toBe(0);
+  });
+});
+
 describe("feesForItems", () => {
-  it("waives the fee on the first 5 sales", () => {
+  it("first 5 sales pay only the card fee, not 18%", () => {
     expect(FREE_SALES_PER_PHOTOGRAPHER).toBe(5);
-    expect(feesForItems(0, [1000])).toEqual([0]);
-    expect(feesForItems(0, [1000, 1000, 1000, 1000, 1000, 1000])).toEqual([0, 0, 0, 0, 0, 180]);
+    expect(feesForItems(0, [1000])).toEqual([59]);
+    // card fee for $60 = 174 + 30 = 204, split over six $10 photos = 34 each; the 6th pays 18%
+    expect(feesForItems(0, [1000, 1000, 1000, 1000, 1000, 1000])).toEqual([34, 34, 34, 34, 34, 180]);
+  });
+
+  it("charges the fixed $0.30 once per checkout, not per photo", () => {
+    const fees = feesForItems(0, [1000, 1000, 1000]);
+    expect(fees.reduce((a, b) => a + b, 0)).toBe(cardFeeEstimate(3000)); // 117, not 3 x 59
   });
 
   it("splits a checkout that straddles the boundary (4 sold, buying 3)", () => {
-    expect(feesForItems(4, [1000, 1000, 1000])).toEqual([0, 180, 180]);
+    // card fee for $30 = 117; the one commission-free photo carries its third = 39
+    expect(feesForItems(4, [1000, 1000, 1000])).toEqual([39, 180, 180]);
+  });
+
+  it("never charges more than the photo price", () => {
+    expect(feesForItems(0, [10])).toEqual([10]); // 30c fixed fee on a 10c photo is capped at 10c
+  });
+
+  it("marks which items use a commission-free slot", () => {
+    expect(commissionFreeItems(3, [1000, 0, 1000, 1000])).toEqual([true, false, true, false]);
+    expect(commissionFreeItems(5, [1000])).toEqual([false]);
   });
 
   it("charges every item once 5 or more were sold", () => {
@@ -53,7 +79,8 @@ describe("feesForItems", () => {
   });
 
   it("skips free items: no fee and they do not use a free slot", () => {
-    expect(feesForItems(4, [0, 1000, 0, 1000])).toEqual([0, 0, 0, 180]);
+    // card fee for $20 = 58 + 30 = 88; the commission-free $10 photo carries half = 44
+    expect(feesForItems(4, [0, 1000, 0, 1000])).toEqual([0, 44, 0, 180]);
   });
 
   it("rounds the 18% fee to whole cents", () => {
@@ -91,13 +118,13 @@ describe("createPhotoCheckout fees", () => {
     });
   });
 
-  it("single commission-free sale: no application fee, money still routed to the photographer", async () => {
+  it("single commission-free sale: only the card fee as application fee", async () => {
     db.purchase.count.mockResolvedValue(2);
     await checkout([item("p1")]);
     const p = sentParams();
-    expect(p.payment_intent_data).toEqual({ transfer_data: { destination: "acct_1" } });
-    expect(p.metadata).toMatchObject({ photoId: "p1", feeCents: "0", feeWaived: "p1", payoutAccount: "acct_1" });
-    expect(lineFees()).toEqual(["0"]);
+    expect(p.payment_intent_data).toEqual({ application_fee_amount: 59, transfer_data: { destination: "acct_1" } });
+    expect(p.metadata).toMatchObject({ photoId: "p1", feeCents: "59", feeWaived: "p1", payoutAccount: "acct_1" });
+    expect(lineFees()).toEqual(["59"]);
   });
 
   it("single sale after the free ones: 18% application fee", async () => {
@@ -113,9 +140,10 @@ describe("createPhotoCheckout fees", () => {
     db.purchase.count.mockResolvedValue(3);
     await checkout([item("a"), item("b"), item("c", 500), item("d")]);
     const p = sentParams();
-    expect(lineFees()).toEqual(["0", "0", "90", "180"]);
-    expect(p.payment_intent_data.application_fee_amount).toBe(270);
-    expect(p.metadata).toMatchObject({ type: "bulk", feeCents: "270", feeWaived: "a,b" });
+    // card fee for $35 = 132; each commission-free $10 photo carries 132 x 10/35 = 38
+    expect(lineFees()).toEqual(["38", "38", "90", "180"]);
+    expect(p.payment_intent_data.application_fee_amount).toBe(346);
+    expect(p.metadata).toMatchObject({ type: "bulk", feeCents: "346", feeWaived: "a,b" });
   });
 
   it("records fees even when the platform collects (no Connect account)", async () => {
@@ -123,7 +151,7 @@ describe("createPhotoCheckout fees", () => {
     await checkout([item("a"), item("b")], null);
     const p = sentParams();
     expect(p.payment_intent_data).toBeUndefined();
-    expect(lineFees()).toEqual(["0", "0"]);
+    expect(lineFees()).toEqual(["44", "44"]); // card fee for $20 = 88, split
     expect(p.metadata.feeWaived).toBe("a,b");
   });
 });
@@ -138,9 +166,9 @@ const lineItem = (photoId: string, amount: number, feeCents?: string) => ({
 });
 
 describe("fulfilment shares", () => {
-  it("single waived sale: photographer keeps the whole amount", async () => {
-    await fulfillCheckoutSession(paidSession({ userId: "u", photoId: "p1", feeCents: "0", payoutAccount: "acct_1" }, 1000));
-    expect(shares()).toEqual({ p1: 1000 });
+  it("single commission-free sale: photographer keeps the amount minus the card fee", async () => {
+    await fulfillCheckoutSession(paidSession({ userId: "u", photoId: "p1", feeCents: "59", feeWaived: "p1", payoutAccount: "acct_1" }, 1000));
+    expect(shares()).toEqual({ p1: 941 });
   });
 
   it("single paid-fee sale: amount minus 18%", async () => {
@@ -155,12 +183,12 @@ describe("fulfilment shares", () => {
 
   it("bulk across the boundary uses each line item's fee", async () => {
     st.listLineItems.mockResolvedValue({
-      data: [lineItem("a", 1000, "0"), lineItem("b", 1000, "0"), lineItem("c", 500, "90"), lineItem("d", 1000, "180")],
+      data: [lineItem("a", 1000, "38"), lineItem("b", 1000, "38"), lineItem("c", 500, "90"), lineItem("d", 1000, "180")],
     });
     await fulfillCheckoutSession(
-      paidSession({ userId: "u", type: "bulk", photoIds_0: "a,b,c,d", feeCents: "270", feeWaived: "a,b" }, 3500)
+      paidSession({ userId: "u", type: "bulk", photoIds_0: "a,b,c,d", feeCents: "346", feeWaived: "a,b" }, 3500)
     );
-    expect(shares()).toEqual({ a: 1000, b: 1000, c: 410, d: 820 });
+    expect(shares()).toEqual({ a: 962, b: 962, c: 410, d: 820 });
   });
 
   it("legacy bulk without fee metadata falls back to 18% per photo", async () => {
@@ -174,7 +202,8 @@ describe("fulfilment shares", () => {
     await fulfillCheckoutSession(
       paidSession({ userId: "u", type: "bulk", photoIds_0: "a,b", feeCents: "180", feeWaived: "a" }, 2000)
     );
-    expect(shares()).toEqual({ a: 1000, b: 820 });
+    // a is commission-free but its line fee is unknown: only the 2.9% part (29) is taken
+    expect(shares()).toEqual({ a: 971, b: 820 });
   });
 
   it("stays idempotent: existing rows are never updated", async () => {
@@ -185,6 +214,6 @@ describe("fulfilment shares", () => {
   it("ignores a recorded fee that is malformed or larger than the amount", () => {
     expect(feeFor(1000, "abc", false)).toBe(180);
     expect(feeFor(1000, "5000", false)).toBe(180);
-    expect(feeFor(1000, "-1", true)).toBe(0);
+    expect(feeFor(1000, "-1", true)).toBe(29);
   });
 });

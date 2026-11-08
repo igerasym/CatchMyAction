@@ -12,23 +12,50 @@ export function platformFee(amountInCents: number): number {
   return Math.round((amountInCents * PLATFORM_FEE_BPS) / 10_000);
 }
 
-/** Each photographer's first N paid sales carry no platform fee (they keep 100%). */
+/** Each photographer's first N paid sales carry no 18% platform fee, only the card fee estimate. */
 export const FREE_SALES_PER_PHOTOGRAPHER = 5;
+
+/**
+ * Estimate of Stripe's card processing fee for one checkout (standard US card pricing,
+ * 2.9% + $0.30 per charge). The platform pays Stripe's real fee on every destination charge;
+ * on commission-free sales this estimate is passed on to the photographer instead of 18%.
+ * Real fees vary by card and country, so this is an estimate, not a pass-through.
+ */
+export const CARD_FEE_BPS = 290;
+export const CARD_FEE_FIXED_CENTS = 30;
+
+export function cardFeeEstimate(chargeTotalCents: number): number {
+  if (chargeTotalCents <= 0) return 0;
+  return Math.round((chargeTotalCents * CARD_FEE_BPS) / 10_000) + CARD_FEE_FIXED_CENTS;
+}
 
 /**
  * Platform fee per item, in the order given. `alreadySold` is how many paid photos the
  * photographer sold before this checkout. Free items (price 0) are not sales: they take no
  * fee and do not use up a commission-free slot.
+ *
+ * Commission-free items carry no 18% fee but do carry their share of the card fee estimate for
+ * the whole checkout, split by price (so the fixed $0.30 is charged once per checkout, not per photo).
+ * Items at 18% need no extra: the 18% already covers the card fee.
  */
 export function feesForItems(alreadySold: number, pricesInCents: number[]): number[] {
+  const chargeTotal = pricesInCents.reduce((sum, p) => sum + Math.max(0, p), 0);
+  const cardFee = cardFeeEstimate(chargeTotal);
+  const free = commissionFreeItems(alreadySold, pricesInCents);
+  return pricesInCents.map((price, i) => {
+    if (price <= 0) return 0;
+    if (free[i]) return Math.min(price, Math.round((cardFee * price) / chargeTotal));
+    return platformFee(price);
+  });
+}
+
+/** Which items, in the order given, use one of the photographer's commission-free slots. */
+export function commissionFreeItems(alreadySold: number, pricesInCents: number[]): boolean[] {
   let freeLeft = freeSalesLeft(alreadySold);
   return pricesInCents.map((price) => {
-    if (price <= 0) return 0;
-    if (freeLeft > 0) {
-      freeLeft--;
-      return 0;
-    }
-    return platformFee(price);
+    if (price <= 0 || freeLeft <= 0) return false;
+    freeLeft--;
+    return true;
   });
 }
 
@@ -136,7 +163,8 @@ export async function createPhotoCheckout(params: {
   const feeTotal = fees.reduce((sum, f) => sum + f, 0);
   // At most FREE_SALES_PER_PHOTOGRAPHER ids, so this fits one metadata value. Lets fulfilment
   // tell waived items apart even when it cannot read the per-line-item metadata.
-  const waived = items.filter((item, i) => item.priceInCents > 0 && fees[i] === 0).map((i) => i.photoId);
+  const freeFlags = commissionFreeItems(alreadySold, items.map((i) => i.priceInCents));
+  const waived = items.filter((_, i) => freeFlags[i]).map((i) => i.photoId);
 
   const sessionParams: Stripe.Checkout.SessionCreateParams = {
     mode: "payment",

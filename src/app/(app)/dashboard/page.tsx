@@ -65,7 +65,8 @@ interface Earnings {
  * Fee copy. Mirrors FREE_SALES_PER_PHOTOGRAPHER (5) and PLATFORM_FEE_BPS (18%) in
  * src/lib/stripe.ts; that module is server-only, so the numbers are repeated here.
  */
-const FEE_POLICY = "Your first 5 sales are commission-free. After that you keep 82% of every sale.";
+const FEE_POLICY =
+  "Your first 5 sales are commission-free (only the card fee, about 2.9% + $0.30). After that you keep 82% of every sale.";
 
 function freeSalesNote(left: number | undefined): string | null {
   if (left === undefined || left <= 0) return null;

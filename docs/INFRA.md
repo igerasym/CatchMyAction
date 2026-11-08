@@ -133,7 +133,7 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 ## Photographer payouts
 
 - Checkout uses a Stripe destination charge when the photographer has an active Connect account. The destination is stored in the checkout metadata as `payoutAccount`.
-- Fees (all in `src/lib/stripe.ts`, the single source of truth): each photographer's first `FREE_SALES_PER_PHOTOGRAPHER` (5) paid photos are commission-free; after that the platform takes `PLATFORM_FEE_BPS` (18%). "Sold" = `Purchase` rows with `amountInCents > 0` for photos in the photographer's sessions (`countSoldPhotos`), counted when the checkout is created; free photos never use a slot. `feesForItems` gives the per-photo fee, so a bulk checkout can straddle the boundary. `createPhotoCheckout` sets `application_fee_amount` to the sum (omitted when it is 0) and records `feeCents` on each line item's product metadata, `feeCents` (single: that photo; bulk: the sum) and `feeWaived` (ids of commission-free photos) on the session metadata. `fulfillCheckoutSession` stores `photographerShareCents = amount - feeCents`; sessions created before this fall back to `platformFee(amount)`. Card processing fees stay with the platform either way, so a commission-free sale costs the platform Stripe's fee. Two checkouts opened at the same moment near the boundary can both get the same free slot (the count is read at checkout creation, not reserved).
+- Fees (all in `src/lib/stripe.ts`, the single source of truth): each photographer's first `FREE_SALES_PER_PHOTOGRAPHER` (5) paid photos are commission-free (the platform takes only the card fee estimate, see risks below); after that the platform takes `PLATFORM_FEE_BPS` (18%). "Sold" = `Purchase` rows with `amountInCents > 0` for photos in the photographer's sessions (`countSoldPhotos`), counted when the checkout is created; free photos never use a slot. `feesForItems` gives the per-photo fee, so a bulk checkout can straddle the boundary. `createPhotoCheckout` sets `application_fee_amount` to the sum (omitted when it is 0) and records `feeCents` on each line item's product metadata, `feeCents` (single: that photo; bulk: the sum) and `feeWaived` (ids of commission-free photos) on the session metadata. `fulfillCheckoutSession` stores `photographerShareCents = amount - feeCents`; sessions created before this fall back to `platformFee(amount)`. Card processing fees stay with the platform either way, so a commission-free sale costs the platform Stripe's fee. Two checkouts opened at the same moment near the boundary can both get the same free slot (the count is read at checkout creation, not reserved).
 - `fulfillCheckoutSession` records `Purchase.photographerShareCents` and `Purchase.payoutStatus`: `sent` (routed at payment time), `pending` (no active Stripe account, so the platform holds the money) or `null` (rows from before tracking).
 - The dashboard Earnings tab and `/api/photographer/earnings` read these fields. Do not recompute the share from a hardcoded percentage.
 - Releasing `pending` money: `payOutPending` (`src/lib/payouts.ts`) runs from `GET /api/stripe/connect` when the photographer's account has `charges_enabled`, in the background, up to 50 purchases per run. Each share is sent as `stripe.transfers.create` with `source_transaction` = the original charge, `metadata.purchaseId` and idempotency key `payout-<purchaseId>`, then the purchase becomes `sent`.
@@ -154,11 +154,13 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 
 ### Payout and fee risks (as of 2026-11-08)
 
-- **Commission-free sales cost the platform money.** With destination charges the platform pays Stripe's card fee.
-  On a commission-free sale there is no application fee to cover it, so each of the first 5 sales per photographer is a
-  loss of roughly Stripe's fee (about $0.59 on a $10 photo at standard US pricing of 2.9% + $0.30; check the account's
-  real pricing). Small prices make it relatively worse. Change `FREE_SALES_PER_PHOTOGRAPHER` in `src/lib/stripe.ts` to
-  adjust, and update the copy in the guide, dashboard and settings, which repeat "5" and "82%" as text.
+- **Card fee on commission-free sales is an estimate.** With destination charges the platform pays Stripe's real card
+  fee. On commission-free sales the application fee is set to `cardFeeEstimate` (2.9% + $0.30 per checkout, standard US
+  card pricing, `CARD_FEE_BPS` / `CARD_FEE_FIXED_CENTS` in `src/lib/stripe.ts`), split over the commission-free photos by
+  price, so the photographer pays the card fee and the platform takes nothing. Real Stripe fees vary (international cards,
+  currency conversion, other regions), so the platform can still lose or gain a few cents per sale. Check the account's
+  real pricing in the Stripe dashboard and adjust the constants. The guide, dashboard and settings repeat "5",
+  "2.9% + $0.30" and "82%" as text: change them together.
 - **Race at the free-sales boundary.** The sold count is read when a checkout is created and no slot is reserved. Two
   checkouts opened at the same time, or one opened before an earlier one is paid, can both get the last free slot.
   Worst case: a few extra commission-free sales. The photographer never gets less than promised. A real fix needs a

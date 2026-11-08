@@ -78,7 +78,10 @@ export default function PhotographerGuidePage() {
         title="How You Get Paid"
       >
         <ul className="space-y-3">
-          <Li>Your first 5 sales are commission-free: you keep 100%.</Li>
+          <Li>
+            Your first 5 sales are commission-free: CatchMyAction takes nothing, only the card processing fee is deducted
+            (about 2.9% + $0.30 per checkout). On a $10 photo you get about $9.41.
+          </Li>
           <Li>After that you keep 82% of every sale. CatchMyAction keeps 18%, and card processing fees are on us.</Li>
           <Li>
             With Stripe connected, your share is sent to your Stripe account at the moment of each sale.

@@ -1,6 +1,6 @@
 import Stripe from "stripe";
 import { prisma } from "@/lib/db";
-import { stripe, decodePhotoIds, platformFee } from "@/lib/stripe";
+import { stripe, decodePhotoIds, platformFee, CARD_FEE_BPS } from "@/lib/stripe";
 
 /**
  * Turn a paid Stripe Checkout session into Purchase rows. Idempotent (upsert on userId+photoId),
@@ -61,7 +61,9 @@ export function feeFor(amount: number, recorded: string | undefined, waived: boo
     const fee = Number(recorded);
     if (fee <= amount) return fee;
   }
-  if (waived) return 0;
+  // Commission-free photo without a readable per-photo fee: the percentage part of the card fee only
+  // (the fixed $0.30 is per checkout and can't be attributed here; erring in the photographer's favour).
+  if (waived) return Math.round((amount * CARD_FEE_BPS) / 10_000);
   return platformFee(amount);
 }
 
