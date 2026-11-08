@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { findDuplicate, sharesSport, type ExistingSpot } from "../scripts/spot-import-lib";
 import { MAP_SPOT_CAP, thinForMap, type MapSpotInput } from "@/lib/map-spots";
-import { spotRank } from "@/lib/spot-rank";
+import { pickGroups, spotRank, spotsLabel } from "@/lib/spot-rank";
 
 const spot = (over: Partial<ExistingSpot> & { name: string; lat: number; lng: number }): ExistingSpot => ({
   id: over.name,
@@ -110,6 +110,40 @@ describe("thinForMap", () => {
   it("strips internal fields from the payload", () => {
     const out = thinForMap([{ name: "X", region: "r", country: "c", lat: 1, lng: 2, pinned: true }]);
     expect(out[0]).toEqual({ name: "X", region: "r", country: "c", lat: 1, lng: 2 });
+  });
+});
+
+describe("pickGroups / spotsLabel (region and country suggestions)", () => {
+  const groups = [
+    { label: "Mundaka", count: 1 },
+    { label: "Cornwall", count: 72 },
+    { label: "Devon", count: 29 },
+    { label: "Dorset", count: 21 },
+    { label: "Kent", count: 10 },
+  ];
+
+  it("drops a region that holds a single spot, since it would just repeat the spot", () => {
+    expect(pickGroups(groups, 10).map((g) => g.label)).not.toContain("Mundaka");
+  });
+
+  it("returns the biggest groups first and respects the limit", () => {
+    expect(pickGroups(groups, 3).map((g) => g.label)).toEqual(["Cornwall", "Devon", "Dorset"]);
+  });
+
+  it("can keep single-spot groups when asked (countries)", () => {
+    expect(pickGroups([{ label: "Monaco", count: 1 }], 2, 1)).toHaveLength(1);
+  });
+
+  it("does not modify its input", () => {
+    const copy = JSON.stringify(groups);
+    pickGroups(groups, 2);
+    expect(JSON.stringify(groups)).toBe(copy);
+  });
+
+  it("uses the singular for one spot", () => {
+    expect(spotsLabel(1)).toBe("1 spot");
+    expect(spotsLabel(12)).toBe("12 spots");
+    expect(spotsLabel(0)).toBe("0 spots");
   });
 });
 

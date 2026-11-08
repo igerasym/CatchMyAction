@@ -13,6 +13,20 @@ Spots live in the `Spot` table (not in code). Sessions point to a spot via `Sess
 
 `accuracy`: `exact` (pin / known point) · `island` (island-level, break is on the nearby reef) · `approx`.
 
+### Regions: use an area, not a town
+Catalogue sources tend to put the nearest town in `region`. Before importing a new batch run
+
+```bash
+pip install reverse_geocoder            # offline GeoNames, pulls numpy + scipy
+python3 scripts/catalog/assign_regions.py batch.json batch-regions.json
+```
+
+It sets `region` to the state / province / prefecture / autonomous community (county for the UK and Ireland, province
+for the Philippines; Malé is split into North and South atoll to match the curated Maldives breaks). To rewrite regions of
+rows that are already imported, pass the result to the importer with `--update`:
+`node scripts/dist/import-spots.js /tmp/batch-regions.json --source brizocast --update`.
+Autocomplete shows a region as a suggestion only when it holds at least two spots.
+
 ### Sport-aware dedup (since 2026-11-08)
 The importer compares a new spot only with existing spots that share a sport with it (new rows default to `["surf"]`),
 so a skate park on the same promenade does not block a surf break. If either side has no `sports` recorded they are
@@ -86,9 +100,12 @@ The site is surf-first for now. The old hand-written surf list was replaced by a
   Held back as probably wrong coordinates: `Hiliduha` (placeholder 1.0/98.0), `Outer Waters`, `Kouminkan`, `La Caffrine`.
   Left out on purpose: `Colas` (same break as our curated `Cokes`).
 - **Sessions:** the 4 `Cloud 9` sessions were re-attached to the new `Cloud 9` (Siargao); all 9 sessions have a spot.
+- **Regions fixed the same day:** the source put the nearest *town* in `region` (3,895 distinct values, 40% of rows in a
+  "region" of 1–2 spots). `scripts/catalog/assign_regions.py` replaced it with a real administrative area derived from
+  the coordinates (830 distinct values, 5% in tiny regions) and the importer's `--update` wrote it to the 8,481 imported
+  rows (dump taken first: `~/backups/catchmyaction-2026-11-08T094105Z.sql.gz`, also in S3). Kept as the town: 123 rows where
+  GeoNames had nothing to offer or the nearest place is across a border.
 - **Known soft spots:**
-  - `region` is mostly the nearest town, not an area (40% of rows sit in a "region" of 1–2 spots), so region filters and
-    "N spots" region suggestions are noisy. A real administrative area can be derived from the coordinates later.
   - The 500 m rule skipped ~540 spots inside the batch that may be genuinely separate neighbouring breaks (Japan, USA,
     Australia, Brazil mostly). Re-import with a smaller radius would add them; `sourceId` makes re-imports idempotent.
   - `Furana` sits 540 m from curated `Tombstones`; both were imported (possibly the same break).

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { spotRank } from "@/lib/spot-rank";
+import { pickGroups, spotRank, spotsLabel } from "@/lib/spot-rank";
 
 export const dynamic = "force-dynamic";
 
@@ -73,23 +73,25 @@ export async function GET(req: NextRequest) {
 
   const suggestions: Suggestion[] = [];
 
-  countryGroups
-    .filter((g) => g.country)
-    .sort((a, b) => b._count._all - a._count._all)
-    .slice(0, 2)
-    .forEach((g) => suggestions.push({ label: g.country as string, type: "country", sub: `${g._count._all} spots` }));
+  // A country with a single spot is still a country; a "region" of one spot only repeats that spot.
+  pickGroups(
+    countryGroups.filter((g) => g.country).map((g) => ({ label: g.country as string, count: g._count._all })),
+    2,
+    1
+  ).forEach((g) => suggestions.push({ label: g.label, type: "country", sub: spotsLabel(g.count) }));
 
-  regionGroups
-    .filter((g) => g.region)
-    .sort((a, b) => b._count._all - a._count._all)
-    .slice(0, 3)
-    .forEach((g) =>
-      suggestions.push({
-        label: g.region as string,
-        type: "region",
-        sub: `${g._count._all} spots${g.country ? ` · ${g.country}` : ""}`,
-      })
-    );
+  pickGroups(
+    regionGroups
+      .filter((g) => g.region)
+      .map((g) => ({ label: g.region as string, country: g.country, count: g._count._all })),
+    3
+  ).forEach((g) =>
+    suggestions.push({
+      label: g.label,
+      type: "region",
+      sub: `${spotsLabel(g.count)}${g.country ? ` · ${g.country}` : ""}`,
+    })
+  );
 
   spots
     .sort((a, b) => spotRank(a.name, q, a.sports, sport) - spotRank(b.name, q, b.sports, sport) || a.name.localeCompare(b.name))

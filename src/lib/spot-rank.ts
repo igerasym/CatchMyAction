@@ -1,4 +1,20 @@
-/** Ordering of autocomplete results. Pure, so it can be tested without a database. */
+/** Ordering and grouping of autocomplete results. Pure, so it can be tested without a database. */
+
+/** "1 spot" / "12 spots". */
+export function spotsLabel(n: number): string {
+  return `${n} spot${n === 1 ? "" : "s"}`;
+}
+
+/**
+ * Region / country suggestions: biggest first, and only groups with at least `min` spots. A region holding
+ * a single spot would just repeat that spot ("Mundaka · 1 spots"), so it is left out.
+ */
+export function pickGroups<T extends { count: number }>(groups: T[], limit: number, min = 2): T[] {
+  return groups
+    .filter((g) => g.count >= min)
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
+}
 
 /**
  * Lower is better. Spots for the sport being entered come first, then name-prefix matches, then
