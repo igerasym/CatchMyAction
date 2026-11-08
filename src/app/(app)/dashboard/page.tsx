@@ -36,6 +36,7 @@ interface Stats {
   photosSold: number;
   revenue: number;
   pendingPayout: number;
+  freeSalesLeft?: number;
   totalViews: number;
   recentSales: any[];
 }
@@ -48,6 +49,7 @@ interface Earnings {
   heldNet: number;
   platformFee: number;
   totalSales: number;
+  freeSalesLeft?: number;
   dailyRevenue: { date: string; gross: number; net: number }[];
   perSession: {
     id: string; title: string; location: string;
@@ -57,6 +59,17 @@ interface Earnings {
     id: string; amount: number; net: number; payout: "sent" | "pending" | "held"; date: string;
     buyerName: string; sessionTitle: string; thumbnailUrl: string;
   }[];
+}
+
+/**
+ * Fee copy. Mirrors FREE_SALES_PER_PHOTOGRAPHER (5) and PLATFORM_FEE_BPS (18%) in
+ * src/lib/stripe.ts; that module is server-only, so the numbers are repeated here.
+ */
+const FEE_POLICY = "Your first 5 sales are commission-free. After that you keep 82% of every sale.";
+
+function freeSalesNote(left: number | undefined): string | null {
+  if (left === undefined || left <= 0) return null;
+  return `${left} commission-free ${left === 1 ? "sale" : "sales"} left`;
 }
 
 export default function DashboardPage() {
@@ -225,8 +238,13 @@ export default function DashboardPage() {
                 : stripeStatus === "incomplete" ? "Complete your Stripe setup to receive payouts" : "Connect Stripe to get paid"}
             </p>
             <p className="font-mono text-[11px] tracking-[0.1em] uppercase text-dim mt-1">
-              {stats && stats.pendingPayout > 0 ? "Connect Stripe so we can send it. You keep 82% of each sale." : "You keep 82% of each sale."}
+              {stats && stats.pendingPayout > 0 ? `Connect Stripe so we can send it. ${FEE_POLICY}` : FEE_POLICY}
             </p>
+            {freeSalesNote(stats?.freeSalesLeft) && (
+              <p className="font-mono text-[11px] tracking-[0.1em] uppercase text-rec mt-1">
+                {freeSalesNote(stats?.freeSalesLeft)}
+              </p>
+            )}
           </div>
           <a href="/settings" className="btn-rec py-2.5 px-4 text-sm whitespace-nowrap">
             {stripeStatus === "incomplete" ? "Complete Setup" : "Connect Stripe"}
@@ -355,7 +373,7 @@ function EarningsTab({ data, loading, range, setRange }: {
       ) : data ? (
         <>
           {/* Earnings cards — 2 columns */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-line border border-line mb-10">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-px bg-line border border-line mb-3">
             <div className="relative p-6 bg-char-2">
               <div className="brk brk-rec brk-sm" aria-hidden="true" />
               <div className="flex items-center gap-2 mb-2">
@@ -389,6 +407,12 @@ function EarningsTab({ data, loading, range, setRange }: {
               </p>
             </div>
           </div>
+          <p className="font-mono text-[11px] tracking-[0.06em] text-dim mb-10">
+            {FEE_POLICY}
+            {freeSalesNote(data.freeSalesLeft) && (
+              <span className="block text-rec mt-1">{freeSalesNote(data.freeSalesLeft)}</span>
+            )}
+          </p>
 
           {/* Revenue chart */}
           {data.dailyRevenue.length > 1 && (
