@@ -9,7 +9,7 @@ import { toastError, toastSuccess } from "@/lib/toast";
 import { useUploadQueue } from "@/hooks/use-upload-queue";
 import { UploadStatus } from "@/app/components/upload-status";
 import { ResumeUploadBanner } from "@/app/components/resume-upload-banner";
-import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin, Sparkles, RefreshCw } from "lucide-react";
+import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin, Sparkles } from "lucide-react";
 import { loginHref } from "@/lib/redirect";
 
 interface Photo {
@@ -54,7 +54,6 @@ export default function ManagePhotosPage() {
   }, []);
   const [dragging, setDragging] = useState(false);
   const [featuring, setFeaturing] = useState<string | null>(null);
-  const [rebuilding, setRebuilding] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -168,20 +167,6 @@ export default function ManagePhotosPage() {
       return;
     }
     setPhotos((prev) => prev.map((p) => (p.id === photo.id ? { ...p, featured: data.featured } : p)));
-  }
-
-  // --- Rebuild previews from originals (new watermark, EXIF rotation) ---
-  async function handleRebuildPreviews() {
-    if (!confirm("Re-render all previews of this session with the current watermark? Takes about a second per photo.")) return;
-    setRebuilding(true);
-    const res = await fetch(`/api/sessions/${sessionId}/rebuild-previews`, { method: "POST" });
-    const data = await res.json().catch(() => ({}));
-    setRebuilding(false);
-    if (!res.ok) {
-      toastError(data.error || "Couldn't start rebuilding previews");
-      return;
-    }
-    toastSuccess(`Rebuilding ${data.total} previews — refresh the page in a minute or two`);
   }
 
   // --- Upload ---
@@ -309,11 +294,6 @@ export default function ManagePhotosPage() {
               </button>
             </>
           )}
-          <button onClick={handleRebuildPreviews} disabled={rebuilding}
-            className="inline-flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold border border-line text-mute hover:text-bone hover:border-bone disabled:opacity-50 transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" aria-hidden="true" />
-            {rebuilding ? "Starting..." : "Rebuild previews"}
-          </button>
           <span className="hud ml-auto" aria-live="polite">
             {selected.size > 0 ? `${selected.size} selected` : `${photos.length} photos`}
           </span>
