@@ -92,6 +92,11 @@ export default function PhotographerGuidePage() {
             Once your Stripe account is active, we send them to it the next time you open your dashboard.
           </Li>
           <Li>Free sessions: athletes download for free, nothing is charged.</Li>
+          <Li>
+            What buyers get: a personal-use license. They can keep, print and share the photo as themselves, but not sell it
+            or use it to promote a business without your permission. You keep the copyright.{" "}
+            <a href="/license" className="text-bone underline underline-offset-2">Read the license</a>.
+          </Li>
         </ul>
       </Section>
 

@@ -547,7 +547,12 @@ export default function PhotoGrid({
           <span aria-hidden="true" className="w-5 h-5 shrink-0 grid place-items-center bg-ink/60 text-bone shadow-[inset_0_0_0_1.5px_#f2ede4]">
             <Plus className="w-3 h-3" strokeWidth={2.5} />
           </span>
-          {pickHint}
+          <span>
+            {pickHint}{" "}
+            <a href="/license" target="_blank" rel="noopener" className="text-bone underline underline-offset-2 whitespace-nowrap">
+              Personal-use license
+            </a>
+          </span>
         </p>
       )}
 
@@ -733,11 +738,17 @@ export default function PhotoGrid({
                   <>
                     <p className="disp text-[26px] text-bone">Free</p>
                     <p className="hud mt-1">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
+                    <a href="/license" target="_blank" rel="noopener" className="inline-block mt-1.5 text-xs text-mute underline underline-offset-2 hover:text-bone">
+                      Personal-use license
+                    </a>
                   </>
                 ) : (
                   <>
                     <p className="disp text-[26px] text-bone">${(selectedPhoto.priceInCents / 100).toFixed(2)}</p>
                     <p className="hud mt-1">{selectedPhoto.width} × {selectedPhoto.height} · High-res download</p>
+                    <a href="/license" target="_blank" rel="noopener" className="inline-block mt-1.5 text-xs text-mute underline underline-offset-2 hover:text-bone">
+                      Personal-use license
+                    </a>
                   </>
                 )}
               </div>
