@@ -13,6 +13,18 @@ Spots live in the `Spot` table (not in code). Sessions point to a spot via `Sess
 
 `accuracy`: `exact` (pin / known point) · `island` (island-level, break is on the nearby reef) · `approx`.
 
+### Sport-aware dedup (since 2026-11-08)
+The importer compares a new spot only with existing spots that share a sport with it (new rows default to `["surf"]`),
+so a skate park on the same promenade does not block a surf break. If either side has no `sports` recorded they are
+treated as overlapping. Rules: within 500 m, or the same normalised name within 5 km.
+
+### Catalogue size and the maps
+The catalogue holds thousands of spots, so nothing may load it whole into the browser.
+- Home and `/sessions` get `mapSpots()` (`src/lib/spots.ts`): a bounded sample (`thinForMap`, `src/lib/map-spots.ts`, cap 600).
+  Spots with a published session, and `curated` ones, are always included; the rest is one spot per grid cell.
+- `GET /api/spots` returns that same sample. Use `/api/spots/autocomplete?q=&sport=` to search; it counts real
+  matches per country/region and lists spots for the given sport first.
+
 ## Commands
 Local (repo root): `npx tsx scripts/seed-spots.ts [--relink]` · `npx tsx scripts/import-spots.ts file.json --source NAME [--dry-run] [--update]`
 

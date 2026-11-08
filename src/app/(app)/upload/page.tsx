@@ -290,7 +290,7 @@ export default function UploadPage() {
             placeholder="Morning session at Pipeline" className={inputClass} />
         </div>
         <div>
-          <SpotAutocomplete value={location} onChange={setLocation} onSelectSpot={(sp) => setSpotId(sp?.id ?? null)} label="Spot" />
+          <SpotAutocomplete value={location} onChange={setLocation} onSelectSpot={(sp) => setSpotId(sp?.id ?? null)} label="Spot" sport={sportType} />
           <p className={HINT}>Pick from suggestions or type any spot name, e.g. &ldquo;La Cicer, Las Palmas&rdquo; or &ldquo;Dreamland, Bali&rdquo;</p>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

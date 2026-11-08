@@ -67,6 +67,45 @@ export function parseSpotRecords(raw: unknown): SpotInput[] {
   return out;
 }
 
+/** An existing catalogue row, as far as duplicate detection cares. `sports` empty/missing = unknown. */
+export interface ExistingSpot {
+  id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  source: string;
+  sourceId: string | null;
+  sports?: string[];
+}
+
+/**
+ * True when two spots could be the same place for the sport being imported. A skate park on the same
+ * promenade as a surf break is NOT a duplicate of it. If either side has no sport information we cannot
+ * tell them apart, so they are treated as overlapping (the old, safer behaviour).
+ */
+export function sharesSport(a: string[] | undefined, b: string[] | undefined): boolean {
+  if (!a?.length || !b?.length) return true;
+  return a.some((x) => b.includes(x));
+}
+
+/**
+ * First existing spot that `it` duplicates: within 500 m, or the same normalised name within 5 km, and
+ * sharing a sport. `distanceDedup=false` (hand-verified files) keeps only the same-name rule.
+ */
+export function findDuplicate(
+  existing: ExistingSpot[],
+  it: { name: string; lat: number; lng: number; sports?: string[] },
+  distanceDedup = true
+): ExistingSpot | undefined {
+  const n = normName(it.name);
+  const sports = it.sports?.length ? it.sports : ["surf"];
+  return existing.find((e) => {
+    if (!sharesSport(e.sports, sports)) return false;
+    const d = haversineKm(e.lat, e.lng, it.lat, it.lng);
+    return (distanceDedup && d <= DEDUP_KM) || (d <= SAME_NAME_KM && normName(e.name) === n);
+  });
+}
+
 export async function importSpots(
   prisma: PrismaClient,
   items: SpotInput[],
@@ -75,7 +114,7 @@ export async function importSpots(
   opts: { dryRun?: boolean; updateExisting?: boolean; distanceDedup?: boolean } = {}
 ): Promise<{ created: number; updated: number; skipped: number; skippedNames: string[] }> {
   const existing = await prisma.spot.findMany({
-    select: { id: true, name: true, lat: true, lng: true, source: true, sourceId: true },
+    select: { id: true, name: true, lat: true, lng: true, source: true, sourceId: true, sports: true },
   });
   let created = 0;
   let updated = 0;
@@ -93,12 +132,7 @@ export async function importSpots(
       } else skippedNames.push(`${it.name} (already imported)`);
       continue;
     }
-    const n = normName(it.name);
-    const useDistance = opts.distanceDedup !== false;
-    const dup = existing.find((e) => {
-      const d = haversineKm(e.lat, e.lng, it.lat, it.lng);
-      return (useDistance && d <= DEDUP_KM) || (d <= SAME_NAME_KM && normName(e.name) === n);
-    });
+    const dup = findDuplicate(existing, it, opts.distanceDedup !== false);
     if (dup) {
       skippedNames.push(`${it.name} (≈ ${dup.name})`);
       continue;
@@ -116,11 +150,14 @@ export async function importSpots(
           sourceId: it.sourceId ?? null,
           accuracy: it.accuracy ?? "exact",
         },
-        select: { id: true, name: true, lat: true, lng: true, source: true, sourceId: true },
+        select: { id: true, name: true, lat: true, lng: true, source: true, sourceId: true, sports: true },
       });
       existing.push(row);
     } else {
-      existing.push({ id: "dry", name: it.name, lat: it.lat, lng: it.lng, source, sourceId: it.sourceId ?? null });
+      existing.push({
+        id: "dry", name: it.name, lat: it.lat, lng: it.lng, source, sourceId: it.sourceId ?? null,
+        sports: it.sports?.length ? it.sports : ["surf"],
+      });
     }
     created++;
   }

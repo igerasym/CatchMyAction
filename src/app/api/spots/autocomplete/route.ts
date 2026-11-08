@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { spotRank } from "@/lib/spot-rank";
 
 export const dynamic = "force-dynamic";
 
@@ -10,57 +11,88 @@ type Suggestion = {
   spot?: { id: string; lat: number; lng: number };
 };
 
-/** GET /api/spots/autocomplete?q=cok — countries, regions and spots from the Spot catalogue */
+const SPOT_SELECT = { id: true, name: true, region: true, country: true, lat: true, lng: true, sports: true } as const;
+
+/**
+ * GET /api/spots/autocomplete?q=cok&sport=surf — countries, regions and spots from the Spot catalogue.
+ * `sport` (optional) puts spots for that sport first; others are still returned, because not every
+ * spot in the catalogue is tagged with the right sport yet.
+ */
 export async function GET(req: NextRequest) {
-  const q = (new URL(req.url).searchParams.get("q") || "").trim();
+  const params = new URL(req.url).searchParams;
+  const q = (params.get("q") || "").trim().slice(0, 80);
   if (q.length < 2) return NextResponse.json({ suggestions: [] });
-  const ql = q.toLowerCase();
+  const sportParam = (params.get("sport") || "").trim().toLowerCase();
+  const sport = /^[a-z]{2,20}$/.test(sportParam) ? sportParam : undefined;
 
   // Photographer-created spots only show once they have a published session (drafts stay private)
   const visible = {
     OR: [{ source: { not: "session" } }, { sessions: { some: { published: true } } }],
   };
 
-  const spots = await prisma.spot.findMany({
-    where: {
-      AND: [
-        visible,
-        {
-          OR: [
-            { name: { contains: q, mode: "insensitive" } },
-            { region: { contains: q, mode: "insensitive" } },
-            { country: { contains: q, mode: "insensitive" } },
-          ],
-        },
-      ],
-    },
-    select: { id: true, name: true, region: true, country: true, lat: true, lng: true },
-    take: 200,
-  });
+  // The catalogue has thousands of rows, so a plain "first 200 matches" can miss the best ones.
+  // Name-prefix matches are fetched on their own, then topped up with looser matches.
+  const [prefix, loose, countryGroups, regionGroups] = await Promise.all([
+    prisma.spot.findMany({
+      where: { AND: [visible, { name: { startsWith: q, mode: "insensitive" } }] },
+      select: SPOT_SELECT,
+      take: 60,
+    }),
+    prisma.spot.findMany({
+      where: {
+        AND: [
+          visible,
+          {
+            OR: [
+              { name: { contains: q, mode: "insensitive" } },
+              { region: { contains: q, mode: "insensitive" } },
+              { country: { contains: q, mode: "insensitive" } },
+            ],
+          },
+        ],
+      },
+      select: SPOT_SELECT,
+      take: 150,
+    }),
+    // Real counts, not "how many fit in the page we fetched".
+    prisma.spot.groupBy({
+      by: ["country"],
+      where: { AND: [visible, { country: { contains: q, mode: "insensitive" } }] },
+      _count: { _all: true },
+    }),
+    prisma.spot.groupBy({
+      by: ["region", "country"],
+      where: { AND: [visible, { region: { contains: q, mode: "insensitive" } }] },
+      _count: { _all: true },
+    }),
+  ]);
+
+  const byId = new Map<string, (typeof prefix)[number]>();
+  for (const s of [...prefix, ...loose]) byId.set(s.id, s);
+  const spots = [...byId.values()];
 
   const suggestions: Suggestion[] = [];
 
-  // Countries / regions that match the query (with spot counts)
-  const countries = new Map<string, number>();
-  const regions = new Map<string, { country: string | null; count: number }>();
-  for (const s of spots) {
-    if (s.country?.toLowerCase().includes(ql)) countries.set(s.country, (countries.get(s.country) || 0) + 1);
-    if (s.region?.toLowerCase().includes(ql)) {
-      const k = `${s.region}|${s.country ?? ""}`;
-      const cur = regions.get(k) ?? { country: s.country, count: 0 };
-      cur.count++;
-      regions.set(k, cur);
-    }
-  }
-  countries.forEach((count, country) => suggestions.push({ label: country, type: "country", sub: `${count} spots` }));
-  regions.forEach(({ country, count }, k) =>
-    suggestions.push({ label: k.split("|")[0], type: "region", sub: `${count} spots${country ? ` · ${country}` : ""}` })
-  );
+  countryGroups
+    .filter((g) => g.country)
+    .sort((a, b) => b._count._all - a._count._all)
+    .slice(0, 2)
+    .forEach((g) => suggestions.push({ label: g.country as string, type: "country", sub: `${g._count._all} spots` }));
 
-  // Spots: name-prefix matches first
-  const rank = (n: string) => (n.toLowerCase().startsWith(ql) ? 0 : n.toLowerCase().includes(ql) ? 1 : 2);
+  regionGroups
+    .filter((g) => g.region)
+    .sort((a, b) => b._count._all - a._count._all)
+    .slice(0, 3)
+    .forEach((g) =>
+      suggestions.push({
+        label: g.region as string,
+        type: "region",
+        sub: `${g._count._all} spots${g.country ? ` · ${g.country}` : ""}`,
+      })
+    );
+
   spots
-    .sort((a, b) => rank(a.name) - rank(b.name) || a.name.localeCompare(b.name))
+    .sort((a, b) => spotRank(a.name, q, a.sports, sport) - spotRank(b.name, q, b.sports, sport) || a.name.localeCompare(b.name))
     .slice(0, 12)
     .forEach((s) =>
       suggestions.push({

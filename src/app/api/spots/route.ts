@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
-import { allSpots, spotsNear } from "@/lib/spots";
+import { mapSpots, spotsNear } from "@/lib/spots";
 import { rateLimit } from "@/lib/rate-limit";
 
 export const dynamic = "force-dynamic";
 
-/** GET /api/spots — catalogue for maps; ?lat=&lng=&radius= → nearby spots, nearest first */
+/**
+ * GET /api/spots — a bounded sample of the catalogue for map background dots (NOT every spot; use
+ * /api/spots/autocomplete to search). ?lat=&lng=&radius= → nearby spots, nearest first.
+ */
 export async function GET(req: NextRequest) {
   const sp = new URL(req.url).searchParams;
   const lat = Number(sp.get("lat"));
@@ -15,7 +18,7 @@ export async function GET(req: NextRequest) {
     const radius = Math.min(Math.max(Number(sp.get("radius")) || 30, 1), 200);
     return NextResponse.json({ spots: await spotsNear(lat, lng, radius, 20) });
   }
-  const spots = await allSpots();
+  const spots = await mapSpots();
   return NextResponse.json({ spots, total: spots.length });
 }
 

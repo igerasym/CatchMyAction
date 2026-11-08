@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
-import { allSpots as loadSpots } from "@/lib/spots";
+import { mapSpots as loadSpots } from "@/lib/spots";
 import ExploreView from "./explore-view";
 
 export const dynamic = "force-dynamic";
