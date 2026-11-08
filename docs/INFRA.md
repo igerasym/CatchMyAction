@@ -135,6 +135,17 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - Releasing `pending` money: `payOutPending` (`src/lib/payouts.ts`) runs from `GET /api/stripe/connect` when the photographer's account has `charges_enabled`, in the background, up to 50 purchases per run. Each share is sent as `stripe.transfers.create` with `source_transaction` = the original charge, `metadata.purchaseId` and idempotency key `payout-<purchaseId>`, then the purchase becomes `sent`.
 - Duplicate protection: before paying, existing transfers to the account are scanned for `metadata.purchaseId` (idempotency keys expire after 24h). `transfer_group` is deliberately not used; Stripe sets it from the charge when `source_transaction` is given.
 - `held`: the charge was refunded or disputed, so nothing is sent. It shows as "On hold" in Earnings and needs a human decision. Stripe does not reverse an existing transfer when a charge is refunded; that needs a manual transfer reversal.
+- **Testing against Stripe (test mode only):** `test/stripe-sandbox.test.ts` runs `payOutPending` against the real Stripe
+  TEST API with an in-memory stand-in for the database. It is skipped unless you opt in and refuses a live key:
+  `STRIPE_TEST_KEY=sk_test_… STRIPE_TEST_ACCOUNT=acct_… npx vitest run test/stripe-sandbox.test.ts`.
+  `STRIPE_TEST_ACCOUNT` is a TEST-mode connected account with the `transfers` capability active (set `STRIPE_TEST_CURRENCY`
+  to the platform's currency if it is not USD). Never put these keys in the repo or in chat.
+- **Production runs a LIVE key** (`sk_live_…`), so there is no test mode on prod. As of 2026-11-08 `STRIPE_WEBHOOK_SECRET`
+  is defined but EMPTY in the container, so `/api/webhooks/stripe` rejects every call and a purchase is recorded only
+  when the buyer returns to the site after paying (`verify-purchase` / `bulk-verify`). A buyer who closes the tab after
+  paying would be charged with no purchase row. No paid purchase exists yet (all 4 purchases are free). Before the first
+  real sale: add the endpoint `https://<domain>/api/webhooks/stripe` in the Stripe dashboard (events
+  `checkout.session.completed`, `checkout.session.async_payment_succeeded`) and put its signing secret in `.env.production`.
 - Known limits: Stripe only supports separate-charges-and-transfers between the US, Canada, UK, EEA and Switzerland (other regions need the same region as the platform), so a transfer to a photographer elsewhere fails, is logged, and stays `pending` until the next dashboard load.
 
 ## Photo uploads
