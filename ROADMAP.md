@@ -110,6 +110,30 @@
 - "Get notified about new sessions here" CTA
 - Target long-tail: "buy surf photos pipeline", "action sports photos bali"
 
+**State of SEO on 2026-11-08** (checked on the live site; Search Console is already verified, see `PROGRESS.md` #44).
+Works: `sitemap.xml` (home, `/sessions`, up to 500 published sessions, up to 200 photographers), `robots.txt`,
+session pages have a unique title/description, canonical, Open Graph, Twitter card, one `<h1>` and alt text on photos,
+drafts are `noindex`.
+
+Gaps, in the order worth doing them:
+1. **Titles and descriptions on `/sessions` and `/photographer/[id]`.** Both show the homepage title and description, and
+   `/sessions` has no canonical. Give each its own: "Find your session: surf, skate and more | CatchMyAction",
+   and "<Name>, action sports photographer | CatchMyAction" with sessions and spots in the description.
+2. **Keep utility pages out of the index.** `/login`, `/register`, `/upload` are in the sitemap and have no `noindex`.
+   Remove them from the sitemap and mark them `noindex`.
+3. **Spot pages `/spots/[slug]`** (this item). Today `/spots` and `/spot/...` return 404. Spot pages are the best
+   chance to rank: people search by spot ("surf photos Cokes Maldives"), not by a session title. Content: spot name,
+   region and country, map, published sessions there, conditions seen in past sessions, photographers who shoot
+   there, CTA to get notified. Add them to the sitemap, link them from session pages and from the `/sessions` list.
+   Do not make thin pages: list only spots with at least one published session, and `noindex` the rest.
+4. **Structured data (JSON-LD).** `Event`/`ImageGallery` with `location` on session pages, `Place` on spot pages,
+   `Person` on photographer pages, `BreadcrumbList` everywhere. None exists today.
+5. **Better alt text.** Photos say "Photo 9 from Evening Twin Palms". Use spot, sport and date:
+   "Surfing at Maldives Cokes, 26 Oct 2026". Do not stuff keywords.
+6. **After shipping:** submit the sitemap in Search Console, then watch Coverage and Performance after 2-4 weeks.
+   Expect little traffic until there are more than a handful of sessions; spot pages and content volume matter more
+   than meta tags.
+
 #### 10. PWA (Progressive Web App)
 - Installable on mobile
 - Push notifications
