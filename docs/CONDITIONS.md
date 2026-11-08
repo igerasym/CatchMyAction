@@ -10,6 +10,20 @@ when the product becomes commercial. Written for the next agent; facts below wer
   `waveDirection` deg, `windSpeed` km/h, `windDirection` deg, `waterTemp` °C).
 - `POST /api/sessions` (`src/app/api/sessions/route.ts`) calls `fetchMarineConditions(lat, lng, date, hour)`
   from `src/lib/marine-conditions.ts` for water sports, using the session start hour.
+- `PATCH /api/sessions/:id` recomputes them (rules in `src/lib/session-conditions.ts`) when the session ends up with
+  a place and either nothing was ever stored, or the place, the day or the start hour changed. If the location is
+  cleared or cannot be geocoded the stored values are cleared too, so they never describe another place.
+- **Spot not in the catalogue.** Where the coordinates come from: a spot picked from the suggestions, else an exact
+  catalogue name match, else Nominatim, else none. With none, `POST` creates the session without coordinates and
+  answers `needsLocation`; the form shows the "Pin location on map" dialog and the pin goes through `PATCH`, which now
+  computes the conditions (before, a pinned session never got any). `resolveSpotForCoords` then links the nearest
+  catalogue spot (a spot named in the text within 30 km, else within 500 m) or creates a new `Spot` with
+  `source: "session"`, `accuracy: "exact"`.
+- **Publishing needs a place.** `PATCH ... {published: true}` on a draft without coordinates answers 400 with
+  `needsLocation: true`; the dashboard and the upload page open the pin dialog instead of just showing an error.
+  Sessions that are already live without coordinates are not affected.
+- Known weak spot: Nominatim often lands on the town instead of the break. A pin is the reliable way, and the
+  nearest sea cell of the weather model is used for whatever point we send.
 - `fetchMarineConditions` delegates to `getConditionsProvider()` in `src/lib/conditions/index.ts`.
   That is the only place that picks the source. Providers implement `ConditionsProvider`
   (`src/lib/conditions/types.ts`) and must never throw.

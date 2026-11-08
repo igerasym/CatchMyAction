@@ -152,7 +152,11 @@ export default function DashboardPage() {
     const data = await res.json();
     if (!res.ok) {
       if (data.needsVerification) toastWarning("Verify your email to publish sessions. Go to Settings → Profile.");
-      else toastError(data.error || "Failed to update");
+      else if (data.needsLocation) {
+        // No coordinates yet: let the photographer drop the pin now, then publish again
+        toastWarning(data.error);
+        setLocationPickerSession({ id, location: sessions.find((s) => s.id === id)?.location || "" });
+      } else toastError(data.error || "Failed to update");
       return;
     }
     setSessions((prev) => prev.map((s) => (s.id === id ? { ...s, published: !published } : s)));
@@ -275,11 +279,16 @@ export default function DashboardPage() {
         <LocationPicker
           locationName={locationPickerSession.location}
           onSelect={async (lat, lng) => {
-            await fetch(`/api/sessions/${locationPickerSession.id}`, {
+            const r = await fetch(`/api/sessions/${locationPickerSession.id}`, {
               method: "PATCH",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ locationLat: lat, locationLng: lng }),
             });
+            if (r.ok) {
+              toastSuccess("Spot saved. You can publish now.");
+              const saved = await r.json().catch(() => null);
+              if (saved) setSessions((prev) => prev.map((s) => (s.id === locationPickerSession.id ? { ...s, ...saved } : s)));
+            } else toastError("Could not save the spot. Try again.");
             setLocationPickerSession(null);
           }}
           onClose={() => setLocationPickerSession(null)}

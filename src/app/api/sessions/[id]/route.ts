@@ -7,6 +7,10 @@ import { geocodeLocation } from "@/lib/geocode";
 import { deleteObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
 import { parsePriceCents } from "@/lib/validation";
 import { resolveSpotForCoords } from "@/lib/spots";
+import { fetchMarineConditions, isWaterSport } from "@/lib/marine-conditions";
+import {
+  NEEDS_LOCATION_MESSAGE, NO_CONDITIONS, dayString, finalCoords, needsConditionsRefresh, startHour,
+} from "@/lib/session-conditions";
 
 /** GET /api/sessions/:id — get session (public) */
 export async function GET(
@@ -69,7 +73,10 @@ export async function PATCH(
 
   const current = await prisma.session.findUnique({
     where: { id: params.id },
-    select: { published: true, pricePerPhoto: true, photoCount: true, location: true, sportType: true },
+    select: {
+      published: true, pricePerPhoto: true, photoCount: true, location: true, sportType: true,
+      locationLat: true, locationLng: true, date: true, startTime: true, waveHeight: true, windSpeed: true,
+    },
   });
   if (!current) {
     return NextResponse.json({ error: "Session not found" }, { status: 404 });
@@ -118,6 +125,35 @@ export async function PATCH(
         : { locationLat: null, locationLng: null, spotId: null };
     }
 
+    // Where the session ends up, and what that means for publishing and sea conditions
+    const next = finalCoords(current, body, coordsUpdate);
+    const hasPlace = next.lat !== null && next.lng !== null;
+    if (wasUnpublished && !hasPlace) {
+      return NextResponse.json({ error: NEEDS_LOCATION_MESSAGE, needsLocation: true }, { status: 400 });
+    }
+
+    // Conditions follow the place, day and start hour. They used to be computed only at creation, so a
+    // session whose spot was pinned afterwards (geocoder found nothing) or edited later never got any.
+    let conditionsUpdate: Record<string, number | null> = {};
+    if (isWaterSport(current.sportType)) {
+      if (!hasPlace) {
+        // Location was cleared or could not be found: old values would describe another place
+        conditionsUpdate = { ...NO_CONDITIONS };
+      } else {
+        const nextDate = dayString(date) ?? dayString(current.date);
+        const nextHour = startHour(startTime || current.startTime);
+        const prevKey = { lat: current.locationLat, lng: current.locationLng, date: dayString(current.date), hour: startHour(current.startTime) };
+        const hadConditions = current.waveHeight !== null || current.windSpeed !== null;
+        if (needsConditionsRefresh(prevKey, { lat: next.lat, lng: next.lng, date: nextDate, hour: nextHour }, hadConditions)) {
+          const m = await fetchMarineConditions(next.lat as number, next.lng as number, nextDate as string, nextHour);
+          conditionsUpdate = {
+            waveHeight: m.waveHeight, wavePeriod: m.wavePeriod, waveDirection: m.waveDirection,
+            windSpeed: m.windSpeed, windDirection: m.windDirection, waterTemp: m.waterTemp,
+          };
+        }
+      }
+    }
+
     const session = await prisma.session.update({
       where: { id: params.id },
       data: {
@@ -133,6 +169,7 @@ export async function PATCH(
         ...(locationLat !== undefined && { locationLat }),
         ...(locationLng !== undefined && { locationLng }),
         ...coordsUpdate,
+        ...conditionsUpdate,
       },
     });
 

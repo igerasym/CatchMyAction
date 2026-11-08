@@ -201,6 +201,11 @@ export default function UploadPage() {
       const data = await res.json();
       if (data.needsVerification) {
         toastWarning("Verify your email to publish sessions. Go to Settings → Profile.");
+      } else if (data.needsLocation) {
+        // Geocoder found nothing and the pin was skipped: ask again, publish stays one tap away
+        toastWarning(data.error);
+        setPendingSessionId(sessionId);
+        setShowLocationPicker(true);
       } else {
         toastError(data.error || "Failed to publish");
       }
