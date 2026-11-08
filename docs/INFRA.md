@@ -199,6 +199,42 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   public, the search is per session, and the selfie is not stored, so nothing new is exposed, but it is now faster to find
   one person. Keep the consent step, and revisit if sessions ever become non-public.
 
+## Feedback (bugs, ideas, questions)
+
+- One dialog, mounted once in `src/app/layout.tsx` (`feedback-dialog.tsx`), opened by `openFeedback()` from
+  `src/lib/feedback-types.ts` through a window event, so a button inside a menu can open it without owning it.
+  Entry points: account menu ("Send feedback"), the one-line footer on every page but the homepage
+  (`slim-footer.tsx`), the full footer on the homepage, and `src/app/error.tsx` ("Report this", with the error digest
+  filled in).
+- `POST /api/feedback` (`src/app/api/feedback/route.ts`) is open to visitors. Rules in `src/lib/feedback.ts`: type
+  `bug|idea|question`, message 5-2000 characters, optional email, a hidden `website` field as honeypot (a bot gets a
+  normal 201 and nothing is stored). Limits per hour: 8 per IP, 15 per signed-in user (in memory, see risks).
+- It stores a row in `Feedback` first (type, message, email, userId, role, path, userAgent, viewport, status), then tells
+  the owner. The sender is never shown an error because a notification failed.
+  - Email through Resend to `FEEDBACK_TO` (default `hello@catchmyactions.com`), with `replyTo` set to the sender.
+  - Telegram when both `TELEGRAM_BOT_TOKEN` and `TELEGRAM_CHAT_ID` are set; otherwise skipped. The Telegram text has
+    the type, the page, the first 600 characters, the role and the id. **No email address and no browser string.**
+    It is plain text (no `parse_mode`), and failures log only the error kind, never the URL, which contains the token.
+- Signed-in senders: the reply address and role come from the account. The page is stored without its query string,
+  because tokens (password reset, email verification) live there.
+- Read the history: `docker exec app-postgres-1 psql -U <user> -d <db> -c "select \"createdAt\",type,path,left(message,80) from \"Feedback\" order by 1 desc limit 20"`.
+  Move `status` from `new` to `seen`/`done` by hand; there is no admin page because the app has no admin role yet.
+- **Telegram setup:** create a bot with @BotFather, send it any message, open
+  `https://api.telegram.org/bot<TOKEN>/getUpdates` to read `chat.id`, put both values in `~/app/.env.production` on the
+  host and restart the app container. Use a bot of its own, not the cafe-manager one. A group chat shows messages to every
+  member, so use a private chat or a group only you are in.
+- Privacy page lists Resend and Telegram as recipients.
+
+### Feedback risks
+
+- The rate limits are in memory (reset on deploy, not shared between processes) and keyed on the client IP header, which
+  can be faked while port 3000 is open to the internet (see Known gaps). Worst case today is spam rows and emails.
+- Not verified: that the Resend sending domain is verified and that the `hello@` mailbox is read. If either is not true
+  the email silently goes nowhere, but the row and the Telegram push still arrive.
+- `/contact` is a separate older form that only sends an email (no database row) and uses the raw `x-forwarded-for`
+  header for its limit. It could be folded into this one.
+- Not built: screenshots, automatic capture of unhandled errors (Sentry or CloudWatch would do that), and an admin page.
+
 ## Photo uploads
 
 Both upload screens use `useUploadQueue` (`src/hooks/use-upload-queue.ts`) on top of `uploadPhoto` (`src/lib/upload-client.ts`): 3 files at a time, up to 3 retries for network errors, 429 and 5xx, a retry button for failed files, and a warning when the tab is closed mid-upload. A 409 duplicate on a retry counts as success because the first attempt reached the server.

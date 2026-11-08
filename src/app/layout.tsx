@@ -6,6 +6,8 @@ import NavBar from "./navbar";
 import ServiceWorkerRegister from "./components/sw-register";
 import InstallBanner from "./components/install-banner";
 import ToastBanner from "./components/toast-banner";
+import FeedbackDialog from "./components/feedback-dialog";
+import SlimFooter from "./components/slim-footer";
 import { archivo, mono } from "./fonts";
 
 const BASE_URL = "https://catchmyactions.com";
@@ -96,6 +98,8 @@ export default function RootLayout({
             <ToastBanner />
           </Suspense>
           {children}
+          <SlimFooter />
+          <FeedbackDialog />
         </Providers>
       </body>
     </html>

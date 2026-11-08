@@ -172,6 +172,23 @@ model PhotoReport {
   @@index([status])
 }
 
+/// Bug reports, feature ideas and questions sent from the Feedback dialog (anyone, signed in or not).
+model Feedback {
+  id        String   @id @default(cuid())
+  type      String // bug, idea, question
+  message   String
+  email     String? // to reply: typed by the sender or taken from their account
+  userId    String? // plain id, no relation: feedback outlives the account
+  role      String? // USER, PHOTOGRAPHER or null when anonymous
+  path      String? // page it was sent from, without query string (tokens live there)
+  userAgent String?
+  viewport  String? // "390x844"
+  status    String   @default("new") // new, seen, done
+  createdAt DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
 /// Spot catalogue (surf breaks, skateparks, …). Source-agnostic: imported from a catalogue file,
 /// seeded from the curated list, or created from photographers' sessions.
 model Spot {

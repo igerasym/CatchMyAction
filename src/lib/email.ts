@@ -12,9 +12,10 @@ interface EmailParams {
   subject: string;
   html: string;
   text?: string;
+  replyTo?: string;
 }
 
-export async function sendEmail({ to, subject, html, text }: EmailParams): Promise<boolean> {
+export async function sendEmail({ to, subject, html, text, replyTo }: EmailParams): Promise<boolean> {
   if (!resend) {
     console.log(`[Email] Would send to ${to}: ${subject}`);
     return true;
@@ -27,6 +28,7 @@ export async function sendEmail({ to, subject, html, text }: EmailParams): Promi
       subject,
       html,
       ...(text && { text }),
+      ...(replyTo && { replyTo }),
     });
     return true;
   } catch (err) {
