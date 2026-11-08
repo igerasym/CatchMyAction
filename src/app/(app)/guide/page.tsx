@@ -86,7 +86,7 @@ export default function PhotographerGuidePage() {
           </Li>
           <Li>
             Sold before connecting Stripe? Those sales are kept for you and shown as &ldquo;Waiting for Stripe&rdquo; in your dashboard.
-            Once you connect Stripe, we send them to your Stripe account.
+            Once your Stripe account is active, we send them to it the next time you open your dashboard.
           </Li>
           <Li>Free sessions: athletes download for free, nothing is charged.</Li>
         </ul>
