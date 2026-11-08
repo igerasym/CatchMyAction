@@ -58,6 +58,17 @@ export default function PhotoGrid({
   const [originalUrls, setOriginalUrls] = useState<Record<string, string>>({});
   const [matchedIds, setMatchedIds] = useState<Set<string>>(new Set());
   const [purchaseSuccess, setPurchaseSuccess] = useState<{ count: number; downloadUrl?: string; downloaded?: boolean } | null>(null);
+  // Buying no longer needs a confirmed email, so after a purchase we check and, if needed, ask for it
+  const [emailUnconfirmed, setEmailUnconfirmed] = useState(false);
+  useEffect(() => {
+    if (!purchaseSuccess || !userId) return;
+    let cancelled = false;
+    fetch(`/api/user?id=${userId}`)
+      .then((r) => r.json())
+      .then((d) => { if (!cancelled) setEmailUnconfirmed(!!d?.email && !d?.emailVerified); })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, [purchaseSuccess, userId]);
   // Post-checkout status: confirming → success | slow (webhook late) · cancelled (came back from Stripe without paying)
   const [payState, setPayState] = useState<"confirming" | "slow" | "cancelled" | null>(null);
   const [reportingPhoto, setReportingPhoto] = useState<string | null>(null);
@@ -477,6 +488,12 @@ export default function PhotoGrid({
                   ? "Check your downloads folder. They're also saved in My Actions."
                   : purchaseSuccess.downloadUrl ? "Your download should start automatically." : "Photos are now in My Actions."}
               </p>
+              {emailUnconfirmed && (
+                <p className="text-sm text-mute mt-2">
+                  Confirm your email so you can reset your password and always get your photos back.{" "}
+                  <a href="/settings" className="text-bone underline underline-offset-2">Open settings</a>
+                </p>
+              )}
             </div>
           </div>
           <div className="flex gap-2 shrink-0">

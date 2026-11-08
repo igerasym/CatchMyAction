@@ -72,11 +72,19 @@ describe("POST /api/photos/:id/purchase", () => {
     );
   });
 
-  it("requires a verified email", async () => {
+  it("lets a buyer with an unconfirmed email pay (confirming comes after the purchase)", async () => {
     auth.user = { id: "buyer" };
-    db.user.findUnique.mockResolvedValue({ emailVerified: null });
+    db.user.findUnique.mockResolvedValue({ id: "buyer", emailVerified: null });
     const res = await purchase(req(), params);
-    expect(res.status).toBe(403);
+    expect(res.status).toBe(200);
+    expect(db.purchase.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("still refuses a signed-in id whose account no longer exists", async () => {
+    auth.user = { id: "ghost" };
+    db.user.findUnique.mockResolvedValue(null);
+    const res = await purchase(req(), params);
+    expect(res.status).toBe(401);
     expect(db.purchase.create).not.toHaveBeenCalled();
   });
 

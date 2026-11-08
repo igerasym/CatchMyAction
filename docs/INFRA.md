@@ -178,6 +178,20 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - **Copy depends on this behaviour.** The guide "How you get paid" section, dashboard Stripe nudge and settings Payouts
   text describe the rules above. Change them together.
 
+## Email confirmation: where it is required
+
+- **Required:** a photographer publishing a session (`PATCH /api/sessions/:id`) and connecting Stripe
+  (`/api/stripe/connect`).
+- **Not required (since 2026-11-09):** buying photos, single (`/api/photos/[id]/purchase`) or several at once
+  (`/api/photos/bulk-purchase`), and free downloads. Sending a buyer to their inbox between "I found myself" and the
+  card form cost sales; Stripe checks the card either way.
+- After a purchase the session page checks `GET /api/user?id=<self>` and, if the email is not confirmed, shows a line that
+  links to Settings. The `emailVerified` flag in the session token is **not** reliable (it is not refreshed), so never
+  use it to decide anything.
+- Cost to remember: a buyer who mistypes their email cannot reset the password, so they lose access to their photos.
+  Stripe's receipt goes to the address typed at checkout, which helps support recover it. A magic-link login would
+  remove this risk (see the funnel notes in the roadmap discussion).
+
 ## Find Me (selfie face search)
 
 - Since 2026-11-08 anyone can search a **published** session without an account (`src/app/api/sessions/[id]/find-me/route.ts`);

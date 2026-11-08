@@ -12,18 +12,11 @@ export async function POST(
   const user = await getAuthUser();
   if (user instanceof NextResponse) return user;
 
-  const buyer = await prisma.user.findUnique({
-    where: { id: user.id },
-    select: { emailVerified: true },
-  });
+  // Buying does not need a confirmed email: the card is checked by Stripe, and sending a buyer to their inbox
+  // before paying lost sales. The purchase page asks them to confirm afterwards (account recovery).
+  const buyer = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true } });
   if (!buyer) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-  if (!buyer.emailVerified) {
-    return NextResponse.json(
-      { error: "Please verify your email before purchasing. Check your inbox.", needsVerification: true },
-      { status: 403 }
-    );
   }
 
   const photo = await prisma.photo.findUnique({

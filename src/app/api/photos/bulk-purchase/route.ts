@@ -30,7 +30,8 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { emailVerified: true } });
+  // No email confirmation needed to buy (see the single purchase route); only that the account still exists
+  const dbUser = await prisma.user.findUnique({ where: { id: user.id }, select: { id: true } });
   if (!dbUser) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const photos = await prisma.photo.findMany({
@@ -62,13 +63,6 @@ export async function POST(req: NextRequest) {
   const free = toBuy.filter((p) => p.priceInCents <= 0);
   const paid = toBuy.filter((p) => p.priceInCents > 0);
 
-  // Email verification is required to pay, not for free downloads (same as single free download)
-  if (paid.length > 0 && !dbUser.emailVerified) {
-    return NextResponse.json(
-      { error: "Please verify your email before purchasing.", needsVerification: true },
-      { status: 403 }
-    );
-  }
   for (const photo of free) {
     await prisma.purchase.upsert({
       where: { userId_photoId: { userId: user.id, photoId: photo.id } },

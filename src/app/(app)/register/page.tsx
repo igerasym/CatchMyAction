@@ -51,7 +51,8 @@ export default function RegisterPage() {
       return;
     }
     await signIn("credentials", { email: data.email, password: data.password, redirect: false });
-    // Signed in; show the "verify your email" step (needed before buying) with a way back to where they were
+    // Signed in; show the "confirm your email" step with a way back to where they were. Buyers can pay right away,
+    // photographers must confirm before publishing or connecting Stripe.
     setLoading(false);
     setSuccess(true);
   }
@@ -65,7 +66,9 @@ export default function RegisterPage() {
           <Mail className="w-8 h-8 text-rec mb-5" aria-hidden="true" />
           <h2 className="text-lg font-bold text-bone mb-2">Check your email</h2>
           <p className="text-sm text-mute mb-6">
-            You&apos;re signed in. We sent a verification link to your email — confirm it before buying photos.
+            {role === "PHOTOGRAPHER"
+              ? "You\u2019re signed in. We sent a link to your email. Confirm it before you publish your first session or connect Stripe."
+              : "You\u2019re signed in and can buy photos right away. We also sent a link to your email: confirm it so you can reset your password and always get your photos back."}
           </p>
           <a href={callbackUrl} className="btn-pri">
             {callbackUrl === "/" ? "Continue" : "Back to where you were"}
