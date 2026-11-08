@@ -73,3 +73,24 @@ Also accepted: `lng` instead of `lon`, `sourceId`/`id` instead of `spot_key`, op
 | USA — California (SoCal) | 33.50 | -117.80 | 150 |
 | Australia — Gold Coast / Byron | -28.30 | 153.50 | 80 |
 | South Africa — Jeffreys Bay | -34.05 | 24.93 | 50 |
+
+## Import log
+
+### 2026-11-08 — BrizoCast surf catalogue (`source = brizocast`)
+The site is surf-first for now. The old hand-written surf list was replaced by a fresh catalogue.
+- **Before:** 327 spots. **Deleted:** the 87 `manual` spots whose only sport was `surf`. **Kept:** 16 `curated` Maldives breaks,
+  2 `session` spots, 11 `manual` spots that mix surf with other sports (Cabarete, Lisbon, …) and all non-surf spots (kite, skate, ski, MTB, …).
+- **Imported:** 8,481 new spots (9,105 in the file, 624 skipped as duplicates) → **8,721 spots**. All tagged `sports = ["surf"]`.
+- **What was taken:** facts only — name, coordinates, country, region. Source-catalogue ids were replaced with our own (`bc-<name>-<hash>`).
+- **Checked before import:** country against coordinates (7 border cases only), land/sea mask, exact duplicates, and a sample against Wikipedia.
+  Held back as probably wrong coordinates: `Hiliduha` (placeholder 1.0/98.0), `Outer Waters`, `Kouminkan`, `La Caffrine`.
+  Left out on purpose: `Colas` (same break as our curated `Cokes`).
+- **Sessions:** the 4 `Cloud 9` sessions were re-attached to the new `Cloud 9` (Siargao); all 9 sessions have a spot.
+- **Known soft spots:**
+  - `region` is mostly the nearest town, not an area (40% of rows sit in a "region" of 1–2 spots), so region filters and
+    "N spots" region suggestions are noisy. A real administrative area can be derived from the coordinates later.
+  - The 500 m rule skipped ~540 spots inside the batch that may be genuinely separate neighbouring breaks (Japan, USA,
+    Australia, Brazil mostly). Re-import with a smaller radius would add them; `sourceId` makes re-imports idempotent.
+  - `Furana` sits 540 m from curated `Tombstones`; both were imported (possibly the same break).
+- **Roll back the import:** `DELETE FROM "Spot" WHERE source = 'brizocast';` (sessions that pointed at them get `spotId = NULL`),
+  then restore the 87 old spots from the pre-import dump `~/backups/catchmyaction-2026-11-08T092959Z.sql.gz` if needed.
