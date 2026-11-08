@@ -152,6 +152,52 @@ Gaps, in the order worth doing them:
 
 ---
 
+## Ideas (not planned)
+
+### Video clips with face search
+Added 2026-11-08. **Today video is not supported at all:** uploads accept only JPEG, PNG and WebP (checked by file
+signature in `src/app/api/photos/upload/route.ts`), max 25 MB, and the server body limit is 10 MB
+(`next.config.js`). There is no ffmpeg or video service, and face search runs only on stills.
+
+Idea: turn a clip into watermarked previews plus keyframes, and use the keyframes for the existing face search.
+1. **Upload** straight to S3 with a presigned URL (the current upload goes through the Next server). Limits to decide,
+   for example 60 s and 500 MB.
+2. **Process** (ffmpeg): keyframes at about 1 per second or on scene change; a short muted low-resolution preview with
+   a tiled watermark baked in; a poster frame as the thumbnail.
+3. **Recognise:** index each keyframe into the session's Rekognition collection with an `ExternalImageId` like
+   `<videoId>#<seconds>`. A selfie search then returns frames, which map back to "you are in this clip at 0:12".
+4. **Sell:** the original stays private in S3 and is released with a signed URL only after payment. Frames could be
+   sold as photos if the photographer allows it.
+
+Decisions already made while discussing it:
+- Preview as a looping muted **MP4/WebM** (`autoplay muted loop playsinline`), not a GIF: GIFs lose colour and are often
+  several times heavier. A GIF can be an optional share format.
+- The watermark must be burned into the re-encoded preview, not overlaid by the player.
+- **Rekognition Video is the wrong tool:** it searches a video for faces from a collection, while our flow is a selfie
+  searching a session's collection. Per-selfie video jobs would be slow and costly. Keyframes into the existing
+  collection are simpler. (From general AWS knowledge; re-read the docs before building.)
+- Moderation must run on the keyframes too, as it does for photos.
+
+Why it is not a quick add:
+- The EC2 host (2 GB) is shared with cafe-manager and already struggles with builds and disk. Video encoding needs a
+  separate worker (Lambda with ffmpeg, MediaConvert, or its own machine).
+- Background work today runs inside the web process (lost on every deploy). Video needs a real queue with retries.
+- Cost is per Rekognition image, so a 20 s clip at 1 frame per second is about 20 calls. Check current AWS pricing
+  before deciding frame rates; none was verified.
+- Surfers on video are often far from the camera and moving, so faces may be too small or blurred to match.
+  **Not verified on any real clip.**
+
+**Gate before building anything:** take 3-5 real clips, extract frames locally
+(`ffmpeg -i clip.mp4 -vf fps=1 f_%03d.jpg`), upload them as ordinary photos to a test session and run Find Me. If it does
+not find the person, video stays an atmosphere-only preview without search (or is dropped). If it works, build in this
+order: presigned upload and a queue, then the worker (preview, poster, keyframes), then scene-based frame choice and
+selling frames.
+
+A cheaper intermediate: a short silent preview clip (about 15 s) attached to a session, no face search, while photos
+stay the thing that is sold.
+
+---
+
 ## Go-to-Market Strategy
 
 ### Week 1-2: Local Validation
