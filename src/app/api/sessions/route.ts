@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser } from "@/lib/auth-helpers";
 import { isWaterSport, fetchMarineConditions } from "@/lib/marine-conditions";
+import { startHour } from "@/lib/session-conditions";
 import { geocodeLocation } from "@/lib/geocode";
 import { parsePriceCents } from "@/lib/validation";
 import { resolveSpotForCoords } from "@/lib/spots";
@@ -92,8 +93,7 @@ export async function POST(req: NextRequest) {
     // Auto-fetch marine conditions for water sports
     let conditions = {};
     if (isWaterSport(sport) && coords) {
-      const hour = parseInt(startTime.split(":")[0]) || 8;
-      const marine = await fetchMarineConditions(coords.lat, coords.lng, date, hour);
+      const marine = await fetchMarineConditions(coords.lat, coords.lng, date, startHour(startTime));
       conditions = {
         waveHeight: marine.waveHeight,
         wavePeriod: marine.wavePeriod,
