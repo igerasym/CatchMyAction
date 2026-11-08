@@ -9,6 +9,8 @@ export default function PhotographerGuidePage() {
         <p className="text-mute text-lg">Sell more. Shoot smarter. Build your reputation.</p>
       </div>
 
+      <FirstSession />
+
       <Section
         icon={<Target className="w-5 h-5" aria-hidden="true" />}
         title="The Golden Rule: Quality Over Quantity"
@@ -122,6 +124,77 @@ export default function PhotographerGuidePage() {
         </Tip>
       </Section>
     </div>
+  );
+}
+
+/** Step-by-step onboarding. Labels in quotes match the real buttons/fields on those pages. */
+const FIRST_STEPS: { title: string; body: React.ReactNode; href: string; cta: string }[] = [
+  {
+    title: "Create a photographer account",
+    body: <>Sign up and choose &ldquo;I shoot photos&rdquo;. Confirm your email: you need it to publish sessions.</>,
+    href: "/register?role=photographer",
+    cta: "Create account",
+  },
+  {
+    title: "Connect Stripe to get paid",
+    body: <>In Settings, open the Payouts section and tap &ldquo;Connect Stripe Account&rdquo;. Stripe asks for your details and bank account.</>,
+    href: "/settings",
+    cta: "Open Settings",
+  },
+  {
+    title: "Create a session and upload",
+    body: (
+      <ul className="space-y-1.5">
+        <Li>Give it a clear title.</Li>
+        <Li>Spot: pick one of the suggestions, so the session lands on the map with the right sea conditions.</Li>
+        <Li>Date, start and end time, in the spot&apos;s local time.</Li>
+        <Li>Sport, then a price per photo, or tick &ldquo;Free session&rdquo;.</Li>
+        <Li>Add photos: JPEG, PNG or WebP, at least 1200px on the short side, up to 25MB each. Up to 200 photos per session, 50 for a free session. Then tap &ldquo;Publish Session&rdquo;.</Li>
+      </ul>
+    ),
+    href: "/upload",
+    cta: "Create a session",
+  },
+  {
+    title: "Share it",
+    body: <>In your dashboard, every session has a &ldquo;QR Code&rdquo; and &ldquo;Copy Link&rdquo; in its menu, and your profile has its own QR code. Show or print the QR at the spot, and post the link in local groups.</>,
+    href: "/dashboard",
+    cta: "Open dashboard",
+  },
+  {
+    title: "Upload from your phone",
+    body: <>Add CatchMyAction to your home screen and open it full-screen, like an app. Handy for uploading straight from the beach.</>,
+    href: "/install",
+    cta: "Add to home screen",
+  },
+];
+
+function FirstSession() {
+  return (
+    <section aria-labelledby="first-session-heading" className="border-t border-line pt-6 pb-10">
+      <p className="hud mb-3">Start here</p>
+      <h2 id="first-session-heading" className="disp text-[clamp(26px,3.6vw,38px)] text-bone mb-6">
+        Your first session in 5 steps<span className="text-rec">.</span>
+      </h2>
+      <ol className="space-y-4">
+        {FIRST_STEPS.map((s, i) => (
+          <li key={s.title} className="relative bg-char-2 border border-line p-5 sm:p-6">
+            <div className="flex gap-4">
+              <span className="font-mono text-sm text-rec pt-0.5 flex-shrink-0" aria-hidden="true">
+                {String(i + 1).padStart(2, "0")}
+              </span>
+              <div className="min-w-0 flex-1">
+                <h3 className="font-bold text-bone mb-2">
+                  <span className="sr-only">Step {i + 1}: </span>{s.title}
+                </h3>
+                <div className="text-[15px] text-mute leading-relaxed">{s.body}</div>
+                <a href={s.href} className="btn-sec text-sm py-2.5 px-4 mt-4">{s.cta} →</a>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
