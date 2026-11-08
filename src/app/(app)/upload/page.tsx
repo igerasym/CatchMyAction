@@ -217,7 +217,7 @@ export default function UploadPage() {
     return (
       <div className="max-w-2xl mx-auto py-4 md:py-8">
         <PageIntro kicker="02 / Upload" title="Upload photos" className="mb-10">
-          Select up to 200 photos. They will be automatically watermarked.
+          Up to 200 photos per session (50 for a free session). Previews are watermarked automatically; buyers get your original file.
         </PageIntro>
         <div className="space-y-5">
           {/* Drag & Drop Zone */}
@@ -242,6 +242,7 @@ export default function UploadPage() {
               {dragging ? "Drop photos here" : "Drag & drop photos here"}
             </p>
             <p className="hud">or click to browse · JPEG, PNG, WebP</p>
+            <p className="font-mono text-[11px] tracking-[0.06em] text-dim mt-2">Min 1200px on the short side · max 25MB per photo</p>
             <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp" multiple className="hidden"
               onChange={handleUploadPhotos} />
           </div>
@@ -281,6 +282,9 @@ export default function UploadPage() {
       <PageIntro kicker="01 / New session" title="Create a session" className="mb-10">
         {user ? "Fill in the session details to get started." : "Fill in the details — you can sign up in the next step."}
         {" "}<a href="/guide" className={LINK}>Read the photographer guide →</a>
+        <p className="mt-3 text-sm">
+          Uploading from your phone? <a href="/install" className={LINK}>Add CatchMyAction to your home screen</a>
+        </p>
       </PageIntro>
 
       <form onSubmit={handleContinue} className="space-y-6 border-t border-line pt-8">
@@ -349,7 +353,7 @@ export default function UploadPage() {
               <span className="text-sm text-bone">Free session</span>
             </label>
             {parseFloat(price) === 0
-              ? <span className="font-mono text-[11px] tracking-[0.06em] text-dim">Max 50 photos</span>
+              ? <span className="font-mono text-[11px] tracking-[0.06em] text-dim">Free sessions: up to 50 photos</span>
               : <span className="font-mono text-[11px] tracking-[0.06em] text-dim">Suggested: $5–$15</span>
             }
           </div>

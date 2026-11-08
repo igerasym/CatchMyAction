@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { Search, Camera, Upload, Loader2, ScanFace, ArrowRight, X, Check } from "lucide-react";
+import { browserSessionStorage, savePendingMatches } from "@/lib/find-me-pending";
 
 interface Photo {
   id: string;
@@ -19,7 +20,7 @@ interface Props {
 }
 
 export default function FindMe({ sessionId, photos, onMatchFound, autoOpen }: Props) {
-  const { data: session, status } = useSession();
+  const { data: session } = useSession();
   const userId = (session?.user as any)?.id;
 
   const [open, setOpen] = useState(false);
@@ -42,12 +43,8 @@ export default function FindMe({ sessionId, photos, onMatchFound, autoOpen }: Pr
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
+  // No sign-in needed to search: login is asked only at buy/download time
   function handleOpen() {
-    if (!userId) {
-      // Come back to this session with the selfie dialog open after signing in
-      window.location.href = `/login?callbackUrl=${encodeURIComponent(window.location.pathname + "?findme=1")}`;
-      return;
-    }
     setOpen(true);
     setResults(null);
     setError("");
@@ -59,21 +56,17 @@ export default function FindMe({ sessionId, photos, onMatchFound, autoOpen }: Pr
     setOpen(false);
   }
 
-  // Deep link from homepage Find Me: open once the auth state is known
+  // Deep link from homepage Find Me (?findme=1): open the dialog once, signed in or not
   const autoOpened = useRef(false);
   useEffect(() => {
-    if (!autoOpen || autoOpened.current || status === "loading") return;
+    if (!autoOpen || autoOpened.current) return;
     autoOpened.current = true;
     const url = new URL(window.location.href);
     url.searchParams.delete("findme");
     window.history.replaceState({}, "", url.pathname + url.search);
-    if (!userId) {
-      window.location.href = `/login?callbackUrl=${encodeURIComponent(url.pathname + "?findme=1")}`;
-      return;
-    }
     handleOpen();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [autoOpen, status, userId]);
+  }, [autoOpen]);
 
   async function startCamera() {
     try {
@@ -177,11 +170,16 @@ export default function FindMe({ sessionId, photos, onMatchFound, autoOpen }: Pr
     const ids = Array.from(picked);
     if (ids.length > 0) {
       onMatchFound(ids);
-      fetch("/api/photos/claim", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ photoIds: ids }),
-      }).catch(() => {});
+      if (userId) {
+        fetch("/api/photos/claim", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ photoIds: ids }),
+        }).catch(() => {});
+      } else {
+        // Not signed in: keep the picks in this tab; they're claimed after login (see photo-grid)
+        savePendingMatches(browserSessionStorage(), sessionId, ids);
+      }
     }
     handleClose();
   }
@@ -239,6 +237,7 @@ export default function FindMe({ sessionId, photos, onMatchFound, autoOpen }: Pr
                 </p>
                 <p className="text-sm text-mute mb-4">
                   Tick the photos you&apos;re in. Only those get marked as yours.
+                  {!userId && " You can sign in later, when you buy or download."}
                 </p>
                 <ul className="grid grid-cols-3 gap-2 max-h-[46vh] overflow-y-auto mb-5" aria-label="Possible matches">
                   {results.map((m, i) => {

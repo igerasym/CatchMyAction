@@ -124,12 +124,16 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   Pre-rotation config copies `~/app/*.bak.20261103132327` contain the old values → delete after verifying.
 - Root user has an access key → delete it.
 - No EBS snapshots / DLM policy yet.
-- SG exposes 22 and 3000 to `0.0.0.0/0`.
+- SG exposes 22 and 3000 to `0.0.0.0/0`. Port 3000 lets anyone reach the app directly, bypassing Cloudflare, and set
+  `cf-connecting-ip` / `x-forwarded-for` themselves. That defeats every per-IP rate limit (`clientIp` in
+  `src/lib/rate-limit.ts`): anonymous Find Me (paid Rekognition calls), forgot/reset password, photo reports. Fix: close
+  3000 in the SG (nginx already proxies to it locally) and allow 80/443 only from Cloudflare's IP ranges. See "Find Me".
 - Cloudflare → origin is plain HTTP (no 443 on nginx).
 
 ## Photographer payouts
 
-- Checkout uses a Stripe destination charge when the photographer has an active Connect account: 18% goes to the platform (`PLATFORM_FEE_BPS` in `src/lib/stripe.ts`), the rest to them. The destination is stored in the checkout metadata as `payoutAccount`.
+- Checkout uses a Stripe destination charge when the photographer has an active Connect account. The destination is stored in the checkout metadata as `payoutAccount`.
+- Fees (all in `src/lib/stripe.ts`, the single source of truth): each photographer's first `FREE_SALES_PER_PHOTOGRAPHER` (5) paid photos are commission-free (the platform takes only the card fee estimate, see risks below); after that the platform takes `PLATFORM_FEE_BPS` (18%). "Sold" = `Purchase` rows with `amountInCents > 0` for photos in the photographer's sessions (`countSoldPhotos`), counted when the checkout is created; free photos never use a slot. `feesForItems` gives the per-photo fee, so a bulk checkout can straddle the boundary. `createPhotoCheckout` sets `application_fee_amount` to the sum (omitted when it is 0) and records `feeCents` on each line item's product metadata, `feeCents` (single: that photo; bulk: the sum) and `feeWaived` (ids of commission-free photos) on the session metadata. `fulfillCheckoutSession` stores `photographerShareCents = amount - feeCents`; sessions created before this fall back to `platformFee(amount)`. Card processing fees stay with the platform either way, so a commission-free sale costs the platform Stripe's fee. Two checkouts opened at the same moment near the boundary can both get the same free slot (the count is read at checkout creation, not reserved).
 - `fulfillCheckoutSession` records `Purchase.photographerShareCents` and `Purchase.payoutStatus`: `sent` (routed at payment time), `pending` (no active Stripe account, so the platform holds the money) or `null` (rows from before tracking).
 - The dashboard Earnings tab and `/api/photographer/earnings` read these fields. Do not recompute the share from a hardcoded percentage.
 - Releasing `pending` money: `payOutPending` (`src/lib/payouts.ts`) runs from `GET /api/stripe/connect` when the photographer's account has `charges_enabled`, in the background, up to 50 purchases per run. Each share is sent as `stripe.transfers.create` with `source_transaction` = the original charge, `metadata.purchaseId` and idempotency key `payout-<purchaseId>`, then the purchase becomes `sent`.
@@ -147,6 +151,53 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   real sale: add the endpoint `https://<domain>/api/webhooks/stripe` in the Stripe dashboard (events
   `checkout.session.completed`, `checkout.session.async_payment_succeeded`) and put its signing secret in `.env.production`.
 - Known limits: Stripe only supports separate-charges-and-transfers between the US, Canada, UK, EEA and Switzerland (other regions need the same region as the platform), so a transfer to a photographer elsewhere fails, is logged, and stays `pending` until the next dashboard load.
+
+### Payout and fee risks (as of 2026-11-08)
+
+- **Card fee on commission-free sales is an estimate.** With destination charges the platform pays Stripe's real card
+  fee. On commission-free sales the application fee is set to `cardFeeEstimate` (2.9% + $0.30 per checkout, standard US
+  card pricing, `CARD_FEE_BPS` / `CARD_FEE_FIXED_CENTS` in `src/lib/stripe.ts`), split over the commission-free photos by
+  price, so the photographer pays the card fee and the platform takes nothing. Real Stripe fees vary (international cards,
+  currency conversion, other regions), so the platform can still lose or gain a few cents per sale. Check the account's
+  real pricing in the Stripe dashboard and adjust the constants. The guide, dashboard and settings repeat "5",
+  "2.9% + $0.30" and "82%" as text: change them together.
+- **Race at the free-sales boundary.** The sold count is read when a checkout is created and no slot is reserved. Two
+  checkouts opened at the same time, or one opened before an earlier one is paid, can both get the last free slot.
+  Worst case: a few extra commission-free sales. The photographer never gets less than promised. A real fix needs a
+  reservation table; not done.
+- **Not verified against real Stripe:**
+  - that a destination charge with `transfer_data` and no `application_fee_amount` is accepted;
+  - that a later transfer of 100% of a charge (`source_transaction`, waived fee on a `pending` sale) succeeds when
+    the platform balance is low.
+
+  Run `test/stripe-sandbox.test.ts` in test mode with a waived sale before the first real one.
+- **Pending money moves only when the photographer opens the app.** `payOutPending` has no webhook or cron trigger:
+  it runs on `GET /api/stripe/connect` (dashboard and settings load). A photographer who connects Stripe and never comes
+  back is not paid. Fix later with an `account.updated` webhook or a daily job. The guide says "the next time you open
+  your dashboard", which matches this.
+- **Copy depends on this behaviour.** The guide "How you get paid" section, dashboard Stripe nudge and settings Payouts
+  text describe the rules above. Change them together.
+
+## Find Me (selfie face search)
+
+- Since 2026-11-08 anyone can search a **published** session without an account (`src/app/api/sessions/[id]/find-me/route.ts`);
+  drafts stay owner-only. Sign-in is needed only to buy, download or save matches ("That's me" is kept in
+  `sessionStorage` and claimed after login, `src/lib/find-me-pending.ts`). Explicit consent (`consent=1`) is still required.
+- Every search is a paid Rekognition `SearchFacesByImage` call. Limits (`src/lib/find-me-limits.ts`), per hour:
+  15 per account when signed in, 8 per IP when anonymous, 30 per IP for everyone.
+
+### Risks
+
+- **Rate limits are in memory.** They reset on every deploy or restart and are not shared between processes. Fine for
+  one container; move to Redis or the database before scaling out.
+- **Per-IP limits trust client headers.** `clientIp` reads `cf-connecting-ip`, then `x-real-ip`, then `x-forwarded-for`.
+  Behind Cloudflare that is reliable. Anyone who reaches the origin directly (port 3000 is open, see Known gaps) can fake
+  the header and run unlimited paid searches. Close the origin to everything except Cloudflare.
+- **No global spend cap.** Many IPs (or a spoofed header, above) can still run up the Rekognition bill. Consider a daily
+  cap on anonymous searches across all IPs and a CloudWatch billing alarm on Rekognition.
+- **Privacy.** Anonymous search lets someone look for a specific person's face in a session. Gallery photos are already
+  public, the search is per session, and the selfie is not stored, so nothing new is exposed, but it is now faster to find
+  one person. Keep the consent step, and revisit if sessions ever become non-public.
 
 ## Photo uploads
 
