@@ -21,6 +21,7 @@ export default function PhotographerGuidePage() {
         </p>
         <Tip>
           Upload your best 15–30 photos per session. Delete the rest before uploading.
+          The session limits (200 photos, 50 for a free session) are a ceiling, not a target.
           A short, curated gallery is easier to buy from than a photo dump.
         </Tip>
       </Section>
@@ -121,11 +122,12 @@ export default function PhotographerGuidePage() {
         title="Technical Requirements"
       >
         <ul className="space-y-3">
-          <Li>JPEG format, minimum 1200px on the shortest side</Li>
-          <Li>Maximum 25MB per photo</Li>
-          <Li>Photos are automatically watermarked — upload the original, we handle the rest</Li>
-          <Li>EXIF data (camera, time, GPS) is extracted automatically if present</Li>
-          <Li>Duplicates are detected by content — no double uploads</Li>
+          <Li>JPEG, PNG or WebP, at least 1200px on the shortest side</Li>
+          <Li>Maximum 25MB per photo. Very narrow crops (longer than 5:1) are rejected</Li>
+          <Li>Up to 200 photos per session. Free sessions take up to 50: set a price to upload more</Li>
+          <Li>Photos are automatically watermarked — upload the original, we handle the rest. Buyers download your original file, without the watermark</Li>
+          <Li>Uploading the exact same file twice to one session is skipped</Li>
+          <Li>Photos with prohibited content are rejected automatically</Li>
         </ul>
       </Section>
 

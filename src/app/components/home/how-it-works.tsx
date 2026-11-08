@@ -2,7 +2,7 @@ const STEPS = [
   {
     n: "01",
     title: "Photographers upload",
-    body: "Every session is pinned to a spot, a date and a time, with the conditions attached.",
+    body: "Every session is pinned to a spot, a date and a time. Water sessions show the sea conditions too.",
   },
   {
     n: "02",
@@ -12,7 +12,7 @@ const STEPS = [
   {
     n: "03",
     title: "Buy & download",
-    body: "Pay per photo and download the full-resolution file, no watermark. You only pay for the shots you keep.",
+    body: "Pay per photo, or download free from free sessions. You get the full-resolution file, no watermark, and only pay for the shots you keep.",
   },
 ];
 
