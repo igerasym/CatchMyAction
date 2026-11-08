@@ -5,6 +5,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { DARK_TILE_URL, TILE_ATTRIBUTION } from "@/lib/map-tiles";
 import { escapeHtml } from "@/lib/html";
+import { fitView, WORLD_VIEW } from "@/lib/map-fit";
 
 if (typeof window !== "undefined") {
   (window as any).L = L;
@@ -50,9 +51,9 @@ export default function MapInner({
     require("leaflet.markercluster/dist/MarkerCluster.Default.css");
 
     const map = L.map(mapRef.current, {
-      center: [20, 0],
-      zoom: 2,
-      minZoom: 2,
+      center: WORLD_VIEW.center,
+      zoom: WORLD_VIEW.zoom,
+      minZoom: 1, // lets far-apart spots fit on a 375px phone
       maxBoundsViscosity: 1.0,
       maxBounds: [[-85, -180], [85, 180]],
       scrollWheelZoom: false, // don't trap page scroll; zoom via buttons / pinch
@@ -155,9 +156,12 @@ export default function MapInner({
     });
 
     map.addLayer(clusterGroup);
-    // Frame the spots that actually have sessions
-    if (activeMarkers.length > 0) {
-      map.fitBounds(L.latLngBounds(activeMarkers.map((m) => m.coords)), { padding: [70, 70], maxZoom: 5 });
+    // Frame the spots that actually have sessions (extra right padding for the location chip)
+    const view = fitView(activeMarkers.map((m) => m.coords));
+    if (view.kind === "bounds") {
+      map.fitBounds(view.bounds, { paddingTopLeft: [40, 40], paddingBottomRight: [130, 40], maxZoom: view.maxZoom });
+    } else {
+      map.setView(view.center, view.zoom);
     }
     mapInstance.current = map;
 

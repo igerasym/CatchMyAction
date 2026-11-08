@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { DARK_TILE_URL, TILE_ATTRIBUTION } from "@/lib/map-tiles";
 import { format } from "date-fns";
 import { escapeHtml } from "@/lib/html";
+import { fitView, WORLD_VIEW } from "@/lib/map-fit";
 
 if (typeof window !== "undefined") {
   (window as any).L = L;
@@ -79,9 +80,9 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, flyTo }: Pr
     require("leaflet.markercluster/dist/MarkerCluster.Default.css");
 
     const map = L.map(mapRef.current, {
-      center: [20, 0],
-      zoom: 2,
-      minZoom: 2,
+      center: WORLD_VIEW.center,
+      zoom: WORLD_VIEW.zoom,
+      minZoom: 1, // lets far-apart spots fit on a 375px phone
       maxBoundsViscosity: 1.0,
       maxBounds: [[-85, -180], [85, 180]],
       scrollWheelZoom: false, // don't trap page scroll; zoom via buttons / pinch
@@ -230,6 +231,13 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, flyTo }: Pr
     });
 
     map.addLayer(clusterGroup);
+    // Frame every session marker (extra right padding: the location chip sits right of the pin)
+    const view = fitView(markers.map((m) => [m.lat, m.lng] as [number, number]));
+    if (view.kind === "bounds") {
+      map.fitBounds(view.bounds, { paddingTopLeft: [40, 40], paddingBottomRight: [130, 40], maxZoom: view.maxZoom });
+    } else {
+      map.setView(view.center, view.zoom);
+    }
     mapInstance.current = map;
 
     return () => { map.remove(); mapInstance.current = null; };
