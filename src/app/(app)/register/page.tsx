@@ -5,9 +5,10 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
-import { Mail } from "lucide-react";
-import { AuthShell, CHECKBOX, HINT, INPUT, LABEL, LINK, Notice } from "../ui";
+import { Check, Circle, Mail } from "lucide-react";
+import { AuthShell, CHECKBOX, INPUT, LABEL, LINK, Notice } from "../ui";
 import { safeCallbackUrl } from "@/lib/redirect";
+import { passwordChecks, roleFromQuery, ROLE_OPTIONS, type Role } from "./roles";
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -15,13 +16,14 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [agreed, setAgreed] = useState(false);
-  const [role, setRole] = useState("USER");
+  const [role, setRole] = useState<Role>("USER");
+  const [password, setPassword] = useState("");
   const [callbackUrl, setCallbackUrl] = useState("/");
 
   // /register?role=photographer (homepage CTA) · ?callbackUrl=/sessions/x (came from a buy / find-me gate)
   useEffect(() => {
     const q = new URLSearchParams(window.location.search);
-    if (q.get("role") === "photographer") setRole("PHOTOGRAPHER");
+    setRole(roleFromQuery(q.get("role")));
     setCallbackUrl(safeCallbackUrl(q.get("callbackUrl")));
   }, []);
 
@@ -73,6 +75,43 @@ export default function RegisterPage() {
         <>
       {error && <Notice className="mb-5">{error}</Notice>}
       <form onSubmit={handleSubmit} className="space-y-5">
+        <fieldset>
+          <legend className={LABEL}>How will you use CatchMyAction?</legend>
+          <div className="grid grid-cols-2 gap-3">
+            {ROLE_OPTIONS.map((o) => {
+              const selected = role === o.value;
+              return (
+                <label
+                  key={o.value}
+                  htmlFor={`role-${o.value}`}
+                  className={`relative flex flex-col cursor-pointer border p-4 transition-colors has-[:focus-visible]:outline has-[:focus-visible]:outline-1 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-bone ${
+                    selected ? "border-rec bg-ink" : "border-line bg-ink/40 hover:border-bone"
+                  }`}
+                >
+                  <input
+                    type="radio"
+                    id={`role-${o.value}`}
+                    name="role"
+                    value={o.value}
+                    checked={selected}
+                    onChange={() => setRole(o.value)}
+                    className="sr-only"
+                  />
+                  {selected && <span className="brk brk-sm brk-rec" aria-hidden="true" />}
+                  <span
+                    className={`w-4 h-4 rounded-full border flex items-center justify-center mb-3 ${selected ? "border-rec" : "border-line"}`}
+                    aria-hidden="true"
+                  >
+                    {selected && <span className="w-2 h-2 rounded-full bg-rec" />}
+                  </span>
+                  <span className="font-bold text-bone leading-snug">{o.title}</span>
+                  <span className={`hud mt-1.5 ${selected ? "text-rec" : ""}`}>{o.who}</span>
+                  <span className="text-sm text-mute mt-1.5 leading-snug">{o.body}</span>
+                </label>
+              );
+            })}
+          </div>
+        </fieldset>
         <div>
           <label htmlFor="name" className={LABEL}>Name</label>
           <input id="name" name="name" required autoComplete="name" className={inputClass} />
@@ -83,15 +122,21 @@ export default function RegisterPage() {
         </div>
         <div>
           <label htmlFor="password" className={LABEL}>Password</label>
-          <PasswordInput id="password" name="password" required minLength={8} autoComplete="new-password" className={`${inputClass} pr-10`} />
-          <p id="password-hint" className={HINT}>Min 8 chars, 1 uppercase, 1 lowercase, 1 number</p>
-        </div>
-        <div>
-          <label htmlFor="role" className={LABEL}>I am a...</label>
-          <select id="role" name="role" className={inputClass} value={role} onChange={(e) => setRole(e.target.value)}>
-            <option value="USER">Athlete (browse & buy photos)</option>
-            <option value="PHOTOGRAPHER">Photographer (upload & sell)</option>
-          </select>
+          <PasswordInput id="password" name="password" required minLength={8} autoComplete="new-password"
+            value={password} onChange={(e) => setPassword(e.target.value)} className={`${inputClass} pr-10`} />
+          <div id="password-hint" className="mt-3">
+            <p className="text-sm text-mute mb-2">Your password needs:</p>
+            <ul className="grid grid-cols-2 gap-x-4 gap-y-1.5 text-sm">
+              {passwordChecks(password).map((c) => (
+                <li key={c.label} className={`flex items-center gap-2 ${c.ok ? "text-bone" : "text-mute"}`}>
+                  {c.ok
+                    ? <Check className="w-3.5 h-3.5 text-rec flex-shrink-0" aria-hidden="true" />
+                    : <Circle className="w-3.5 h-3.5 text-dim flex-shrink-0" aria-hidden="true" />}
+                  <span>{c.label}<span className="sr-only">{c.ok ? " (done)" : ""}</span></span>
+                </li>
+              ))}
+            </ul>
+          </div>
         </div>
         <label htmlFor="agree" className="flex items-start gap-3 cursor-pointer">
           <input id="agree" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}

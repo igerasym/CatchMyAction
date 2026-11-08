@@ -28,6 +28,7 @@ export default function Footer() {
               <ul className="space-y-2.5 text-mute">
                 <li><Link href="/register?role=photographer" className="hover:text-bone transition-colors">Start selling</Link></li>
                 <li><Link href="/guide" className="hover:text-bone transition-colors">Guide</Link></li>
+                <li><Link href="/install" className="hover:text-bone transition-colors">Install app</Link></li>
               </ul>
             </div>
             <div>
