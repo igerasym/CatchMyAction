@@ -47,6 +47,12 @@ export default function PhotographerCta({ image }: { image: string | null }) {
             Photographer guide
           </Link>
         </div>
+        <p className="mt-6 text-sm text-mute">
+          Uploading from your phone?{" "}
+          <Link href="/install" className="text-bone underline underline-offset-4 decoration-line hover:text-rec hover:decoration-rec transition-colors">
+            Add CatchMyAction to your home screen
+          </Link>
+        </p>
       </div>
     </section>
   );

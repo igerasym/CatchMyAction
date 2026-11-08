@@ -281,6 +281,9 @@ export default function UploadPage() {
       <PageIntro kicker="01 / New session" title="Create a session" className="mb-10">
         {user ? "Fill in the session details to get started." : "Fill in the details — you can sign up in the next step."}
         {" "}<a href="/guide" className={LINK}>Read the photographer guide →</a>
+        <p className="mt-3 text-sm">
+          Uploading from your phone? <a href="/install" className={LINK}>Add CatchMyAction to your home screen</a>
+        </p>
       </PageIntro>
 
       <form onSubmit={handleContinue} className="space-y-6 border-t border-line pt-8">

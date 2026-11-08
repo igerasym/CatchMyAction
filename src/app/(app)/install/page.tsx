@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 export default function InstallPage() {
   return (
     <div className="max-w-2xl mx-auto py-4 md:py-8">
-      <PageIntro kicker="App" title="Add to home screen">
+      <PageIntro kicker="App" title="Add to home screen" className="mb-10 md:mb-12">
         Open CatchMyAction full-screen from your phone, no app store needed.
       </PageIntro>
 
