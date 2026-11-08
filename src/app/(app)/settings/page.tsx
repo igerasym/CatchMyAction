@@ -262,7 +262,9 @@ function StripeConnect() {
           <Check className="w-4 h-4 text-bone" aria-hidden="true" />
           <p className="text-sm text-bone font-bold">Stripe Connected</p>
         </div>
-        <p className="text-sm text-mute">Payouts are enabled. You receive 82% of each sale automatically.</p>
+        <p className="text-sm text-mute">
+          Payouts are enabled. Your first 5 sales are commission-free. After that you keep 82% of every sale.
+        </p>
       </div>
     );
   }
@@ -285,7 +287,7 @@ function StripeConnect() {
       <p className="text-bone font-bold mb-2">Get paid for your photos</p>
       <p className="text-sm text-mute mb-3">Connect your Stripe account to receive payouts when your photos sell.</p>
       <ul className="text-sm text-mute mb-5 space-y-1.5">
-        <li><span className="text-rec font-mono mr-2" aria-hidden="true">›</span>You keep 82% of each sale</li>
+        <li><span className="text-rec font-mono mr-2" aria-hidden="true">›</span>Your first 5 sales are commission-free. After that you keep 82% of every sale.</li>
         <li><span className="text-rec font-mono mr-2" aria-hidden="true">›</span>Automatic payouts to your bank account</li>
         <li><span className="text-rec font-mono mr-2" aria-hidden="true">›</span>Stripe handles all payment processing securely</li>
         <li><span className="text-rec font-mono mr-2" aria-hidden="true">›</span>Takes about 2 minutes to set up</li>

@@ -3,9 +3,12 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
-import { platformFee } from "@/lib/stripe";
+import { countSoldPhotos, freeSalesLeft, platformFee } from "@/lib/stripe";
 
-/** Photographer's cut of one purchase; prefers the value stored at payment time. */
+/**
+ * Photographer's cut of one purchase; prefers the value stored at payment time (which already
+ * reflects commission-free sales). Only rows from before share tracking fall back to the flat fee.
+ */
 function shareOf(p: { amountInCents: number; photographerShareCents: number | null }): number {
   return p.photographerShareCents ?? p.amountInCents - platformFee(p.amountInCents);
 }
@@ -68,6 +71,8 @@ export async function GET(req: NextRequest) {
   const heldNet = purchases.filter((p) => payoutOf(p) === "held").reduce((sum, p) => sum + shareOf(p), 0);
   const sentNet = totalNet - pendingNet - heldNet;
   const totalSales = purchases.length;
+  // All-time, independent of the selected range.
+  const soldAllTime = await countSoldPhotos(userId);
 
   // Daily revenue for chart (last N days)
   const dailyMap = new Map<string, { gross: number; net: number }>();
@@ -135,6 +140,7 @@ export async function GET(req: NextRequest) {
     pendingNet,
     heldNet,
     totalSales,
+    freeSalesLeft: freeSalesLeft(soldAllTime),
     dailyRevenue,
     perSession,
     transactions,
