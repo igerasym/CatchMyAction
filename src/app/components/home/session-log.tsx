@@ -41,10 +41,17 @@ export default function SessionLog({ sessions, sports }: { sessions: LogSession[
             <li key={s.id} className="border-b border-line">
               <Link
                 href={`/sessions/${s.id}`}
-                className="group grid grid-cols-[1fr_auto] md:grid-cols-[48px_minmax(0,2.2fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_72px_132px] items-center gap-x-6 gap-y-2 py-5 hover:bg-char/60 transition-colors md:px-2"
+                className="group grid grid-cols-[56px_minmax(0,1fr)_auto] md:grid-cols-[48px_minmax(0,2.2fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_72px_132px] items-center gap-x-4 md:gap-x-6 gap-y-2 py-4 md:py-5 hover:bg-char/60 transition-colors md:px-2"
               >
                 <span className="hidden md:block font-mono text-xs text-dim">
                   {String(sessions.length - i).padStart(2, "0")}
+                </span>
+                {/* Phone: small square preview; desktop keeps the wide one in the last column */}
+                <span className="md:hidden relative w-14 h-14 bg-char-3 overflow-hidden">
+                  {s.thumb && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={s.thumb} alt={s.title} loading="lazy" decoding="async" width={56} height={56} className="w-full h-full object-cover" />
+                  )}
                 </span>
                 <span className="min-w-0">
                   <span className="block text-[19px] md:text-[22px] font-extrabold tracking-tight truncate" style={{ fontStretch: "110%" }}>
@@ -74,7 +81,7 @@ export default function SessionLog({ sessions, sports }: { sessions: LogSession[
                 <span className="hidden md:block relative aspect-[3/2] bg-char-3 overflow-hidden">
                   {s.thumb && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src={s.thumb} alt="" loading="lazy" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+                    <img src={s.thumb} alt={s.title} loading="lazy" decoding="async" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
                   )}
                   <span className="brk brk-sm brk-hover" aria-hidden="true" />
                 </span>

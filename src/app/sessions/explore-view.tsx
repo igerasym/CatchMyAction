@@ -6,6 +6,7 @@ import Link from "next/link";
 import { LocateFixed, X } from "lucide-react";
 import SpotAutocomplete from "@/app/components/spot-autocomplete";
 import { conditionChips, CHIP_LEGEND } from "@/lib/condition-chips";
+import { filterByDay, parseDay, withDateParam } from "@/lib/session-date";
 import { SportBadge } from "@/app/components/sport-icon";
 
 interface Session {
@@ -38,6 +39,8 @@ interface Props {
   sessions: Session[];
   allSpots: Spot[];
   initialLocation?: string;
+  /** Validated "YYYY-MM-DD" from ?date= */
+  initialDate?: string;
 }
 
 /** How many sessions to show when no spot is selected. */
@@ -66,9 +69,16 @@ function LogRow({ s, n }: { s: Session; n: number }) {
     <li className="border-b border-line">
       <Link
         href={`/sessions/${s.id}`}
-        className="group grid grid-cols-[1fr_auto] md:grid-cols-[48px_minmax(0,2.2fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_72px_132px] items-center gap-x-6 gap-y-2 py-5 hover:bg-char/60 transition-colors md:px-2"
+        className="group grid grid-cols-[56px_minmax(0,1fr)_auto] md:grid-cols-[48px_minmax(0,2.2fr)_minmax(0,1.4fr)_minmax(0,1.3fr)_72px_132px] items-center gap-x-4 md:gap-x-6 gap-y-2 py-4 md:py-5 hover:bg-char/60 transition-colors md:px-2"
       >
         <span className="hidden md:block font-mono text-xs text-dim">{String(n).padStart(2, "0")}</span>
+        {/* Phone: small square preview; desktop keeps the wide one in the last column */}
+        <span className="md:hidden relative w-14 h-14 bg-char-3 overflow-hidden">
+          {s.coverUrl && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={s.coverUrl} alt={s.title} loading="lazy" decoding="async" width={56} height={56} className="w-full h-full object-cover" />
+          )}
+        </span>
         <span className="min-w-0">
           <span className="block text-[19px] md:text-[22px] font-extrabold tracking-tight truncate group-hover:text-rec transition-colors" style={{ fontStretch: "110%" }}>
             {s.title}
@@ -100,7 +110,7 @@ function LogRow({ s, n }: { s: Session; n: number }) {
         <span className="hidden md:block relative aspect-[3/2] bg-char-3 overflow-hidden">
           {s.coverUrl && (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={s.coverUrl} alt="" loading="lazy" decoding="async" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
+            <img src={s.coverUrl} alt={s.title} loading="lazy" decoding="async" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" />
           )}
           <span className="brk brk-sm brk-hover" aria-hidden="true" />
         </span>
@@ -109,8 +119,17 @@ function LogRow({ s, n }: { s: Session; n: number }) {
   );
 }
 
-export default function ExploreView({ sessions, allSpots, initialLocation }: Props) {
+export default function ExploreView({ sessions: allSessions, allSpots, initialLocation, initialDate }: Props) {
   const [selectedLocation, setSelectedLocation] = useState(initialLocation || "");
+  const [day, setDay] = useState<string | null>(initialDate ?? null);
+  // Everything below (list, map, spot filter) works on the sessions of the picked day
+  const sessions = useMemo(() => filterByDay(allSessions, day), [allSessions, day]);
+
+  function changeDay(next: string | null) {
+    setDay(next);
+    // Keep ?date= shareable without re-running the server query
+    window.history.replaceState({}, "", window.location.pathname + withDateParam(window.location.search, next));
+  }
   const [searchInput, setSearchInput] = useState(initialLocation || "");
   const [MapComponent, setMapComponent] = useState<React.ComponentType<any> | null>(null);
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; zoom: number } | null>(null);
@@ -195,8 +214,10 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
     });
   }, [sessions, allSpots]);
 
-  const locationCount = useMemo(() => new Set(sessions.map((s) => s.location)).size, [sessions]);
-  const recentSessions = useMemo(() => sessions.slice(0, RECENT_LIMIT), [sessions]);
+  const locationCount = useMemo(() => new Set(allSessions.map((s) => s.location)).size, [allSessions]);
+  // A picked day lists all of its sessions; otherwise the latest few
+  const recentSessions = useMemo(() => (day ? sessions : sessions.slice(0, RECENT_LIMIT)), [sessions, day]);
+  const dayLabel = day ? format(new Date(`${day}T00:00:00`), "EEE d MMM yyyy") : "";
 
   const handleSpotSelect = useCallback((location: string) => {
     setSelectedLocation(location);
@@ -223,18 +244,20 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
               </h1>
             </div>
             <p className="font-mono text-xs tracking-[0.12em] text-mute">
-              {sessions.length} SESSIONS · {locationCount} LOCATIONS
+              {allSessions.length} SESSIONS · {locationCount} LOCATIONS
               <span className="hidden md:block mt-1.5 text-dim normal-case tracking-normal text-[11px]">{CHIP_LEGEND}</span>
             </p>
           </div>
 
           <form
             onSubmit={(e) => { e.preventDefault(); setSelectedLocation(searchInput); }}
-            className="max-w-3xl"
+            className="max-w-4xl"
           >
+            <div className="flex flex-col md:flex-row gap-4 md:gap-2 md:items-end">
+            <div className="flex-1 min-w-0">
             <label htmlFor="location" className="hud block mb-2">Spot, region or country</label>
             <div className="flex gap-2 items-stretch">
-              <div className={`flex-1 ${AUTOCOMPLETE_SKIN}`}>
+              <div className={`flex-1 min-w-0 ${AUTOCOMPLETE_SKIN}`}>
                 <SpotAutocomplete
                   value={searchInput}
                   onChange={(val) => {
@@ -271,6 +294,31 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
                 Near me
               </button>
             </div>
+            </div>
+
+            {/* Date filter: native picker, ?date=YYYY-MM-DD */}
+            <div className="shrink-0">
+              <label htmlFor="session-date" className="hud block mb-2">Date</label>
+              <div className="flex gap-2 items-stretch">
+                <input
+                  id="session-date"
+                  type="date"
+                  value={day ?? ""}
+                  onChange={(e) => changeDay(parseDay(e.target.value))}
+                  className="flex-1 md:flex-none min-w-0 rounded-none bg-ink border border-line text-bone px-3.5 py-3 text-[15px] [color-scheme:dark] focus:border-bone focus:outline-none"
+                />
+                <button
+                  type="button"
+                  onClick={() => changeDay(null)}
+                  disabled={!day}
+                  aria-label="Show sessions from any date"
+                  className="inline-flex items-center px-4 bg-ink border border-line text-bone font-mono text-[11px] font-bold tracking-[0.12em] uppercase whitespace-nowrap hover:border-bone hover:text-rec focus-visible:border-bone focus-visible:outline-none disabled:opacity-40 disabled:pointer-events-none transition-colors"
+                >
+                  Any date
+                </button>
+              </div>
+            </div>
+            </div>
           </form>
         </div>
       </section>
@@ -297,16 +345,16 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
         <div>
           <div className="flex flex-wrap items-end justify-between gap-6 mb-8">
             <div className="min-w-0">
-              <p className="hud mb-5">{selectedLocation ? "02 / Spot" : "02 / Latest"}</p>
+              <p className="hud mb-5">{selectedLocation ? "02 / Spot" : day ? "02 / Date" : "02 / Latest"}</p>
               <h2 className="disp text-[clamp(30px,4.2vw,60px)] break-words">
-                {selectedLocation ? selectedLocation : "Fresh off the card"}
+                {selectedLocation ? selectedLocation : day ? dayLabel : "Fresh off the card"}
                 <span className="text-rec">.</span>
               </h2>
             </div>
             <div className="flex items-center gap-5">
               <p className="font-mono text-xs tracking-[0.12em] text-mute">
-                {selectedLocation
-                  ? `${filteredSessions.length} SESSION${filteredSessions.length === 1 ? "" : "S"}`
+                {selectedLocation || day
+                  ? `${listed.length} SESSION${listed.length === 1 ? "" : "S"}${day ? ` · ${dayLabel.toUpperCase()}` : ""}`
                   : `LATEST ${recentSessions.length} OF ${sessions.length}`}
               </p>
               {selectedLocation && (
@@ -329,15 +377,24 @@ export default function ExploreView({ sessions, allSpots, initialLocation }: Pro
                 No photos here yet<span className="text-rec">.</span>
               </h3>
               <p className="text-mute max-w-xl mb-8">
-                {selectedLocation
-                  ? `Nobody has shot ${selectedLocation} yet. Try a nearby spot on the map, or check back after your next session.`
-                  : "No sessions have been published yet. Check back after your next session."}
+                {day
+                  ? `No sessions${selectedLocation ? ` at ${selectedLocation}` : ""} on ${dayLabel}. Try another date or any date.`
+                  : selectedLocation
+                    ? `Nobody has shot ${selectedLocation} yet. Try a nearby spot on the map, or check back after your next session.`
+                    : "No sessions have been published yet. Check back after your next session."}
               </p>
-              {selectedLocation && (
-                <button type="button" onClick={clearSelection} className="btn-sec">
-                  Show latest sessions
-                </button>
-              )}
+              <div className="flex flex-wrap gap-2">
+                {day && (
+                  <button type="button" onClick={() => changeDay(null)} className="btn-sec">
+                    Any date
+                  </button>
+                )}
+                {selectedLocation && (
+                  <button type="button" onClick={clearSelection} className="btn-sec">
+                    Show latest sessions
+                  </button>
+                )}
+              </div>
             </div>
           ) : (
             <ul className="border-t border-line">
