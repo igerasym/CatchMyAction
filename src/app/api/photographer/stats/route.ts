@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
+import { countSoldPhotos, freeSalesLeft } from "@/lib/stripe";
 
 /** GET /api/photographer/stats?period=week — photographer dashboard stats */
 export async function GET(req: NextRequest) {
@@ -64,13 +65,18 @@ export async function GET(req: NextRequest) {
   ]);
 
   // Money the platform still holds for this photographer (no active Stripe account at sale time).
-  const pending = await prisma.purchase.aggregate({
-    where: { ...purchaseWhere, payoutStatus: "pending" },
-    _sum: { photographerShareCents: true },
-  });
+  const [pending, soldAllTime] = await Promise.all([
+    prisma.purchase.aggregate({
+      where: { ...purchaseWhere, payoutStatus: "pending" },
+      _sum: { photographerShareCents: true },
+    }),
+    countSoldPhotos(userId),
+  ]);
 
   return NextResponse.json({
     pendingPayout: pending._sum.photographerShareCents || 0,
+    // Commission-free sales left (all-time count, independent of the period filter).
+    freeSalesLeft: freeSalesLeft(soldAllTime),
     sessions: sessionCount,
     photos: photoCount,
     photosSold: sales._count,

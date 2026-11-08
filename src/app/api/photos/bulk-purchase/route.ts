@@ -106,6 +106,7 @@ export async function POST(req: NextRequest) {
           name: `Photo — ${photo.session.title}`,
           imageUrl: absoluteUrl(getPreviewUrl(photo.thumbnailKey || photo.previewKey), baseUrl),
         })),
+        photographerId: paid[0].session.photographerId,
         userId: user.id,
         successUrl: `${baseUrl}/sessions/${returnSessionId}?bulkPurchased=1&cs={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${baseUrl}/sessions/${returnSessionId}?cancelled=1`,

@@ -65,6 +65,7 @@ export async function POST(
             imageUrl: absoluteUrl(getPreviewUrl(photo.thumbnailKey || photo.previewKey), baseUrl),
           },
         ],
+        photographerId: photo.session.photographerId,
         userId: user.id,
         successUrl: `${baseUrl}/sessions/${photo.session.id}?purchased=${photo.id}&cs={CHECKOUT_SESSION_ID}`,
         cancelUrl: `${baseUrl}/sessions/${photo.session.id}?cancelled=1`,

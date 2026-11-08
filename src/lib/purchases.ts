@@ -19,7 +19,8 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
     return [];
   }
 
-  const amounts = await getChargedAmounts(session, photoIds);
+  const { amounts, fees } = await getChargedAmounts(session, photoIds);
+  const waived = new Set((session.metadata?.feeWaived || "").split(",").filter(Boolean));
   const paymentIntent = (session.payment_intent as string | null) || `cs_${session.id}`;
   const isBulk = photoIds.length > 1;
 
@@ -30,13 +31,14 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
     const exists = await prisma.photo.findUnique({ where: { id: photoId }, select: { id: true } });
     if (!exists) continue;
     const amount = amounts.get(photoId) ?? 0;
+    const fee = feeFor(amount, fees.get(photoId), waived.has(photoId));
     await prisma.purchase.upsert({
       where: { userId_photoId: { userId, photoId } },
       create: {
         userId,
         photoId,
         amountInCents: amount,
-        photographerShareCents: amount - platformFee(amount),
+        photographerShareCents: amount - fee,
         payoutStatus,
         // Both columns are unique, so bulk rows get a per-photo suffix.
         stripePaymentId: isBulk ? `${paymentIntent}_${photoId}` : paymentIntent,
@@ -49,14 +51,31 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
   return owned;
 }
 
+/**
+ * Platform fee for one fulfilled photo. Prefers the fee recorded at checkout (`feeCents`), then
+ * the checkout's list of commission-free photos, and only for sessions created before
+ * per-photo fees existed falls back to the flat platformFee().
+ */
+export function feeFor(amount: number, recorded: string | undefined, waived: boolean): number {
+  if (recorded !== undefined && /^\d+$/.test(recorded)) {
+    const fee = Number(recorded);
+    if (fee <= amount) return fee;
+  }
+  if (waived) return 0;
+  return platformFee(amount);
+}
+
 async function getChargedAmounts(
   session: Stripe.Checkout.Session,
   photoIds: string[]
-): Promise<Map<string, number>> {
+): Promise<{ amounts: Map<string, number>; fees: Map<string, string> }> {
   const amounts = new Map<string, number>();
+  const fees = new Map<string, string>();
   if (photoIds.length === 1) {
     amounts.set(photoIds[0], session.amount_total ?? 0);
-    return amounts;
+    const fee = session.metadata?.feeCents;
+    if (fee !== undefined) fees.set(photoIds[0], fee);
+    return { amounts, fees };
   }
   try {
     const items = await stripe.checkout.sessions.listLineItems(session.id, {
@@ -66,7 +85,11 @@ async function getChargedAmounts(
     for (const item of items.data) {
       const product = item.price?.product as Stripe.Product | undefined;
       const pid = product?.metadata?.photoId;
-      if (pid) amounts.set(pid, item.amount_total);
+      if (pid) {
+        amounts.set(pid, item.amount_total);
+        const fee = product?.metadata?.feeCents;
+        if (fee !== undefined) fees.set(pid, fee);
+      }
     }
   } catch (err) {
     console.error("listLineItems failed, splitting total evenly:", err);
@@ -76,7 +99,7 @@ async function getChargedAmounts(
     const each = Math.floor(session.amount_total / photoIds.length);
     photoIds.forEach((id) => amounts.set(id, each));
   }
-  return amounts;
+  return { amounts, fees };
 }
 
 /** Retrieve a checkout session and fulfil it, but only if it belongs to the given user. */
