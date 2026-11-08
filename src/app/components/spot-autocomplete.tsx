@@ -21,6 +21,8 @@ interface Props {
   placeholder?: string;
   name?: string;
   required?: boolean;
+  /** Sport of the session being entered: spots for it are listed first. */
+  sport?: string;
 }
 
 export default function SpotAutocomplete({
@@ -31,6 +33,7 @@ export default function SpotAutocomplete({
   placeholder = "Pipeline, Bali, or any location...",
   name = "location",
   required = true,
+  sport,
 }: Props) {
   const [open, setOpen] = useState(false);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -52,7 +55,7 @@ export default function SpotAutocomplete({
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/spots/autocomplete?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/spots/autocomplete?q=${encodeURIComponent(q)}${sport ? `&sport=${encodeURIComponent(sport)}` : ""}`);
         const data = await res.json();
         setSuggestions(data.suggestions || []);
         setOpen(true);

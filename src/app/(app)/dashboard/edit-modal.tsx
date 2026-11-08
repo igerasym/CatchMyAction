@@ -45,7 +45,7 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
     clearTimeout(debounceRef.current);
     debounceRef.current = setTimeout(async () => {
       try {
-        const res = await fetch(`/api/spots/autocomplete?q=${encodeURIComponent(q)}`);
+        const res = await fetch(`/api/spots/autocomplete?q=${encodeURIComponent(q)}${(session as any).sportType ? `&sport=${encodeURIComponent((session as any).sportType)}` : ""}`);
         const data = await res.json();
         setSpotMatches(data.suggestions || []);
         setShowSpots(true);

@@ -1,5 +1,6 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
+import { thinForMap, type MapSpot } from "@/lib/map-spots";
 
 /** Spot catalogue access (DB-backed; replaces the old bundled src/lib/spots-database.ts list). */
 
@@ -27,10 +28,31 @@ export function haversineKm(aLat: number, aLng: number, bLat: number, bLng: numb
   return 2 * 6371 * Math.asin(Math.sqrt(h));
 }
 
-/** All spots, for maps (a few hundred rows — cached for 10 min, tag "spots"). */
-export const allSpots = unstable_cache(
-  async (): Promise<SpotLite[]> => prisma.spot.findMany({ select: SELECT, orderBy: { name: "asc" } }),
-  ["spots-all"],
+/**
+ * Background dots for the home and /sessions maps: a bounded sample of the catalogue (see map-spots.ts),
+ * never the whole table. Spots that have a published session, and hand-curated ones, are always included.
+ * Cached for 10 min, tag "spots". Cached value stays small (well under Next's 2 MB data-cache item limit).
+ */
+export const mapSpots = unstable_cache(
+  async (): Promise<MapSpot[]> => {
+    const rows = await prisma.spot.findMany({
+      select: {
+        name: true, region: true, country: true, lat: true, lng: true, source: true,
+        _count: { select: { sessions: { where: { published: true } } } },
+      },
+    });
+    return thinForMap(
+      rows.map((r) => ({
+        name: r.name,
+        region: r.region ?? "",
+        country: r.country ?? "",
+        lat: r.lat,
+        lng: r.lng,
+        pinned: r._count.sessions > 0 || r.source === "curated",
+      }))
+    );
+  },
+  ["spots-map"],
   { revalidate: 600, tags: ["spots"] }
 );
 

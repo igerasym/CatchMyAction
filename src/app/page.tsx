@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
-import { allSpots as loadSpots } from "@/lib/spots";
+import { mapSpots as loadSpots } from "@/lib/spots";
 import Hero from "./components/home/hero";
 import FindMeSection from "./components/home/find-me-section";
 import SessionLog from "./components/home/session-log";
