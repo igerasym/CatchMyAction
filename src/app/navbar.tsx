@@ -5,7 +5,8 @@ import { usePathname } from "next/navigation";
 import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Logo from "./components/logo";
-import { LayoutDashboard, UserCircle, Images, Settings, LogOut, BookOpen, Smartphone } from "lucide-react";
+import { LayoutDashboard, UserCircle, Images, Settings, LogOut, BookOpen, Smartphone, MessageSquare } from "lucide-react";
+import { openFeedback } from "@/lib/feedback-types";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -102,6 +103,14 @@ export default function NavBar() {
                     )}
                     <MenuItem href="/my-photos" icon={<Images className="w-4 h-4" />} label="My Actions" onClick={() => setMenuOpen(false)} />
                     <MenuItem href="/settings" icon={<Settings className="w-4 h-4" />} label="Settings" onClick={() => setMenuOpen(false)} />
+                    <button
+                      type="button"
+                      onClick={() => { setMenuOpen(false); openFeedback(); }}
+                      className="w-full text-left flex items-center gap-2.5 px-4 py-2 text-sm text-mute hover:bg-char-3 hover:text-bone transition-colors"
+                    >
+                      <span className="w-5 flex justify-center text-dim"><MessageSquare className="w-4 h-4" /></span>
+                      Send feedback
+                    </button>
                     <div className="border-t border-line my-1" />
                     <button
                       onClick={() => { setMenuOpen(false); signOut({ callbackUrl: "/" }); }}

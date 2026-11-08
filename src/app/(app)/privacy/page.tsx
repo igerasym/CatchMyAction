@@ -35,6 +35,9 @@ export default function PrivacyPage() {
         We do not sell your personal data. We share data only with:
         <br />• <strong className="text-bone">Stripe</strong> — for payment processing
         <br />• <strong className="text-bone">AWS</strong> — for secure photo storage
+        <br />• <strong className="text-bone">Resend</strong> — for sending our emails, including the messages you send us
+        <br />• <strong className="text-bone">Telegram</strong> — we get a short notice of each message you send through
+        the Feedback form: its type, the start of the text and the page. Your email address is not included
         <br />• <strong className="text-bone">Law enforcement</strong> — only when legally required
       </Section>
 

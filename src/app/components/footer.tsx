@@ -1,5 +1,6 @@
 import Link from "next/link";
 import Logo from "./logo";
+import FeedbackTrigger from "./feedback-trigger";
 
 export default function Footer() {
   return (
@@ -35,6 +36,11 @@ export default function Footer() {
               <p className="hud mb-4">Company</p>
               <ul className="space-y-2.5 text-mute">
                 <li><Link href="/contact" className="hover:text-bone transition-colors">Contact</Link></li>
+                <li>
+                  <FeedbackTrigger className="text-left hover:text-bone transition-colors">
+                    Report a bug / suggest a feature
+                  </FeedbackTrigger>
+                </li>
                 <li><Link href="/privacy" className="hover:text-bone transition-colors">Privacy & face data</Link></li>
                 <li><Link href="/terms" className="hover:text-bone transition-colors">Terms</Link></li>
               </ul>
