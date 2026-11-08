@@ -196,6 +196,32 @@ selling frames.
 A cheaper intermediate: a short silent preview clip (about 15 s) attached to a session, no face search, while photos
 stay the thing that is sold.
 
+### Auto-post published sessions to Instagram
+Added 2026-11-08. When a photographer publishes a session, post one photo from it, with a banner naming the spot, to a
+CatchMyAction brand account. Free reach for the photographer, and a signal for athletes at that spot: "your session is up,
+find yourself". Fits GTM week 3-4 ("post session highlights on Instagram") and Phase 1 #4 (social sharing), but automated.
+Nothing exists yet: no Instagram or Meta code in the app.
+
+Decisions and constraints from the discussion:
+- **Consent:** the photo is the photographer's work. Opt-in flag in their settings, **off by default**; credit them in the
+  caption and tag their handle (needs a new `instagramHandle` field on the user).
+- **People in frame:** a public post shows identifiable faces (GDPR applies in Poland and the EU, and we run face
+  recognition). Post **only a frame the photographer featured** (`Photo.featuredKey`; they already approve its clean
+  version for showcase use). Never auto-pick "the first photo".
+- **Account:** a separate brand account (Business or Creator, linked to a Facebook Page), not a personal one.
+- **How:** Instagram Graph API content publishing: create a media container from a public JPEG URL, then publish it.
+  Previews already sit on CloudFront. Meta's docs give a limit of 25 or 50 API-published posts per 24 h per account (the
+  pages disagree; re-check). Publishing only to our own account should work in Meta's development mode without app review
+  (not verified).
+- **Flow:** queue with a delay and a cancel button until the post goes out. English caption: spot, date, link to the
+  session, photographer tag. Banner (photo + spot name + date + "find yourself in the frames") rendered server-side like
+  the previews.
+- **Open questions:** what happens to the post when the photographer unpublishes the session (check whether the API can
+  delete media at all); who owns and recovers the brand account.
+
+First step, cheap and risk-free: a prototype that renders the banner and caption from a session's data **without
+publishing**, to see how it looks before any Meta account or app is created.
+
 ---
 
 ## Go-to-Market Strategy
