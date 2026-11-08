@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db";
 import { getPreviewUrl } from "@/lib/s3";
 import { mapSpots as loadSpots } from "@/lib/spots";
 import { sessionThumbKey } from "@/lib/session-cover";
+import { parseDay } from "@/lib/session-date";
 import ExploreView from "./explore-view";
 
 export const dynamic = "force-dynamic";
@@ -65,6 +66,7 @@ export default async function SessionsPage({
       sessions={sessions}
       allSpots={allSpots}
       initialLocation={searchParams.location}
+      initialDate={parseDay(searchParams.date) ?? undefined}
     />
   );
 }
