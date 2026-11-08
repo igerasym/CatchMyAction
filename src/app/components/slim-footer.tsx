@@ -15,6 +15,7 @@ export default function SlimFooter() {
         <FeedbackTrigger className="py-1 hover:text-bone transition-colors">Report a bug / suggest a feature</FeedbackTrigger>
         <Link href="/contact" className="py-1 hover:text-bone transition-colors">Contact</Link>
         <Link href="/privacy" className="py-1 hover:text-bone transition-colors">Privacy</Link>
+        <Link href="/license" className="py-1 hover:text-bone transition-colors">Photo license</Link>
         <Link href="/terms" className="py-1 hover:text-bone transition-colors">Terms</Link>
       </div>
     </footer>

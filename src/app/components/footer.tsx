@@ -42,6 +42,7 @@ export default function Footer() {
                   </FeedbackTrigger>
                 </li>
                 <li><Link href="/privacy" className="hover:text-bone transition-colors">Privacy & face data</Link></li>
+                <li><Link href="/license" className="hover:text-bone transition-colors">Photo license</Link></li>
                 <li><Link href="/terms" className="hover:text-bone transition-colors">Terms</Link></li>
               </ul>
             </div>

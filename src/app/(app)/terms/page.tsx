@@ -42,7 +42,9 @@ export default function TermsPage() {
       <Section title="7. Intellectual Property">
         Photographers retain full copyright of their photos. Buyers receive a personal, non-commercial license
         to use purchased photos. Redistribution, resale, or commercial use of purchased photos is prohibited
-        without explicit permission from the photographer.
+        without explicit permission from the photographer. The{" "}
+        <a href="/license" className="text-bone underline underline-offset-2">Photo License</a>{" "}
+        explains in plain words what you can and cannot do.
       </Section>
 
       <Section title="8. Prohibited Content">
