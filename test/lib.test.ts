@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createResetToken, verifyResetToken } from "@/lib/reset-token";
 import { loginHref, safeCallbackUrl } from "@/lib/redirect";
 import { escapeHtml } from "@/lib/html";
+import { DEFAULT_PRICE_CENTS } from "@/lib/pricing";
 import { parsePriceCents, sanitizeHttpUrl, validatePassword } from "@/lib/validation";
 import { platformFee } from "@/lib/stripe";
 
@@ -76,5 +77,12 @@ describe("validation", () => {
 
   it("platform fee is 18%", () => {
     expect(platformFee(1000)).toBe(180);
+  });
+});
+
+describe("DEFAULT_PRICE_CENTS", () => {
+  it("is $5 and a price the API accepts", () => {
+    expect(DEFAULT_PRICE_CENTS).toBe(500);
+    expect(parsePriceCents(DEFAULT_PRICE_CENTS)).toBe(500);
   });
 });

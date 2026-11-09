@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import DateTimeInput from "@/app/components/date-time-input";
 import { MapPin } from "lucide-react";
+import { DEFAULT_PRICE_CENTS } from "@/lib/pricing";
 import { INPUT, LABEL } from "../ui";
 
 interface SpotSuggestion {
@@ -32,7 +33,7 @@ export default function EditSessionModal({ session, onSave, onClose }: Props) {
   const [startTime, setStartTime] = useState(session.startTime);
   const [endTime, setEndTime] = useState(session.endTime);
   const [description, setDescription] = useState(session.description || "");
-  const initialPriceCents: number = (session as any).pricePerPhoto ?? 999;
+  const initialPriceCents: number = (session as any).pricePerPhoto ?? DEFAULT_PRICE_CENTS;
   const [price, setPrice] = useState(initialPriceCents / 100 + "");
   const [saving, setSaving] = useState(false);
   const [showSpots, setShowSpots] = useState(false);

@@ -61,12 +61,12 @@ export default function PhotographerGuidePage() {
         title="Pricing That Works"
       >
         <ul className="space-y-3">
-          <Li>$5–$10 for casual sessions (beach days, park sessions)</Li>
-          <Li>$10–$20 for competitions and events</Li>
-          <Li>$15–$30 for professional-grade action shots (big waves, aerial, moto)</Li>
+          <Li>$3–$5 for casual sessions (beach days, park sessions)</Li>
+          <Li>$2–$5 for competitions and events: people buy more when it is cheap</Li>
+          <Li>$8–$15 for professional-grade action shots (big waves, aerial, moto)</Li>
         </ul>
         <p className="mt-3">
-          Lower prices = more sales. Higher prices = more per sale. Start at $7–$10 and adjust based on what sells.
+          Lower prices = more sales. Higher prices = more per sale. Start at $5 and adjust based on what sells.
           Your first 5 sales are commission-free, after that you keep 82% of every sale.
           See <a href="#get-paid" className="text-bone underline underline-offset-4 decoration-line hover:text-rec hover:decoration-rec transition-colors">how you get paid</a>.
         </p>

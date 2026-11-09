@@ -11,6 +11,7 @@ import { UploadedPhotos, type UploadedPhoto } from "@/app/components/uploaded-ph
 import { UploadStatus } from "@/app/components/upload-status";
 import dynamic from "next/dynamic";
 import { UploadCloud, Camera } from "lucide-react";
+import { DEFAULT_PRICE_CENTS } from "@/lib/pricing";
 import { CHECKBOX, HINT, INPUT, LABEL, LINK, Notice, PageIntro } from "../ui";
 
 const LocationPicker = dynamic(() => import("@/app/components/location-picker"), { ssr: false });
@@ -40,7 +41,7 @@ export default function UploadPage() {
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("9.99");
+  const [price, setPrice] = useState(String(DEFAULT_PRICE_CENTS / 100));
   const [sportType, setSportType] = useState("surf");
   const [formError, setFormError] = useState("");
 
@@ -365,13 +366,13 @@ export default function UploadPage() {
           <div className="flex flex-wrap items-end gap-x-3 gap-y-1 pb-3">
             <label htmlFor="session-free" className="flex items-center gap-2 cursor-pointer">
               <input id="session-free" type="checkbox" checked={parseFloat(price) === 0}
-                onChange={(e) => setPrice(e.target.checked ? "0" : "9.99")}
+                onChange={(e) => setPrice(e.target.checked ? "0" : String(DEFAULT_PRICE_CENTS / 100))}
                 className={CHECKBOX} />
               <span className="text-sm text-bone">Free session</span>
             </label>
             {parseFloat(price) === 0
               ? <span className="font-mono text-[11px] tracking-[0.06em] text-dim">Free sessions: up to 50 photos</span>
-              : <span className="font-mono text-[11px] tracking-[0.06em] text-dim">Suggested: $5–$15</span>
+              : <span className="font-mono text-[11px] tracking-[0.06em] text-dim">Suggested: $3–$10</span>
             }
           </div>
         </div>
