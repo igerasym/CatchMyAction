@@ -708,7 +708,9 @@ export default function PhotoGrid({
               <img src={selectedPhoto.previewUrl}
                 draggable={false}
                 onContextMenu={(e) => e.preventDefault()}
-                alt={`Photo ${currentIndex + 1} from ${sessionTitle}`} className="w-full select-none" />
+                alt={`Photo ${currentIndex + 1} from ${sessionTitle}`}
+                // Cap the height so tall (vertical) photos leave room for the price / Buy row below
+                className="block mx-auto w-auto max-w-full max-h-[62vh] sm:max-h-[70vh] object-contain select-none" />
               {isSelectedMatched && (
                 <>
                   <span aria-hidden="true" className="brk brk-rec" style={{ inset: "10px" }} />

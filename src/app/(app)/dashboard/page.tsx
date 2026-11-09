@@ -11,6 +11,7 @@ import {
   TrendingUp, Camera, Eye,
 } from "lucide-react";
 import { toastError, toastWarning, toastSuccess } from "@/lib/toast";
+import QrDialog from "@/app/components/qr-dialog";
 import { PageIntro } from "../ui";
 
 const LocationPicker = dynamic(() => import("@/app/components/location-picker"), { ssr: false });
@@ -691,25 +692,9 @@ function SessionRow({
       </div>
 
       {showQR && (
-        <div className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
-          <div role="dialog" aria-modal="true" className="relative bg-char-2 border border-line p-7 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <p className="hud mb-3">QR / Session</p>
-            <h2 className="disp text-2xl text-bone mb-2">Session QR code<span className="text-rec">.</span></h2>
-            <p className="text-sm text-mute mb-5">Athletes can scan this to find their photos</p>
-            <div className="bg-bone p-4 inline-block mb-4">
-              <img src={`/api/sessions/${s.id}/qr`} alt="QR Code" className="w-48 h-48" />
-            </div>
-            <p className="font-mono text-[11px] text-dim mb-5 break-all">
-              {typeof window !== "undefined" ? `${window.location.origin}/sessions/${s.id}` : ""}
-            </p>
-            <div className="flex gap-2 justify-center">
-              <button onClick={() => navigator.clipboard.writeText(`${window.location.origin}/sessions/${s.id}`)}
-                className="btn-sec py-2.5 px-4 text-sm">Copy Link</button>
-              <a href={`/api/sessions/${s.id}/qr`} download={`session-${s.id}-qr.svg`}
-                className="btn-pri py-2.5 px-4 text-sm">Download QR</a>
-            </div>
-          </div>
-        </div>
+        <QrDialog kicker="Session" title="Session QR code" subtitle="Athletes can scan this to find their photos"
+          qrSrc={`/api/sessions/${s.id}/qr`} link={`${window.location.origin}/sessions/${s.id}`}
+          downloadName={`session-${s.id}-qr.svg`} onClose={() => setShowQR(false)} />
       )}
     </div>
   );
@@ -745,30 +730,10 @@ function PhotographerQR() {
       </div>
 
       {showQR && (
-        <div className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
-          <div role="dialog" aria-modal="true" className="relative bg-char-2 border border-line p-7 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <p className="hud mb-3">QR / Profile</p>
-            <h2 className="disp text-2xl text-bone mb-2">Your profile QR<span className="text-rec">.</span></h2>
-            <p className="text-sm text-mute mb-5">Athletes scan this to see all your sessions</p>
-            <div className="bg-bone p-4 inline-block mb-4">
-              <img src="/api/photographer/qr" alt="QR Code" className="w-48 h-48" />
-            </div>
-            <p className="font-mono text-[11px] text-dim mb-5 break-all">{profileUrl}</p>
-            <div className="flex gap-2 justify-center">
-              <button onClick={() => { navigator.clipboard.writeText(profileUrl); toastSuccess("Link copied!"); }}
-                className="btn-sec py-2.5 px-4 text-sm">
-                Copy Link
-              </button>
-              <a href="/api/photographer/qr" download="my-qr-code.svg"
-                className="btn-pri py-2.5 px-4 text-sm">
-                Download QR
-              </a>
-            </div>
-            <p className="font-mono text-[11px] text-dim mt-5">
-              Print on t-shirts, stickers, business cards, or show at the spot
-            </p>
-          </div>
-        </div>
+        <QrDialog kicker="Profile" title="Your profile QR" subtitle="Athletes scan this to see all your sessions"
+          qrSrc="/api/photographer/qr" link={profileUrl} downloadName="my-qr-code.svg"
+          footnote="Print on t-shirts, stickers, business cards, or show at the spot"
+          onClose={() => setShowQR(false)} />
       )}
     </>
   );

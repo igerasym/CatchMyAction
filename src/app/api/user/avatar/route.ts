@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import sharp from "sharp";
 import { prisma } from "@/lib/db";
-import { putObject, BUCKET_PREVIEWS } from "@/lib/s3";
+import { putObject, deleteObject, BUCKET_PREVIEWS } from "@/lib/s3";
+import { avatarKey, avatarKeyFromUrl } from "@/lib/avatar";
 import { getAuthUser } from "@/lib/auth-helpers";
 
 /** POST /api/user/avatar — upload avatar image (authenticated) */
@@ -27,7 +28,9 @@ export async function POST(req: NextRequest) {
       .jpeg({ quality: 80 })
       .toBuffer();
 
-    const key = `avatars/${user.id}.jpg`;
+    // A new key per upload: the CDN ignores query strings, so a fixed key kept serving the old picture
+    const key = avatarKey(user.id);
+    const previous = await prisma.user.findUnique({ where: { id: user.id }, select: { avatarUrl: true } });
     await putObject(BUCKET_PREVIEWS, key, processed, "image/jpeg");
 
     const isLocal = !process.env.AWS_REGION || process.env.USE_LOCAL_STORAGE === "true";
@@ -37,15 +40,18 @@ export async function POST(req: NextRequest) {
         ? `https://${process.env.CLOUDFRONT_DOMAIN}/${key}`
         : `https://${BUCKET_PREVIEWS}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
 
-    // Append cache-bust so browsers load the new image
-    const avatarUrlWithBust = avatarUrl + "?v=" + Date.now();
-
     await prisma.user.update({
       where: { id: user.id },
-      data: { avatarUrl: avatarUrlWithBust },
+      data: { avatarUrl },
     });
 
-    return NextResponse.json({ avatarUrl: avatarUrlWithBust });
+    // Best effort: drop the previous file (only ever one of this user's own avatars/ keys)
+    const oldKey = avatarKeyFromUrl(previous?.avatarUrl, user.id);
+    if (oldKey && oldKey !== key) {
+      await deleteObject(BUCKET_PREVIEWS, oldKey).catch((e) => console.warn("Old avatar cleanup failed:", e));
+    }
+
+    return NextResponse.json({ avatarUrl });
   } catch (err: any) {
     console.error("Avatar upload error:", err);
     return NextResponse.json({ error: err.message || "Upload failed" }, { status: 500 });
