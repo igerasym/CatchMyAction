@@ -5,7 +5,7 @@ import { useRouter, useParams } from "next/navigation";
 import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import PublishedPanel from "../../published-panel";
-import { toastError, toastSuccess } from "@/lib/toast";
+import { toastError, toastSuccess, toastWarning } from "@/lib/toast";
 import { useUploadQueue } from "@/hooks/use-upload-queue";
 import { UploadStatus } from "@/app/components/upload-status";
 import { ResumeUploadBanner } from "@/app/components/resume-upload-banner";
@@ -151,6 +151,25 @@ export default function ManagePhotosPage() {
       body: JSON.stringify({ coverPhotoId: photoId }),
     });
     if (session) setSession({ ...session, coverPhotoId: photoId });
+
+    // The cover is the big image on the public page: give it the clean (no watermark pattern) version
+    const photo = photos.find((p) => p.id === photoId);
+    if (photo && !photo.featured) {
+      const res = await fetch(`/api/photos/${photoId}/featured`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ featured: true }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setPhotos((prev) => prev.map((p) => (p.id === photoId ? { ...p, featured: true } : p)));
+        toastSuccess("Cover set, shown without the watermark pattern.");
+      } else {
+        toastWarning(data.error || "Cover set, but the clean version couldn't be made.");
+      }
+    } else {
+      toastSuccess("Cover set.");
+    }
   }
 
   // --- Feature (clean showcase version on the homepage / link previews) ---
@@ -258,6 +277,9 @@ export default function ManagePhotosPage() {
           >
             QR Code
           </button>
+          <a href={`/sessions/${sessionId}`} className="btn-sec py-3 px-5 text-sm">
+            View session
+          </a>
         </div>
       </div>
 

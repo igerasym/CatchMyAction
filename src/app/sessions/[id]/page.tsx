@@ -128,7 +128,16 @@ export default async function SessionPage({
     thumbnailUrl: getPreviewUrl(p.thumbnailKey),
   }));
 
-  const coverUrl = photos[0]?.previewUrl;
+  // Cover = the photographer's pick (else the first photo). Their clean "featured" rendition has no
+  // watermark pattern, so the big header image looks like a photo, not a proof sheet.
+  const coverPhoto = showPhotos
+    ? await prisma.photo.findFirst({
+        where: session.coverPhotoId ? { id: session.coverPhotoId, sessionId: params.id } : { sessionId: params.id },
+        orderBy: { createdAt: "asc" },
+        select: { previewKey: true, featuredKey: true },
+      })
+    : null;
+  const coverUrl = coverPhoto ? getPreviewUrl(coverPhoto.featuredKey ?? coverPhoto.previewKey) : photos[0]?.previewUrl;
   const sessionDate = new Date(session.date);
   const photographerInitials = session.photographer.name
     .split(/\s+/)

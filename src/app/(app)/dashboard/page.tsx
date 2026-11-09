@@ -678,6 +678,8 @@ function SessionRow({
                     role="menuitem" className="w-full text-left px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">QR Code</button>
                   <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/sessions/${s.id}`); setShowMenu(false); toastSuccess("Link copied!"); }}
                     role="menuitem" className="w-full text-left px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">Copy Link</button>
+                  <Link href={`/sessions/${s.id}`} onClick={() => setShowMenu(false)}
+                    role="menuitem" className="block px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">View Session</Link>
                   <Link href={`/dashboard/sessions/${s.id}`} onClick={() => setShowMenu(false)}
                     role="menuitem" className="block px-3.5 py-2.5 text-sm text-mute hover:text-bone hover:bg-char-2 transition-colors">Manage Photos</Link>
                   <div className="border-t border-line my-1" />
