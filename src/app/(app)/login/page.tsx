@@ -7,6 +7,7 @@ import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
 import { AuthShell, INPUT, LABEL, LINK, Notice } from "../ui";
 import { safeCallbackUrl } from "@/lib/redirect";
+import GoogleButton from "@/app/components/google-button";
 import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 
 export default function LoginPage() {
@@ -42,7 +43,19 @@ export default function LoginPage() {
     <AuthShell kicker="01 / Account" title="Sign in">
       {verified && <Notice tone="ok" className="mb-5">Email verified. You can now sign in.</Notice>}
       {tokenError === "invalid-token" && <Notice className="mb-5">Invalid or expired verification link.</Notice>}
+      {tokenError === "GoogleUnverified" && <Notice className="mb-5">Google says this email isn&apos;t verified, so we can&apos;t sign you in with it. Verify it in your Google account or use email and password.</Notice>}
+      {tokenError === "GoogleNoEmail" && <Notice className="mb-5">Google didn&apos;t share an email address, so we can&apos;t sign you in with it.</Notice>}
+      {tokenError && !["invalid-token", "GoogleUnverified", "GoogleNoEmail", "CredentialsSignin"].includes(tokenError) && (
+        <Notice className="mb-5">Sign-in didn&apos;t complete. Try again, or use email and password.</Notice>
+      )}
       {error && <Notice className="mb-5">{error}</Notice>}
+      <GoogleButton callbackUrl={callbackUrl} divider>
+        <p className="font-mono text-[11px] tracking-[0.04em] text-dim mt-3 leading-relaxed">
+          New here? Continuing creates your account and means you accept the{" "}
+          <a href="/terms" target="_blank" rel="noopener noreferrer" className={LINK}>Terms</a> and{" "}
+          <a href="/privacy" target="_blank" rel="noopener noreferrer" className={LINK}>Privacy Policy</a>, including facial recognition for photo matching.
+        </p>
+      </GoogleButton>
       <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label htmlFor="email" className={LABEL}>Email</label>

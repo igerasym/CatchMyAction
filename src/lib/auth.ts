@@ -1,15 +1,33 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
+import { cookies } from "next/headers";
 import bcrypt from "bcryptjs";
 import { prisma } from "./db";
 import { rateLimit } from "./rate-limit";
+import { SIGNUP_ROLE_COOKIE, decideGoogleSignIn, googleConfigured, roleFromCookie } from "./google-auth";
+
+/** Find the user behind a Google email (case-insensitive: older accounts keep whatever case they signed up with). */
+function findByEmail(email: string) {
+  return prisma.user.findFirst({ where: { email: { equals: email, mode: "insensitive" } } });
+}
 
 export const authOptions: NextAuthOptions = {
   session: { strategy: "jwt" },
   pages: {
     signIn: "/login",
+    error: "/login", // OAuth failures come back as /login?error=<code>
   },
   providers: [
+    // Only offered when the keys are configured on the server (see docs/GOOGLE_SIGNIN.md)
+    ...(googleConfigured()
+      ? [
+          GoogleProvider({
+            clientId: process.env.GOOGLE_CLIENT_ID as string,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+          }),
+        ]
+      : []),
     CredentialsProvider({
       name: "credentials",
       credentials: {
@@ -51,7 +69,38 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async jwt({ token, user, trigger }) {
+    async signIn({ account, profile }) {
+      if (account?.provider !== "google") return true;
+      const p = (profile ?? {}) as { email?: string; email_verified?: boolean; name?: string; picture?: string };
+      const email = p.email?.trim().toLowerCase();
+      const existing = email ? await findByEmail(email) : null;
+      const signupRole = roleFromCookie(cookies().get(SIGNUP_ROLE_COOKIE)?.value);
+      const decision = decideGoogleSignIn(p, existing, signupRole);
+      if (decision.action === "reject") {
+        return decision.reason === "unverified-email" ? "/login?error=GoogleUnverified" : "/login?error=GoogleNoEmail";
+      }
+      if (decision.action === "create") {
+        await prisma.user.create({ data: decision.data });
+      } else if (existing && Object.keys(decision.patch).length > 0) {
+        await prisma.user.update({ where: { id: existing.id }, data: decision.patch });
+      }
+      return true;
+    },
+    async jwt({ token, user, trigger, account, profile }) {
+      // Google: the provider's own user object isn't ours; load the account that signIn created or matched
+      if (account?.provider === "google") {
+        const email = (profile as { email?: string } | undefined)?.email?.trim().toLowerCase();
+        const dbUser = email ? await findByEmail(email) : null;
+        if (dbUser) {
+          token.id = dbUser.id;
+          token.name = dbUser.name;
+          token.email = dbUser.email;
+          token.role = dbUser.role;
+          token.avatarUrl = dbUser.avatarUrl;
+          token.emailVerified = dbUser.emailVerified;
+        }
+        return token;
+      }
       // First sign in — set id from user
       if (user) {
         token.id = user.id;

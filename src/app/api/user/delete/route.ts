@@ -8,14 +8,21 @@ export async function POST(req: NextRequest) {
   const authUser = await getAuthUser();
   if (authUser instanceof NextResponse) return authUser;
 
-  const { password } = await req.json();
-  if (!password) return NextResponse.json({ error: "Password required" }, { status: 400 });
+  const { password, confirmEmail } = await req.json();
 
   const user = await prisma.user.findUnique({ where: { id: authUser.id } });
-  if (!user || !user.passwordHash) return NextResponse.json({ error: "User not found" }, { status: 404 });
+  if (!user) return NextResponse.json({ error: "User not found" }, { status: 404 });
 
-  const valid = await bcrypt.compare(password, user.passwordHash);
-  if (!valid) return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
+  if (user.passwordHash) {
+    if (!password) return NextResponse.json({ error: "Password required" }, { status: 400 });
+    const valid = await bcrypt.compare(password, user.passwordHash);
+    if (!valid) return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
+  } else {
+    // Signed up with Google: no password to check, so the person types their email to confirm
+    if (typeof confirmEmail !== "string" || confirmEmail.trim().toLowerCase() !== user.email.toLowerCase()) {
+      return NextResponse.json({ error: "Type your account email to confirm" }, { status: 403 });
+    }
+  }
 
   // A photographer whose photos were bought can't self-delete: buyers would lose access.
   const sold = await prisma.purchase.count({

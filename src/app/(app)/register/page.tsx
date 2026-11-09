@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Check, Circle, Mail } from "lucide-react";
 import { AuthShell, CHECKBOX, INPUT, LABEL, LINK, Notice } from "../ui";
 import { safeCallbackUrl } from "@/lib/redirect";
+import GoogleButton from "@/app/components/google-button";
 import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 import { passwordChecks, roleFromQuery, ROLE_OPTIONS, type Role } from "./roles";
 
@@ -158,6 +159,10 @@ export default function RegisterPage() {
         <button type="submit" disabled={loading || !agreed} className="btn-pri w-full justify-center disabled:opacity-40">
           {loading ? "Creating account..." : "Create account"}
         </button>
+        {/* Same role and consent as above; the button stays off until the box is ticked */}
+        <GoogleButton callbackUrl={callbackUrl} role={role} disabled={!agreed || loading} label="Sign up with Google" divider={false}>
+          {!agreed && <p className="font-mono text-[11px] tracking-[0.04em] text-dim mt-2">Tick the box above to sign up with Google.</p>}
+        </GoogleButton>
       </form>
       <p className="text-sm text-mute mt-6 pt-5 border-t border-line">
         Already have an account?{" "}
