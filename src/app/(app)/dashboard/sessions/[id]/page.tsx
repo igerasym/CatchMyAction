@@ -180,6 +180,8 @@ export default function ManagePhotosPage() {
     if (wasUploading.current && !uploads.inProgress) {
       fetch(`/api/sessions/${sessionId}`).then((r) => r.json()).then(setSession);
     }
+    // Focus on the upload: drop any leftover selection when a batch starts or ends
+    if (wasUploading.current !== uploads.inProgress) setSelected(new Set());
     wasUploading.current = uploads.inProgress;
   }, [uploads.inProgress, sessionId]);
 
@@ -270,7 +272,7 @@ export default function ManagePhotosPage() {
       <div className="mb-6">
         <UploadStatus
           total={uploads.total} done={uploads.done} failed={uploads.failed}
-          inProgress={uploads.inProgress} retryableCount={uploads.retryableCount}
+          inProgress={uploads.inProgress}
           onRetry={uploads.retryFailed} onDismiss={uploads.dismissFailed}
         />
       </div>

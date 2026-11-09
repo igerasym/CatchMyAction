@@ -7,6 +7,7 @@ import PasswordInput from "@/app/components/password-input";
 import DateTimeInput from "@/app/components/date-time-input";
 import { toastError, toastWarning } from "@/lib/toast";
 import { useUploadQueue } from "@/hooks/use-upload-queue";
+import { UploadedPhotos, type UploadedPhoto } from "@/app/components/uploaded-photos";
 import { UploadStatus } from "@/app/components/upload-status";
 import dynamic from "next/dynamic";
 import { UploadCloud, Camera } from "lucide-react";
@@ -56,7 +57,9 @@ export default function UploadPage() {
 
   // Upload state
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const uploads = useUploadQueue(sessionId);
+  const [uploaded, setUploaded] = useState<UploadedPhoto[]>([]);
+  const [removingId, setRemovingId] = useState<string | null>(null);
+  const uploads = useUploadQueue<UploadedPhoto>(sessionId, (photo) => setUploaded((prev) => [...prev, photo]));
   const [dragging, setDragging] = useState(false);
   const [showLocationPicker, setShowLocationPicker] = useState(false);
   const [pendingSessionId, setPendingSessionId] = useState<string | null>(null);
@@ -190,6 +193,14 @@ export default function UploadPage() {
     if (files.length > 0) uploadFiles(files);
   }
 
+  async function handleRemove(id: string) {
+    setRemovingId(id);
+    const res = await fetch(`/api/photos/${id}`, { method: "DELETE" });
+    setRemovingId(null);
+    if (res.ok) setUploaded((prev) => prev.filter((p) => p.id !== id));
+    else toastError((await res.json().catch(() => ({}))).error || "Couldn't remove the photo");
+  }
+
   async function handlePublish() {
     if (!sessionId) return;
     const res = await fetch(`/api/sessions/${sessionId}`, {
@@ -253,14 +264,15 @@ export default function UploadPage() {
           </div>
           <UploadStatus
             total={uploads.total} done={uploads.done} failed={uploads.failed}
-            inProgress={uploads.inProgress} retryableCount={uploads.retryableCount}
+            inProgress={uploads.inProgress}
             onRetry={uploads.retryFailed} onDismiss={uploads.dismissFailed}
           />
+          <UploadedPhotos photos={uploaded} onRemove={handleRemove} busyId={removingId} />
           <div className="flex gap-3">
-            {uploads.done > 0 && !uploads.inProgress && (
+            {uploaded.length > 0 && !uploads.inProgress && (
               <button onClick={handlePublish}
                 className="btn-pri flex-1 justify-center">
-                Publish Session ({uploads.done} photos)
+                Publish Session ({uploaded.length} photo{uploaded.length === 1 ? "" : "s"})
               </button>
             )}
           </div>
@@ -272,7 +284,7 @@ export default function UploadPage() {
                 onClick={() => window.location.href = `/dashboard/sessions/${sessionId}`}
                 className="btn-sec text-sm"
               >
-                {uploads.done > 0 ? "Manage Session →" : "Skip — Upload Later & Get QR Code"}
+                {uploaded.length > 0 ? "Manage Session →" : "Skip — Upload Later & Get QR Code"}
               </button>
             </div>
           )}

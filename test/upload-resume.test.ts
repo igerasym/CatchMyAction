@@ -14,7 +14,8 @@ const items: Item[] = [
 
 describe("summarise", () => {
   it("counts each state for the 'uploaded N of M' line", () => {
-    expect(summarise(items)).toEqual({ total: 6, done: 2, pending: 2, failed: 2 });
+    // the server-rejected item ('d') is not counted as left to upload
+    expect(summarise(items)).toEqual({ total: 5, done: 2, pending: 2, failed: 1 });
   });
 
   it("handles an empty batch", () => {
