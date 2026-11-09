@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canInstall, detectPlatform, isStandalone, shouldShowBanner } from "@/lib/install-prompt";
+import { canInstall, detectInAppBrowser, detectPlatform, isStandalone, shouldShowBanner } from "@/lib/install-prompt";
 
 const IPHONE = "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15";
 const IPAD_DESKTOP_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15";
@@ -62,5 +62,23 @@ describe("canInstall", () => {
     expect(canInstall("ATHLETE")).toBe(false);
     expect(canInstall(undefined)).toBe(false);
     expect(canInstall(null)).toBe(false);
+  });
+});
+
+describe("detectInAppBrowser", () => {
+  const SAFARI = "Mozilla/5.0 (iPhone; CPU iPhone OS 18_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/18.0 Mobile/15E148 Safari/604.1";
+  it("names Instagram, Facebook and TikTok browsers", () => {
+    expect(detectInAppBrowser(`${IPHONE} Mobile/15E148 Instagram 300.0.0`)).toBe("Instagram");
+    expect(detectInAppBrowser(`${IPHONE} Mobile/15E148 [FBAN/FBIOS;FBAV/450.0]`)).toBe("Facebook");
+    expect(detectInAppBrowser(`${ANDROID} musical_ly_2023`)).toBe("TikTok");
+  });
+  it("flags an unnamed iOS WebView", () => {
+    expect(detectInAppBrowser(`${IPHONE} (KHTML, like Gecko) Mobile/15E148`)).toBe("this app");
+  });
+  it("leaves real browsers alone", () => {
+    expect(detectInAppBrowser(SAFARI)).toBeNull();
+    expect(detectInAppBrowser(`${IPHONE} (KHTML, like Gecko) CriOS/120.0 Mobile/15E148 Safari/604.1`)).toBeNull();
+    expect(detectInAppBrowser(`${ANDROID} Mobile Safari/537.36`)).toBeNull();
+    expect(detectInAppBrowser(MAC)).toBeNull();
   });
 });

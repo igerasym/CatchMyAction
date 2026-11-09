@@ -5,6 +5,7 @@ import { useSession } from "next-auth/react";
 import {
   DISMISS_KEY,
   canInstall,
+  detectInAppBrowser,
   detectPlatform,
   isStandalone,
   shouldShowBanner,
@@ -21,6 +22,7 @@ export default function InstallBanner() {
   const { data: session } = useSession();
   const eligible = canInstall((session?.user as { role?: string } | undefined)?.role);
   const [platform, setPlatform] = useState<InstallPlatform>("other");
+  const [inApp, setInApp] = useState<string | null>(null);
   const [deferred, setDeferred] = useState<BeforeInstallPromptEvent | null>(null);
   const [visible, setVisible] = useState(false);
   // A ref, not state: the timer below must read the latest prompt, not the value from first render.
@@ -30,6 +32,7 @@ export default function InstallBanner() {
   // Always listen, so the event is never missed while we are still finding out the role.
   useEffect(() => {
     setPlatform(detectPlatform(navigator.userAgent, navigator.maxTouchPoints));
+    setInApp(detectInAppBrowser(navigator.userAgent));
     const onPrompt = (e: Event) => {
       e.preventDefault(); // hold it back, so our own button can trigger the install
       promptRef.current = e as BeforeInstallPromptEvent;
@@ -81,9 +84,13 @@ export default function InstallBanner() {
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <p className="text-bone font-bold text-sm">Upload faster from your home screen</p>
-          {platform === "ios" ? (
+          {inApp ? (
             <p className="text-mute text-sm mt-1">
-              Tap <strong>Share</strong> in Safari, then <strong>Add to Home Screen</strong>. It opens full-screen, like an app.
+              First open this page in {platform === "android" ? "Chrome" : "Safari"}: tap <strong>•••</strong> and choose <strong>Open in browser</strong>. {inApp}&apos;s built-in browser can&apos;t add apps.
+            </p>
+          ) : platform === "ios" ? (
+            <p className="text-mute text-sm mt-1">
+              In Safari tap <strong>Share</strong> (square with an arrow; may be under <strong>•••</strong>), then <strong>Add to Home Screen</strong>.
             </p>
           ) : (
             <p className="text-mute text-sm mt-1">Open it full-screen, straight from your home screen.</p>
@@ -91,7 +98,8 @@ export default function InstallBanner() {
         </div>
         <button onClick={dismiss} aria-label="Close" className="hud hover:text-bone px-1">×</button>
       </div>
-      {platform === "android" && deferred && (
+      <a href="/install" className="hud hover:text-bone inline-block mt-2 underline underline-offset-4">Show me step by step</a>
+      {platform === "android" && deferred && !inApp && (
         <button onClick={install} className="btn-pri mt-3 w-full justify-center py-2.5 text-sm">
           Install app
         </button>

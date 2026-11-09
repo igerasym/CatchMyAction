@@ -7,6 +7,7 @@ import Link from "next/link";
 import Logo from "./components/logo";
 import { LayoutDashboard, UserCircle, Images, Settings, LogOut, BookOpen, Smartphone, MessageSquare } from "lucide-react";
 import { openFeedback } from "@/lib/feedback-types";
+import { detectPlatform } from "@/lib/install-prompt";
 
 export default function NavBar() {
   const { data: session, status } = useSession();
@@ -16,6 +17,11 @@ export default function NavBar() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const [scrolled, setScrolled] = useState(false);
+  // "Add to home screen" only makes sense on a phone
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    setIsMobile(detectPlatform(navigator.userAgent, navigator.maxTouchPoints) !== "other");
+  }, []);
 
   // Home: transparent over the hero, solid once the page scrolls
   useEffect(() => {
@@ -97,7 +103,7 @@ export default function NavBar() {
                         <MenuItem href="/dashboard" icon={<LayoutDashboard className="w-4 h-4" />} label="Dashboard" onClick={() => setMenuOpen(false)} />
                         <MenuItem href={`/photographer/${user?.id}`} icon={<UserCircle className="w-4 h-4" />} label="Public Profile" onClick={() => setMenuOpen(false)} />
                         <MenuItem href="/guide" icon={<BookOpen className="w-4 h-4" />} label="Photographer Guide" onClick={() => setMenuOpen(false)} />
-                        <MenuItem href="/install" icon={<Smartphone className="w-4 h-4" />} label="Add to home screen" onClick={() => setMenuOpen(false)} />
+                        {isMobile && <MenuItem href="/install" icon={<Smartphone className="w-4 h-4" />} label="Add to home screen" onClick={() => setMenuOpen(false)} />}
                         <div className="border-t border-line my-1" />
                       </>
                     )}
