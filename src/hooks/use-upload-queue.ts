@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { uploadPhoto } from "@/lib/upload-client";
 import { itemId, putItems, removeItem, setStatus, pendingForSession, clearSession, type StoredItem } from "@/lib/upload-store";
-import { filesToResume, summarise, type ResumeSummary } from "@/lib/upload-resume";
+import { filesToResume, isRejected, summarise, type ResumeSummary } from "@/lib/upload-resume";
 
 export interface FailedUpload {
   file: File;
@@ -44,7 +44,9 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
         } else {
           setFailed((f) => [...f, { file, message: outcome.message, retryable: outcome.retryable }]);
           // "retryable" marks network trouble; anything else is the server rejecting the photo.
-          setStatus(id, "failed", outcome.retryable ? "retryable" : outcome.message).catch(() => {});
+          // A rejected photo can never succeed on resume, so don't keep it around to inflate the "not uploaded" count.
+          if (outcome.retryable) setStatus(id, "failed", "retryable").catch(() => {});
+          else removeItem(id).catch(() => {});
         }
         running.current--;
         setActive(running.current);
@@ -84,6 +86,8 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
     if (!sessionId) return;
     pendingForSession(sessionId)
       .then((items) => {
+        // Leftovers from older visits: rejected photos that were kept in storage
+        items.filter(isRejected).forEach((i) => removeItem(i.id).catch(() => {}));
         const summary = summarise(items);
         if (summary.pending + summary.failed > 0) setResumable(summary);
       })
@@ -103,7 +107,7 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
     pump();
   }, [pump, sessionId]);
 
-  /** Re-queue everything that failed for a reason other than the server rejecting the photo. */
+  /** Re-queue everything that failed only because the connection dropped. */
   const retryFailed = useCallback(() => {
     const again = failedRef.current.filter((f) => f.retryable);
     if (again.length === 0) return;
@@ -112,13 +116,14 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
     pump();
   }, [pump]);
 
+  /** Clear the rejected photos from the list (dropped-connection ones stay so they can be retried). */
   const dismissFailed = useCallback(() => {
-    setTotal((n) => n - failedRef.current.length);
-    setFailed([]);
+    const rejected = failedRef.current.filter((f) => !f.retryable).length;
+    setTotal((n) => n - rejected);
+    setFailed(failedRef.current.filter((f) => f.retryable));
   }, []);
 
   const inProgress = active > 0 || queue.current.length > 0;
-  const retryableCount = failed.filter((f) => f.retryable).length;
 
   // Closing the tab mid-upload silently drops the rest of the batch.
   useEffect(() => {
@@ -139,7 +144,7 @@ export function useUploadQueue<T = unknown>(sessionId: string | null, onUploaded
   }, [sessionId]);
 
   return {
-    total, done, failed, inProgress, retryableCount, add, retryFailed, dismissFailed,
+    total, done, failed, inProgress, add, retryFailed, dismissFailed,
     resumable, resume, discardResumable,
   };
 }
