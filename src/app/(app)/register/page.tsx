@@ -8,6 +8,7 @@ import Link from "next/link";
 import { Check, Circle, Mail } from "lucide-react";
 import { AuthShell, CHECKBOX, INPUT, LABEL, LINK, Notice } from "../ui";
 import { safeCallbackUrl } from "@/lib/redirect";
+import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 import { passwordChecks, roleFromQuery, ROLE_OPTIONS, type Role } from "./roles";
 
 export default function RegisterPage() {
@@ -19,6 +20,9 @@ export default function RegisterPage() {
   const [role, setRole] = useState<Role>("USER");
   const [password, setPassword] = useState("");
   const [callbackUrl, setCallbackUrl] = useState("/");
+  // Set once the form is submitted: signing in right after sign-up must not trigger the "already signed in" redirect
+  const [submitted, setSubmitted] = useState(false);
+  useRedirectIfSignedIn(callbackUrl, role === "PHOTOGRAPHER", !submitted);
 
   // /register?role=photographer (homepage CTA) · ?callbackUrl=/sessions/x (came from a buy / find-me gate)
   useEffect(() => {
@@ -32,6 +36,7 @@ export default function RegisterPage() {
     if (!agreed) { setError("You must agree to the Terms and Privacy Policy"); return; }
     setError("");
     setLoading(true);
+    setSubmitted(true);
     const form = new FormData(e.currentTarget);
     const data = {
       name: form.get("name"),
@@ -48,6 +53,7 @@ export default function RegisterPage() {
       const err = await res.json();
       setError(err.error || "Registration failed");
       setLoading(false);
+      setSubmitted(false);
       return;
     }
     await signIn("credentials", { email: data.email, password: data.password, redirect: false });

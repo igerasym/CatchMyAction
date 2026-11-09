@@ -7,6 +7,7 @@ import PasswordInput from "@/app/components/password-input";
 import Link from "next/link";
 import { AuthShell, INPUT, LABEL, LINK, Notice } from "../ui";
 import { safeCallbackUrl } from "@/lib/redirect";
+import { useRedirectIfSignedIn } from "@/hooks/use-redirect-if-signed-in";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -16,6 +17,7 @@ export default function LoginPage() {
   const callbackUrl = safeCallbackUrl(searchParams.get("callbackUrl"));
   const verified = searchParams.get("verified");
   const tokenError = searchParams.get("error");
+  useRedirectIfSignedIn(callbackUrl);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -31,7 +33,8 @@ export default function LoginPage() {
     if (res?.error) {
       setError(res.error === "CredentialsSignin" ? "Invalid email or password" : res.error);
     } else {
-      window.location.href = callbackUrl;
+      // replace: keep /login out of history so Back doesn't return to it
+      window.location.replace(callbackUrl);
     }
   }
 
