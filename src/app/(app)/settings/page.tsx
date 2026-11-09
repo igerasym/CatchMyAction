@@ -23,6 +23,7 @@ export default function SettingsPage() {
   });
   const [email, setEmail] = useState("");
   const [verified, setVerified] = useState(false);
+  const [hasPassword, setHasPassword] = useState(true);
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
@@ -44,6 +45,7 @@ export default function SettingsPage() {
       });
       setEmail(data.email || "");
       setVerified(!!data.emailVerified);
+      setHasPassword(data.hasPassword !== false);
     });
   }, [user?.id]);
 
@@ -160,7 +162,9 @@ export default function SettingsPage() {
           </Field>
         </div>
 
-        {/* Password */}
+        {/* Password (not for accounts that sign in with Google only) */}
+        {hasPassword ? (
+          <>
         <SectionHeader title="Change Password" className="pt-6 border-t border-line" />
         <div className="space-y-5">
           <Field label="Current Password" htmlFor="settings-current-password">
@@ -173,6 +177,11 @@ export default function SettingsPage() {
           </Field>
         </div>
 
+          </>
+        ) : (
+          <p className="text-sm text-mute pt-6 border-t border-line">You sign in with Google, so there is no password to manage here.</p>
+        )}
+
         <button type="submit" disabled={saving} className="btn-pri w-full justify-center disabled:opacity-50">
           {saving ? "Saving..." : "Save Changes"}
         </button>
@@ -180,7 +189,7 @@ export default function SettingsPage() {
 
       {/* Account Type */}
       {user?.role === "USER" && (
-        <UpgradeSection userId={user.id} update={update}
+        <UpgradeSection userId={user.id} hasPassword={hasPassword} update={update}
           onSuccess={(msg) => setMessage({ type: "ok", text: msg })}
           onError={(msg) => setMessage({ type: "err", text: msg })} />
       )}
@@ -191,7 +200,7 @@ export default function SettingsPage() {
             <span className="tag-ghost border border-line">PHOTOGRAPHER</span>
             <span className="text-sm text-mute">You can create sessions and upload photos</span>
           </div>
-          <DowngradeSection userId={user.id} update={update}
+          <DowngradeSection userId={user.id} hasPassword={hasPassword} update={update}
             onSuccess={(msg) => setMessage({ type: "ok", text: msg })}
             onError={(msg) => setMessage({ type: "err", text: msg })} />
         </div>
@@ -208,12 +217,12 @@ export default function SettingsPage() {
           Delete Account
         </button>
       </div>
-      {showDelete && <DeleteAccountDialog onClose={() => setShowDelete(false)} />}
+      {showDelete && <DeleteAccountDialog hasPassword={hasPassword} email={email} onClose={() => setShowDelete(false)} />}
     </div>
   );
 }
 
-function DeleteAccountDialog({ onClose }: { onClose: () => void }) {
+function DeleteAccountDialog({ hasPassword, email, onClose }: { hasPassword: boolean; email: string; onClose: () => void }) {
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -233,7 +242,7 @@ function DeleteAccountDialog({ onClose }: { onClose: () => void }) {
       const res = await fetch("/api/user/delete", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password }),
+        body: JSON.stringify(hasPassword ? { password } : { confirmEmail: password }),
       });
       const data = await res.json();
       if (data.deleted) {
@@ -257,9 +266,19 @@ function DeleteAccountDialog({ onClose }: { onClose: () => void }) {
           This permanently deletes your account, sessions, photos and purchases. It cannot be undone.
         </p>
         {error && <Notice className="mb-4">{error}</Notice>}
-        <label htmlFor="delete-password" className={LABEL}>Enter your password to confirm</label>
-        <PasswordInput id="delete-password" name="password" value={password} required
-          autoComplete="current-password" onChange={(e) => setPassword(e.target.value)} className={`${INPUT} pr-10`} />
+        {hasPassword ? (
+          <>
+            <label htmlFor="delete-password" className={LABEL}>Enter your password to confirm</label>
+            <PasswordInput id="delete-password" name="password" value={password} required
+              autoComplete="current-password" onChange={(e) => setPassword(e.target.value)} className={`${INPUT} pr-10`} />
+          </>
+        ) : (
+          <>
+            <label htmlFor="delete-email" className={LABEL}>Type your email ({email}) to confirm</label>
+            <input id="delete-email" type="email" value={password} required autoComplete="off"
+              onChange={(e) => setPassword(e.target.value)} className={INPUT} />
+          </>
+        )}
         <div className="flex gap-2 justify-end mt-6">
           <button type="button" onClick={onClose} disabled={busy} className="btn-sec py-2.5 px-4 text-sm">Cancel</button>
           <button type="submit" disabled={busy || !password}
@@ -358,8 +377,8 @@ function Field({ label, htmlFor, children }: { label: string; htmlFor?: string; 
   );
 }
 
-function UpgradeSection({ userId, update, onSuccess, onError }: {
-  userId: string; update: () => Promise<any>;
+function UpgradeSection({ userId, hasPassword, update, onSuccess, onError }: {
+  userId: string; hasPassword: boolean; update: () => Promise<any>;
   onSuccess: (msg: string) => void; onError: (msg: string) => void;
 }) {
   const [password, setPassword] = useState("");
@@ -383,10 +402,14 @@ function UpgradeSection({ userId, update, onSuccess, onError }: {
       <SectionHeader title="Become a Photographer" />
       <p className="text-sm text-mute mt-4 mb-5">Upgrade to create sessions, upload photos, and start selling.</p>
       <form onSubmit={handle} className="space-y-3">
-        <label htmlFor="upgrade-password" className={LABEL}>Confirm your password</label>
-        <PasswordInput id="upgrade-password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required
-          placeholder="Confirm your password"
-          className={`${INPUT} pr-10`} />
+        {hasPassword && (
+          <>
+            <label htmlFor="upgrade-password" className={LABEL}>Confirm your password</label>
+            <PasswordInput id="upgrade-password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required
+              placeholder="Confirm your password"
+              className={`${INPUT} pr-10`} />
+          </>
+        )}
         <label htmlFor="upgrade-agree" className="flex items-start gap-2.5 cursor-pointer">
           <input id="upgrade-agree" type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)}
             className={`mt-0.5 ${CHECKBOX}`} />
@@ -401,8 +424,8 @@ function UpgradeSection({ userId, update, onSuccess, onError }: {
   );
 }
 
-function DowngradeSection({ userId, update, onSuccess, onError }: {
-  userId: string; update: () => Promise<any>;
+function DowngradeSection({ userId, hasPassword, update, onSuccess, onError }: {
+  userId: string; hasPassword: boolean; update: () => Promise<any>;
   onSuccess: (msg: string) => void; onError: (msg: string) => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -428,8 +451,10 @@ function DowngradeSection({ userId, update, onSuccess, onError }: {
   return (
     <form onSubmit={handle} className="mt-4 p-4 bg-ink border border-line space-y-3">
       <p className="text-sm text-mute">Your sessions remain but you won&apos;t be able to upload new ones.</p>
-      <PasswordInput id="downgrade-password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Confirm password"
-        className={`${INPUT} pr-10`} />
+      {hasPassword && (
+        <PasswordInput id="downgrade-password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="Confirm password"
+          className={`${INPUT} pr-10`} />
+      )}
       <div className="flex gap-2">
         <button type="submit" disabled={loading}
           className="px-4 py-2.5 text-sm font-bold border border-rec text-rec hover:bg-rec hover:text-rec-ink disabled:opacity-50 transition-colors">

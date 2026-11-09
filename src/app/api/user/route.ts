@@ -31,7 +31,8 @@ export async function GET(req: NextRequest) {
   if (isSelf) {
     // Own profile — return everything except passwordHash and verifyToken
     const { passwordHash, verifyToken, ...safeUser } = user as any;
-    return NextResponse.json(safeUser);
+    // hasPassword: accounts created with Google have none, and the UI skips password prompts for them
+    return NextResponse.json({ ...safeUser, hasPassword: !!passwordHash });
   }
 
   // Public profile — only safe fields
@@ -92,31 +93,30 @@ export async function PATCH(req: NextRequest) {
   }
 
   // Role upgrade: USER → PHOTOGRAPHER (requires password confirmation)
+  // Accounts without a password (signed up with Google) are confirmed by their signed-in session alone.
   if (role === "PHOTOGRAPHER" && user.role === "USER") {
-    if (!currentPassword) {
-      return NextResponse.json({ error: "Password required to upgrade account" }, { status: 400 });
-    }
-    if (!user.passwordHash) {
-      return NextResponse.json({ error: "No password set" }, { status: 400 });
-    }
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!valid) {
-      return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
+    if (user.passwordHash) {
+      if (!currentPassword) {
+        return NextResponse.json({ error: "Password required to upgrade account" }, { status: 400 });
+      }
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!valid) {
+        return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
+      }
     }
     data.role = "PHOTOGRAPHER";
   }
 
   // Role downgrade: PHOTOGRAPHER → USER
   if (role === "USER" && user.role === "PHOTOGRAPHER") {
-    if (!currentPassword) {
-      return NextResponse.json({ error: "Password required to downgrade account" }, { status: 400 });
-    }
-    if (!user.passwordHash) {
-      return NextResponse.json({ error: "No password set" }, { status: 400 });
-    }
-    const valid = await bcrypt.compare(currentPassword, user.passwordHash);
-    if (!valid) {
-      return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
+    if (user.passwordHash) {
+      if (!currentPassword) {
+        return NextResponse.json({ error: "Password required to downgrade account" }, { status: 400 });
+      }
+      const valid = await bcrypt.compare(currentPassword, user.passwordHash);
+      if (!valid) {
+        return NextResponse.json({ error: "Incorrect password" }, { status: 403 });
+      }
     }
     data.role = "USER";
   }
