@@ -11,6 +11,22 @@ export function detectPlatform(ua: string, maxTouchPoints = 0): InstallPlatform 
   return "other";
 }
 
+/**
+ * Links opened from Instagram, Facebook, TikTok etc. land in the app's own browser, which has no
+ * "Add to Home Screen". Returns the app's name so we can say "open it in Safari first", else null.
+ */
+export function detectInAppBrowser(ua: string): string | null {
+  if (/Instagram/i.test(ua)) return "Instagram";
+  if (/FBAN|FBAV|FB_IAB/.test(ua)) return "Facebook";
+  if (/musical_ly|BytedanceWebview|TikTok/i.test(ua)) return "TikTok";
+  if (/Telegram/i.test(ua)) return "Telegram";
+  if (/LinkedInApp/i.test(ua)) return "LinkedIn";
+  if (/\bLine\//.test(ua)) return "LINE";
+  // iOS WebView without "Safari" in the UA: some other app's built-in browser
+  if (/iPhone|iPad|iPod/.test(ua) && /AppleWebKit/.test(ua) && !/Safari\//.test(ua) && !/CriOS|FxiOS|EdgiOS/.test(ua)) return "this app";
+  return null;
+}
+
 /** True when the app already runs as an installed app, so the banner has no point. */
 export function isStandalone(matchMediaStandalone: boolean, iosStandalone?: boolean): boolean {
   return matchMediaStandalone || iosStandalone === true;
