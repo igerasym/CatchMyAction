@@ -26,6 +26,7 @@ export default function SettingsPage() {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [saving, setSaving] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
   const [message, setMessage] = useState<{ type: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
@@ -201,28 +202,72 @@ export default function SettingsPage() {
         <SectionHeader title="Danger Zone" className="!text-rec" />
         <p className="text-sm text-mute mt-3 mb-4">Permanently delete your account and all data. This cannot be undone.</p>
         <button
-          onClick={async () => {
-            const pw = prompt("Enter your password to confirm account deletion:");
-            if (!pw) return;
-            if (!confirm("Are you sure? This will permanently delete your account, all sessions, photos, and purchases.")) return;
-            const res = await fetch("/api/user/delete", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ password: pw }),
-            });
-            const data = await res.json();
-            if (data.deleted) {
-              toastSuccess("Account deleted.");
-              await signOut({ callbackUrl: "/" }); // clear the session cookie — it outlived the account before
-            } else {
-              toastError(data.error || "Failed to delete account");
-            }
-          }}
+          onClick={() => setShowDelete(true)}
           className="px-4 py-2.5 text-sm font-bold border border-rec text-rec hover:bg-rec hover:text-rec-ink transition-colors"
         >
           Delete Account
         </button>
       </div>
+      {showDelete && <DeleteAccountDialog onClose={() => setShowDelete(false)} />}
+    </div>
+  );
+}
+
+function DeleteAccountDialog({ onClose }: { onClose: () => void }) {
+  const [password, setPassword] = useState("");
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape" && !busy) onClose(); };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [busy, onClose]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!password) return;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/user/delete", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.deleted) {
+        toastSuccess("Account deleted.");
+        await signOut({ callbackUrl: "/" }); // clear the session cookie — it outlived the account before
+        return;
+      }
+      setError(data.error || "Failed to delete account");
+    } catch {
+      setError("Network error. Try again.");
+    }
+    setBusy(false);
+  }
+
+  return (
+    <div className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4" onClick={() => !busy && onClose()}>
+      <form role="dialog" aria-modal="true" aria-labelledby="delete-account-title" onSubmit={submit}
+        className="bg-char-2 border border-line p-7 max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
+        <h2 id="delete-account-title" className="disp text-2xl text-bone mb-2">Delete account<span className="text-rec">.</span></h2>
+        <p className="text-sm text-mute mb-5">
+          This permanently deletes your account, sessions, photos and purchases. It cannot be undone.
+        </p>
+        {error && <Notice className="mb-4">{error}</Notice>}
+        <label htmlFor="delete-password" className={LABEL}>Enter your password to confirm</label>
+        <PasswordInput id="delete-password" name="password" value={password} required
+          autoComplete="current-password" onChange={(e) => setPassword(e.target.value)} className={`${INPUT} pr-10`} />
+        <div className="flex gap-2 justify-end mt-6">
+          <button type="button" onClick={onClose} disabled={busy} className="btn-sec py-2.5 px-4 text-sm">Cancel</button>
+          <button type="submit" disabled={busy || !password}
+            className="px-4 py-2.5 text-sm font-bold bg-rec text-rec-ink disabled:opacity-50">
+            {busy ? "Deleting..." : "Delete my account"}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }

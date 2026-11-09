@@ -11,6 +11,7 @@ import { UploadStatus } from "@/app/components/upload-status";
 import { ResumeUploadBanner } from "@/app/components/resume-upload-banner";
 import { ArrowLeft, Check, Star, X, Trash2, Camera, MapPin, Sparkles } from "lucide-react";
 import { loginHref } from "@/lib/redirect";
+import QrDialog from "@/app/components/qr-dialog";
 
 interface Photo {
   id: string;
@@ -465,37 +466,9 @@ export default function ManagePhotosPage() {
 
       {/* QR Code Modal */}
       {showQR && (
-        <div className="fixed inset-0 bg-ink/85 z-50 flex items-center justify-center p-4" onClick={() => setShowQR(false)}>
-          <div role="dialog" aria-modal="true" aria-labelledby="session-qr-title" className="bg-char-2 border border-line p-7 text-center max-w-sm w-full" onClick={(e) => e.stopPropagation()}>
-            <p className="hud mb-3">QR / Session</p>
-            <h2 id="session-qr-title" className="disp text-2xl text-bone mb-2">Session QR code<span className="text-rec">.</span></h2>
-            <p className="text-sm text-mute mb-5">Athletes can scan this to find their photos later</p>
-            <div className="bg-bone p-4 inline-block mb-4">
-              <img src={`/api/sessions/${sessionId}/qr`} alt="QR Code" className="w-48 h-48" />
-            </div>
-            <p className="font-mono text-[11px] text-dim mb-5 break-all">
-              {typeof window !== "undefined" ? `${window.location.origin}/sessions/${sessionId}` : ""}
-            </p>
-            <div className="flex gap-2 justify-center">
-              <button
-                onClick={() => {
-                  const link = `${window.location.origin}/sessions/${sessionId}`;
-                  navigator.clipboard.writeText(link);
-                }}
-                className="btn-sec py-2.5 px-4 text-sm"
-              >
-                Copy Link
-              </button>
-              <a
-                href={`/api/sessions/${sessionId}/qr`}
-                download={`session-${sessionId}-qr.svg`}
-                className="btn-pri py-2.5 px-4 text-sm"
-              >
-                Download QR
-              </a>
-            </div>
-          </div>
-        </div>
+        <QrDialog kicker="Session" title="Session QR code" subtitle="Athletes can scan this to find their photos later"
+          qrSrc={`/api/sessions/${sessionId}/qr`} link={`${window.location.origin}/sessions/${sessionId}`}
+          downloadName={`session-${sessionId}-qr.svg`} onClose={() => setShowQR(false)} />
       )}
     </div>
   );
