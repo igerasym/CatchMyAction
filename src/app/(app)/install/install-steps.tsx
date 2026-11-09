@@ -1,20 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Share, Ellipsis, SquarePlus, Compass, EllipsisVertical, Check } from "lucide-react";
+import { Ellipsis, Compass, EllipsisVertical, Check } from "lucide-react";
+import IphoneDemo, { Ico } from "./iphone-demo";
 import { detectInAppBrowser, detectPlatform, isStandalone, type InstallPlatform } from "@/lib/install-prompt";
 
 type Detected = { platform: InstallPlatform; inApp: string | null; installed: boolean };
-
-/** An icon drawn inline with the text, so "tap Share" shows exactly what to look for. */
-function Ico({ children, label }: { children: React.ReactNode; label: string }) {
-  return (
-    <span className="inline-flex items-center gap-1 align-middle px-1.5 py-0.5 mx-0.5 border border-line bg-char-2 text-bone text-[13px] font-semibold whitespace-nowrap">
-      {children}
-      <span>{label}</span>
-    </span>
-  );
-}
 
 function Steps({ items }: { items: React.ReactNode[] }) {
   return (
@@ -28,13 +19,6 @@ function Steps({ items }: { items: React.ReactNode[] }) {
     </ol>
   );
 }
-
-const IOS_STEPS = [
-  <>Open <strong className="text-bone">catchmyactions.com</strong> in <Ico label="Safari"><Compass className="w-3.5 h-3.5" aria-hidden="true" /></Ico>.</>,
-  <>Tap <Ico label="Share"><Share className="w-3.5 h-3.5" aria-hidden="true" /></Ico> (a square with an arrow up). Don&apos;t see it at the bottom? Tap <Ico label="More"><Ellipsis className="w-3.5 h-3.5" aria-hidden="true" /></Ico> first, then Share.</>,
-  <>Scroll the list down and tap <Ico label="Add to Home Screen"><SquarePlus className="w-3.5 h-3.5" aria-hidden="true" /></Ico>. Not in the list? Tap <strong className="text-bone">View More</strong> or <strong className="text-bone">Edit Actions</strong> at the very bottom.</>,
-  <>Keep <strong className="text-bone">Open as Web App</strong> on if you see it, then tap <strong className="text-bone">Add</strong>. The CatchMyAction icon appears on your home screen.</>,
-];
 
 const ANDROID_STEPS = [
   <>Open <strong className="text-bone">catchmyactions.com</strong> in <strong className="text-bone">Chrome</strong>.</>,
@@ -90,7 +74,14 @@ export default function InstallSteps() {
       {showIos && (
         <section aria-labelledby="ios-heading">
           <h2 id="ios-heading" className="hud mb-4">iPhone</h2>
-          <Steps items={IOS_STEPS} />
+          <p className="text-mute text-[15px] mb-5">
+            Open <strong className="text-bone">catchmyactions.com</strong> in <Ico label="Safari"><Compass className="w-3.5 h-3.5" aria-hidden="true" /></Ico>, then:
+          </p>
+          <IphoneDemo />
+          <p className="text-dim text-sm mt-5 leading-6">
+            Older iOS: <strong className="text-mute">Share</strong> sits right in the bottom bar, so skip step 1.
+            No <strong className="text-mute">Add to Home Screen</strong> in the list? Scroll to the bottom and tap <strong className="text-mute">Edit Actions</strong> to add it.
+          </p>
         </section>
       )}
 
