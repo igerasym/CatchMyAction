@@ -1,7 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
-import { ScanFace, ArrowRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import FindPhotosButton from "./find-photos";
 
 export interface HeroMeta {
   title: string;
@@ -75,9 +76,7 @@ export default function Hero({
             Photographers shoot the session. You take one selfie. We find every frame you&apos;re in.
           </p>
           <div className="mt-8 flex flex-wrap gap-3">
-            <Link href="#find-me" className="btn-pri">
-              <ScanFace className="w-5 h-5" aria-hidden="true" /> Find My Photos
-            </Link>
+            <FindPhotosButton />
             <Link href="#photographers" className="btn-sec">
               I&apos;m a Photographer <ArrowRight className="w-4 h-4" aria-hidden="true" />
             </Link>
