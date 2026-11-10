@@ -122,3 +122,14 @@ The site is surf-first for now. The old hand-written surf list was replaced by a
   location, not as a surf break.
 - Lesson: after a catalogue import, also check `Session.location` text for old names; the import re-points `spotId` but
   never rewrites the label the user typed.
+
+### 2026-11-10 — Cloud 9 showed as two pins (session coordinates, data fix on prod)
+- The maps place a pin at `Session.locationLat/locationLng` (the display copy), not at the spot's own coordinates. The
+  4 Cloud 9 sessions were re-attached to the new spot on 2026-11-08 but kept the old hand-written coordinates
+  (9.8500, 126.1667, 4 km away), so the map drew two Cloud 9 pins plus the `Siargao, Philippines` island pin.
+- Fixed: those 4 sessions now use the spot's coordinates (9.8132, 126.1669). Dump first:
+  `~/backups/catchmyaction-2026-11-10T085851Z-pre-cloud9-coords.sql.gz`.
+- Still different on purpose or not decided: 2 `Maldives Cokes` sessions sit 26 km from the Cokes spot
+  (4.1762, 73.5174 vs 4.3734, 73.6485); the photographer may have placed them by hand.
+- Check after any import that re-points `spotId`:
+  `select … from "Session" x join "Spot" s on s.id = x."spotId" where abs(x."locationLat" - s.lat) > 0.001 or abs(x."locationLng" - s.lng) > 0.001`.
