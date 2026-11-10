@@ -35,6 +35,7 @@ This file is the handoff for coding agents. Read it first, then the doc for the 
 | Sea conditions providers and licensing | `docs/CONDITIONS.md` |
 | Google sign-in | `docs/GOOGLE_SIGNIN.md` |
 | Design tokens and components | `docs/DESIGN_SYSTEM.md` |
+| Competitors, their funnels and fees (public info only, partly unverified) | `docs/COMPETITORS.md` |
 | Product plan, ideas (video, Instagram) | `ROADMAP.md` |
 | Feature list | `PROGRESS.md` |
 | Older audits | `docs/review/` |
