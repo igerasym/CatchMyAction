@@ -14,7 +14,7 @@ export async function GET() {
   const userId = (session.user as any).id;
 
   const purchases = await prisma.purchase.findMany({
-    where: { userId },
+    where: { userId, revokedAt: null },
     include: {
       photo: {
         select: {

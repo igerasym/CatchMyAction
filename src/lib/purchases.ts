@@ -52,6 +52,23 @@ export async function fulfillCheckoutSession(session: Stripe.Checkout.Session): 
 }
 
 /**
+ * Block or restore access for the purchases paid by one Stripe PaymentIntent.
+ * Purchase.stripePaymentId is the intent id, or `<intent id>_<photoId>` for a bulk checkout.
+ * Returns how many rows changed.
+ */
+export async function setRevokedForPaymentIntent(paymentIntentId: string | null, revoked: boolean): Promise<number> {
+  if (!paymentIntentId || !paymentIntentId.startsWith("pi_")) return 0;
+  const res = await prisma.purchase.updateMany({
+    where: {
+      OR: [{ stripePaymentId: paymentIntentId }, { stripePaymentId: { startsWith: `${paymentIntentId}_` } }],
+      revokedAt: revoked ? null : { not: null },
+    },
+    data: { revokedAt: revoked ? new Date() : null },
+  });
+  return res.count;
+}
+
+/**
  * Platform fee for one fulfilled photo. Prefers the fee recorded at checkout (`feeCents`), then
  * the checkout's list of commission-free photos, and only for sessions created before
  * per-photo fees existed falls back to the flat platformFee().

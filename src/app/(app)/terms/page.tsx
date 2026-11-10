@@ -34,9 +34,12 @@ export default function TermsPage() {
       </Section>
 
       <Section title="6. Purchases & Payments">
-        All purchases are final. Prices are set by photographers and displayed in USD. CatchMyAction processes
-        payments through Stripe. We do not store your payment card details. Download links are valid for a
-        limited number of downloads as specified at purchase time.
+        Prices are set by photographers and displayed in USD. CatchMyAction processes payments through Stripe. We do
+        not store your payment card details. Because a digital photo cannot be returned, purchases are final, with one
+        exception: if you were charged twice for the same photo, or the file you received is broken or is not the
+        photo you bought, write to us through the contact page and we will refund you. A refunded purchase ends your
+        access to the file. Your purchased photos stay in My Actions, so you can download them again whenever you
+        need to.
       </Section>
 
       <Section title="7. Intellectual Property">

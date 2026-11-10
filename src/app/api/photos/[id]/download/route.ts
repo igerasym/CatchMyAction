@@ -19,6 +19,9 @@ export async function GET(
   if (!purchase) {
     return NextResponse.json({ error: "Photo not purchased" }, { status: 403 });
   }
+  if (purchase.revokedAt) {
+    return NextResponse.json({ error: "This purchase was refunded, so the download is no longer available." }, { status: 403 });
+  }
 
   const photo = await prisma.photo.findUnique({
     where: { id: params.id },

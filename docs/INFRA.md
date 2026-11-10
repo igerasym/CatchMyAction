@@ -149,7 +149,16 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   when the buyer returns to the site after paying (`verify-purchase` / `bulk-verify`). A buyer who closes the tab after
   paying would be charged with no purchase row. No paid purchase exists yet (all 4 purchases are free). Before the first
   real sale: add the endpoint `https://<domain>/api/webhooks/stripe` in the Stripe dashboard (events
-  `checkout.session.completed`, `checkout.session.async_payment_succeeded`) and put its signing secret in `.env.production`.
+  `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `charge.refunded`, `charge.dispute.created`,
+  `charge.dispute.closed`) and put its signing secret in `.env.production`.
+- **Refunds and disputes revoke access** (`Purchase.revokedAt`, migration `20261109190000_purchase_revoked_at`). The webhook sets it
+  on a full refund (`charge.refunded` with `refunded = true`) and on `charge.dispute.created`, and clears it when a dispute is
+  won. A partial refund keeps access. Revoked purchases are hidden from My Actions, refused by `/download`, and left out of
+  photographer stats and earnings. This works only once the webhook is live. Refunding in the Stripe dashboard does not
+  reverse the photographer's transfer on its own: tick "reverse transfer" when refunding.
+- **Originals are never served by `/api/uploads/*` in production.** Prod uses S3 signed URLs; the local-storage route returns 403
+  for the originals bucket when `NODE_ENV=production`, so a misconfigured `USE_LOCAL_STORAGE` cannot expose full-resolution files.
+- **Download limit:** `Purchase.maxDownloads` exists but is not enforced, and Terms no longer promise a limit.
 - Known limits: Stripe only supports separate-charges-and-transfers between the US, Canada, UK, EEA and Switzerland (other regions need the same region as the platform), so a transfer to a photographer elsewhere fails, is logged, and stays `pending` until the next dashboard load.
 
 ### Payout and fee risks (as of 2026-11-08)

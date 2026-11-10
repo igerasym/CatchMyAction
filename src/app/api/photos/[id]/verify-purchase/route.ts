@@ -15,6 +15,9 @@ export async function GET(
   const existing = await prisma.purchase.findUnique({
     where: { userId_photoId: { userId: user.id, photoId: params.id } },
   });
+  if (existing?.revokedAt) {
+    return NextResponse.json({ purchased: false, refunded: true });
+  }
   if (existing) {
     return NextResponse.json({ purchased: true, purchaseId: existing.id });
   }

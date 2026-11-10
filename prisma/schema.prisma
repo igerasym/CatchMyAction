@@ -116,6 +116,9 @@ model Purchase {
   maxDownloads    Int      @default(5)
   createdAt       DateTime @default(now())
 
+  // Set when the payment was refunded in full or disputed. A revoked purchase no longer gives access to the original.
+  revokedAt DateTime?
+
   // Photographer's cut in cents (amount minus platform fee), fixed at fulfilment time.
   photographerShareCents Int?
   // "sent" = routed to the photographer's Stripe account at payment time,
