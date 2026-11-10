@@ -28,6 +28,10 @@ function querySessions() {
       locationLat: true,
       locationLng: true,
       date: true,
+      startTime: true,
+      endTime: true,
+      spotId: true,
+      spot: { select: { name: true, region: true, country: true, lat: true, lng: true } },
       photoCount: true,
       pricePerPhoto: true,
       coverPhotoId: true,
@@ -65,9 +69,26 @@ export default async function HomePage() {
     };
   });
 
+  // Where each session was shot, for the "where were you" step of Find my photos
+  const findMeSessions = sessions.map((s) => ({
+    id: s.id,
+    title: s.title,
+    location: s.location,
+    spotId: s.spotId,
+    spotName: s.spot?.name ?? null,
+    spotPlace: s.spot ? [s.spot.region, s.spot.country].filter(Boolean).join(", ") || null : null,
+    lat: s.locationLat ?? s.spot?.lat ?? null,
+    lng: s.locationLng ?? s.spot?.lng ?? null,
+    date: s.date.toISOString(),
+    startTime: s.startTime,
+    endTime: s.endTime,
+    photoCount: s.photoCount,
+  }));
+
   return (
     <div className="min-h-screen">
       <Hero
+        findMeSessions={findMeSessions}
         meta={
           latest
             ? {

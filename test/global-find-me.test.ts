@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGlobalResults, globalFindMeRateRules, mapPool } from "@/lib/global-find-me";
+import { buildGlobalResults, globalFindMeRateRules, mapPool, parseSessionIds } from "@/lib/global-find-me";
 
 const sessions = new Map([
   ["s1", { id: "s1", title: "WSL", location: "Cloud 9", date: "2026-10-31T00:00:00.000Z" }],
@@ -89,5 +89,23 @@ describe("mapPool", () => {
   });
   it("handles an empty list", async () => {
     expect(await mapPool([], 3, async () => 1)).toEqual([]);
+  });
+});
+
+describe("parseSessionIds", () => {
+  it("splits, trims, dedupes and drops anything that is not an id", () => {
+    expect(parseSessionIds(" cmw8kqhr80001pk8s26g8qxdb ,cmw8kqhr80001pk8s26g8qxdb,abc,../etc/passwd, cmx9aaaa0001pk8s26g8qxdc")).toEqual([
+      "cmw8kqhr80001pk8s26g8qxdb",
+      "cmx9aaaa0001pk8s26g8qxdc",
+    ]);
+  });
+  it("is empty for missing or non-text input", () => {
+    expect(parseSessionIds(null)).toEqual([]);
+    expect(parseSessionIds(undefined)).toEqual([]);
+    expect(parseSessionIds("")).toEqual([]);
+  });
+  it("caps how many sessions one search can cover", () => {
+    const many = Array.from({ length: 100 }, (_, i) => `session-id-${String(i).padStart(4, "0")}`).join(",");
+    expect(parseSessionIds(many)).toHaveLength(40);
   });
 });

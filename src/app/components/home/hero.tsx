@@ -3,6 +3,7 @@ import Link from "next/link";
 import { format } from "date-fns";
 import FindPhotosButton from "./find-photos";
 import FocusBox from "./focus-box";
+import type { FindMeSession } from "@/lib/find-me-spots";
 
 export interface HeroMeta {
   title: string;
@@ -26,10 +27,12 @@ export default function Hero({
   meta,
   sessionCount,
   spotCount,
+  findMeSessions,
 }: {
   meta: HeroMeta | null;
   sessionCount: number;
   spotCount: number;
+  findMeSessions: FindMeSession[];
 }) {
   const lat = meta ? coord(meta.lat, "N", "S") : null;
   const lng = meta ? coord(meta.lng, "E", "W") : null;
@@ -69,13 +72,13 @@ export default function Hero({
             You ride. Photographers shoot. Find every frame you&apos;re in.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
-            <FindPhotosButton className="btn-pri !py-5 !px-8 !text-[17px]" />
+            <FindPhotosButton sessions={findMeSessions} className="btn-pri !py-5 !px-8 !text-[17px]" />
             <Link href="/sessions" className="btn-sec !py-5 !px-7 !text-[17px]">
               Browse sessions
             </Link>
           </div>
           <p className="mt-4 font-mono text-[11px] tracking-[0.08em] uppercase text-bone/60">
-            One selfie · We search every session · Not saved
+            Pick your spot · One selfie · Not saved
           </p>
         </div>
 

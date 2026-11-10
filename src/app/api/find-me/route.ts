@@ -11,6 +11,7 @@ import {
   buildGlobalResults,
   globalFindMeRateRules,
   mapPool,
+  parseSessionIds,
   type SessionSearch,
 } from "@/lib/global-find-me";
 
@@ -49,8 +50,14 @@ export async function POST(req: NextRequest) {
     }
     const buffer = Buffer.from(await file.arrayBuffer());
 
+    // Only the sessions around the place the visitor chose: searching the Maldives while you are in Portugal is noise
+    const chosen = parseSessionIds(formData.get("sessions"));
+    if (chosen.length === 0) {
+      return NextResponse.json({ error: "Pick where you were first.", code: "place_required" }, { status: 400 });
+    }
+
     const sessionRows = await prisma.session.findMany({
-      where: { published: true, photoCount: { gt: 0 } },
+      where: { id: { in: chosen }, published: true, photoCount: { gt: 0 } },
       orderBy: { date: "desc" },
       take: MAX_SESSIONS_SEARCHED,
       select: { id: true, title: true, location: true, date: true },

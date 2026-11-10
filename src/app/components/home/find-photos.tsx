@@ -1,22 +1,38 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSession } from "next-auth/react";
 import { Camera, Check, Loader2, ScanFace, Search, Upload, X } from "lucide-react";
 import { browserSessionStorage, savePendingMatches } from "@/lib/find-me-pending";
 import { prepareSelfie } from "@/lib/selfie";
 import { STRONG_MATCH, type GlobalMatchSession } from "@/lib/global-find-me";
+import { areaSessions, groupSpots, type FindMeSession, type SpotGroup } from "@/lib/find-me-spots";
+import PlacePicker from "./place-picker";
 
 const CONSENT_KEY = "cma-face-consent";
 
 /**
- * "Find my photos": one selfie, searched across every published session. Renders the trigger button and, once opened,
- * the whole flow in a dialog (consent -> selfie -> matches grouped by session). Picking a session saves the ticked
- * photos the same way the per-session search does, then opens that session with them highlighted.
+ * "Find my photos": where were you -> one selfie -> matches grouped by session. The search covers the sessions around
+ * the chosen place (not every session), which keeps results relevant and each search cheap. Renders the trigger button
+ * and the whole flow in a dialog. Picking a session saves the ticked photos the same way the per-session search does,
+ * then opens that session with them highlighted.
  */
-export default function FindPhotosButton({ className = "btn-pri", label = "Find my photos" }: { className?: string; label?: string }) {
+export default function FindPhotosButton({
+  sessions,
+  className = "btn-pri",
+  label = "Find my photos",
+}: {
+  /** Published sessions with where they were shot: the visitor picks a place, we search the sessions around it */
+  sessions: FindMeSession[];
+  className?: string;
+  label?: string;
+}) {
   const { data: auth } = useSession();
   const userId = (auth?.user as { id?: string } | undefined)?.id;
+
+  const spots = useMemo(() => groupSpots(sessions), [sessions]);
+  const [scope, setScope] = useState<SpotGroup | null>(null);
+  const area = useMemo(() => (scope ? areaSessions(spots, scope) : []), [spots, scope]);
 
   const [open, setOpen] = useState(false);
   const [searching, setSearching] = useState(false);
@@ -108,6 +124,7 @@ export default function FindPhotosButton({ className = "btn-pri", label = "Find 
       const fd = new FormData();
       fd.append("selfie", await prepareSelfie(file));
       fd.append("consent", consent ? "1" : "0");
+      fd.append("sessions", area.map((s) => s.id).join(","));
       const res = await fetch("/api/find-me", { method: "POST", body: fd });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) {
@@ -147,7 +164,7 @@ export default function FindPhotosButton({ className = "btn-pri", label = "Find 
 
   return (
     <>
-      <button type="button" className={className} onClick={() => { reset(); setOpen(true); }}>
+      <button type="button" className={className} onClick={() => { reset(); setOpen(true); if (!scope && spots.length === 1) setScope(spots[0]); }}>
         <ScanFace className="w-5 h-5" aria-hidden="true" /> {label}
       </button>
 
@@ -163,15 +180,36 @@ export default function FindPhotosButton({ className = "btn-pri", label = "Find 
               </button>
             )}
             <p className="hud mb-3 flex items-center gap-2"><span className="rec-dot" aria-hidden="true" />Find me</p>
-            <h2 id="gfm-title" className="disp text-[30px] text-bone mb-2">Find your photos<span className="text-rec">.</span></h2>
-            <p className="text-sm text-mute mb-6">One selfie. We check every published session for the frames you&apos;re in.</p>
+            <h2 id="gfm-title" className="disp text-[30px] text-bone mb-2">
+              {scope ? "Find your photos" : "Where were you"}<span className="text-rec">{scope ? "." : "?"}</span>
+            </h2>
+            {scope ? (
+              <div className="mb-6">
+                <p className="text-sm text-mute">
+                  One selfie. We check {area.length} session{area.length === 1 ? "" : "s"} around{" "}
+                  <strong className="text-bone">{scope.name}</strong> for the frames you&apos;re in.
+                </p>
+                {!searching && groups === null && spots.length > 1 && (
+                  <button type="button" onClick={() => { stopCamera(); setScope(null); reset(); }}
+                    className="mt-2 font-mono text-[11px] tracking-[0.08em] uppercase text-dim hover:text-bone underline underline-offset-4">
+                    Wrong place? Change
+                  </button>
+                )}
+              </div>
+            ) : (
+              <p className="text-sm text-mute mb-6">
+                Pick the spot, so we only search photos taken there.
+              </p>
+            )}
 
             {error && <div role="alert" className="text-sm text-bone p-3 border-l-2 border-rec bg-ink mb-4">{error}</div>}
 
-            {searching ? (
+            {!scope ? (
+              <PlacePicker groups={spots} onPick={(g) => { setScope(g); setError(""); }} />
+            ) : searching ? (
               <div className="text-center py-8" role="status" aria-live="polite">
                 <Loader2 className="w-8 h-8 text-rec animate-spin mx-auto mb-3" aria-hidden="true" />
-                <p className="text-sm text-bone">Looking through all sessions…</p>
+                <p className="text-sm text-bone">Looking through the sessions at {scope?.name}…</p>
                 <p className="hud mt-2">This can take up to 20 seconds</p>
               </div>
             ) : groups !== null ? (
@@ -259,7 +297,7 @@ export default function FindPhotosButton({ className = "btn-pri", label = "Find 
                   <input type="checkbox" checked={consent} onChange={(e) => toggleConsent(e.target.checked)}
                     className="mt-0.5 w-5 h-5 accent-[#ff4433] shrink-0" />
                   <span className="text-[13px] leading-snug text-mute">
-                    I agree that my selfie is compared with the faces in published photos. It&apos;s used only for this search and not stored.{" "}
+                    I agree that my selfie is compared with the faces in the photos from this place. It&apos;s used only for this search and not stored.{" "}
                     <a href="/privacy" target="_blank" className="text-bone underline underline-offset-2">Privacy &amp; face data</a>
                   </span>
                 </label>
