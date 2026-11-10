@@ -2,57 +2,48 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 
 const POINTS = [
-  { k: "Reach", t: "Customers who were in your frame.", d: "A QR code at the spot sends them to your session." },
-  { k: "Monetize", t: "Old sessions keep selling.", d: "Upload once, and every session stays searchable." },
-  { k: "Control", t: "Your price, your sessions.", d: "Set the price per photo. Payouts via Stripe." },
+  { k: "Reach", t: "Customers who were in your frame." },
+  { k: "Earn", t: "Old sessions keep selling." },
+  { k: "Control", t: "Your price, payouts via Stripe." },
 ];
 
-/** Split section: action photo on one side, the photographer pitch on the other. */
-export default function PhotographerCta({ image }: { image: string | null }) {
+/** One compact band for photographers: the pitch in a line, three proof points, one action. */
+export default function PhotographerCta() {
   return (
-    <section id="photographers" className="grid lg:grid-cols-12 min-h-[640px] scroll-mt-16">
-      <div className="lg:col-span-6 relative min-h-[360px] bg-char-3 overflow-hidden">
-        {image && (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={image} alt="Action photo from a published session" loading="lazy" className="absolute inset-0 w-full h-full object-cover" />
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
-        <div className="brk brk-soft m-6" aria-hidden="true" />
-        <p className="absolute bottom-10 left-10 font-mono text-[11px] tracking-[0.12em] text-bone/85">
-          UPLOAD ▸ <span className="text-rec">PUBLISHED</span>
-        </p>
-      </div>
-      <div className="lg:col-span-6 bg-char px-6 md:px-14 py-16 md:py-20 flex flex-col justify-center">
-        <p className="hud mb-5">05 / For photographers</p>
-        <h2 className="disp text-[clamp(36px,4.6vw,64px)]">
-          Your archive
-          <br />
-          is inventory<span className="text-rec">.</span>
-        </h2>
-        <dl className="mt-10 border-t border-line">
-          {POINTS.map((p) => (
-            <div key={p.k} className="grid grid-cols-[110px_1fr] gap-4 py-4 border-b border-line">
-              <dt className="font-mono text-[11px] tracking-[0.14em] uppercase text-rec pt-0.5">{p.k}</dt>
-              <dd className="text-[15px] text-mute">
-                <span className="font-bold text-bone">{p.t}</span> {p.d}
-              </dd>
-            </div>
-          ))}
-        </dl>
-        <div className="mt-9 flex flex-wrap gap-3">
-          <Link href="/register?role=photographer" className="btn-pri">
-            Start selling <ArrowRight className="w-4 h-4" aria-hidden="true" />
-          </Link>
-          <Link href="/guide" className="btn-sec">
-            Photographer guide
-          </Link>
+    <section id="photographers" aria-labelledby="photog-title" className="bg-char border-y border-line scroll-mt-16">
+      <div className="max-w-[1320px] mx-auto px-8 md:px-[72px] py-14 md:py-16 grid lg:grid-cols-12 gap-8 items-center">
+        <div className="lg:col-span-6">
+          <p className="hud mb-3">For photographers</p>
+          <h2 id="photog-title" className="disp text-[clamp(32px,4vw,52px)]">
+            Upload once.
+            <br />
+            Every session keeps selling<span className="text-rec">.</span>
+          </h2>
+          <dl className="mt-6 space-y-2">
+            {POINTS.map((p) => (
+              <div key={p.k} className="flex gap-4 text-[15px]">
+                <dt className="w-16 shrink-0 font-mono text-[11px] tracking-[0.14em] uppercase text-rec pt-1">{p.k}</dt>
+                <dd className="text-mute">{p.t}</dd>
+              </div>
+            ))}
+          </dl>
         </div>
-        <p className="mt-6 text-sm text-mute">
-          Uploading from your phone?{" "}
-          <Link href="/install" className="text-bone underline underline-offset-4 decoration-line hover:text-rec hover:decoration-rec transition-colors">
-            Add CatchMyAction to your home screen
-          </Link>
-        </p>
+        <div className="lg:col-span-6 lg:justify-self-end">
+          <div className="flex flex-wrap gap-3">
+            <Link href="/register?role=photographer" className="btn-pri">
+              Start selling <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </Link>
+            <Link href="/guide" className="btn-sec">
+              Photographer guide
+            </Link>
+          </div>
+          <p className="mt-5 text-sm text-mute">
+            Uploading from your phone?{" "}
+            <Link href="/install" className="text-bone underline underline-offset-4 decoration-line hover:text-rec hover:decoration-rec transition-colors">
+              Add CatchMyAction to your home screen
+            </Link>
+          </p>
+        </div>
       </div>
     </section>
   );

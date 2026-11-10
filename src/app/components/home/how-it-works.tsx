@@ -1,50 +1,23 @@
 const STEPS = [
-  {
-    n: "01",
-    title: "Photographers upload",
-    body: "Every session is pinned to a spot, a date and a time. Water sessions show the sea conditions too.",
-  },
-  {
-    n: "02",
-    title: "You find yourself",
-    body: "Scan the QR on the beach or pick the session, then take one selfie.",
-  },
-  {
-    n: "03",
-    title: "Buy & download",
-    body: "Pay per photo, or download free from free sessions. You get the full-resolution file, no watermark, and only pay for the shots you keep.",
-  },
+  { n: "01", title: "Photographers shoot the session", body: "Every session is pinned to a spot and a time." },
+  { n: "02", title: "You take one selfie", body: "We find every frame you're in. Your selfie isn't saved." },
+  { n: "03", title: "Keep the frames you love", body: "Pay per photo, full resolution, no watermark. Free sessions download free." },
 ];
 
-/** Three steps on a lens focus-scale ruler. Step 02 ("you") is the only accent. */
+/** Three short steps on a focus-scale ruler. Step 02 ("you") is the only accent. */
 export default function HowItWorks() {
   return (
-    <section className="bg-ink px-5 md:px-12 py-20 md:py-28">
-      <div className="max-w-[1320px] mx-auto grid lg:grid-cols-12 gap-10">
-        <div className="lg:col-span-4">
-          <p className="hud mb-5">04 / How it works</p>
-          <h2 className="disp text-[clamp(36px,4.6vw,64px)]">
-            Lineup to
-            <br />
-            camera roll<span className="text-rec">.</span>
-          </h2>
-        </div>
-        <ol className="lg:col-span-8 grid md:grid-cols-3 gap-8 md:gap-6">
-          {STEPS.map((s, i) => (
-            <li key={s.n}>
-              <div className="ticks mb-6" aria-hidden="true" />
-              <span
-                className={`disp text-[72px] md:text-[88px] ${i === 1 ? "text-rec" : "text-transparent"}`}
-                style={i === 1 ? undefined : { WebkitTextStroke: "1.5px #b3ada3" }}
-              >
-                {s.n}
-              </span>
-              <h3 className="mt-4 text-lg font-bold">{s.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-mute">{s.body}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
+    <section aria-label="How it works" className="bg-ink px-8 md:px-[72px] pt-16 md:pt-20 pb-6 md:pb-8">
+      <ol className="max-w-[1320px] mx-auto grid md:grid-cols-3 gap-8 md:gap-10">
+        {STEPS.map((s, i) => (
+          <li key={s.n}>
+            <div className="ticks" aria-hidden="true" />
+            <p className={`mt-4 font-mono text-[13px] font-bold ${i === 1 ? "text-rec" : "text-dim"}`}>{s.n}</p>
+            <h2 className="mt-1.5 text-xl font-bold text-bone">{s.title}</h2>
+            <p className="mt-2 text-[15px] leading-relaxed text-mute max-w-xs">{s.body}</p>
+          </li>
+        ))}
+      </ol>
     </section>
   );
 }
