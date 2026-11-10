@@ -101,11 +101,13 @@ fi
 log "deploy OK $SHORT_T"
 rm -f "$FAILED"
 
-# 5. Housekeeping: keep the 3 newest rollback tags, drop dangling layers, and drop build cache older than 2 days.
-#    `image prune` does not touch build cache, which is what filled the disk; two days of cache keeps back-to-back
+# 5. Housekeeping: keep the 3 newest rollback tags, drop dangling layers, and drop build cache older than 12 hours.
+#    (It was 48 h until 2026-11-10: at 10-13 deploys a day that kept ~10.7 GB of cache and left 5.7 GB free, because
+#    the step 0 guard only fires below 3 GB.)
+#    `image prune` does not touch build cache, which is what filled the disk; twelve hours of cache keeps back-to-back
 #    deploys fast. (--max-used-space would be nicer but needs buildkit 0.17+; this host's is older, and the
 #    step 0 guard above clears everything if space still runs low.)
 docker images app-app --format '{{.Tag}} {{.CreatedAt}}' | grep '^rollback-' | sort -k2,3 -r | tail -n +4 | awk '{print $1}' \
   | while read -r t; do docker rmi "app-app:$t" >/dev/null 2>&1; done
 docker image prune -f >/dev/null 2>&1
-docker builder prune -af --filter until=48h >/dev/null 2>&1 || log "build cache prune failed"
+docker builder prune -af --filter until=12h >/dev/null 2>&1 || log "build cache prune failed"
