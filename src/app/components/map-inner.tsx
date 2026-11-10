@@ -6,6 +6,7 @@ import "leaflet/dist/leaflet.css";
 import { DARK_TILE_URL, TILE_ATTRIBUTION } from "@/lib/map-tiles";
 import { escapeHtml } from "@/lib/html";
 import { fitView, WORLD_VIEW } from "@/lib/map-fit";
+import { bindLabelZoom, clusterSize, countSquareHtml, spotMarkerHtml, spotTitle } from "@/lib/map-markers";
 
 if (typeof window !== "undefined") {
   (window as any).L = L;
@@ -93,15 +94,11 @@ export default function MapInner({
       showCoverageOnHover: false,
       zoomToBoundsOnClick: false,
       iconCreateFunction(cluster: any) {
-        const count = cluster.getChildCount();
-        let px = 20;
-        if (count > 20) px = 30;
-        else if (count > 5) px = 25;
-        return L.divIcon({
-          html: '<div style="background:#ff4433;color:#160806;display:flex;align-items:center;justify-content:center;font:700 11px ui-monospace,monospace;width:' + px + 'px;height:' + px + 'px">' + count + '</div>',
-          className: "",
-          iconSize: L.point(px, px),
-        });
+        // Count sessions, not pins: one pin can hold several sessions at the same spot
+        let total = 0;
+        cluster.getAllChildMarkers().forEach((m: any) => { total += m.options.sessionCount || 1; });
+        const px = clusterSize(total);
+        return L.divIcon({ html: countSquareHtml(total), className: "", iconSize: L.point(px, px) });
       },
     });
 
@@ -133,25 +130,19 @@ export default function MapInner({
       const exploreUrl = '/sessions?location=' + encodeURIComponent(first.location);
 
       const photos = sessions.reduce((n, x) => n + (x.photoCount || 0), 0);
-      // Focus-bracket marker with the spot's photo count (the logo as a map pin)
+      // Same pin as a cluster: session count in the square; name + photos in a chip when zoomed in
+      const px = clusterSize(sessions.length);
       const marker = L.marker(first.coords, {
-        title: first.location,
+        title: spotTitle(first.location, sessions.length, photos),
         icon: L.divIcon({
-          html:
-            '<div style="position:relative;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:var(--font-mono),ui-monospace,monospace">' +
-            '<span style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:26px;background:#ff4433;color:#160806;font-weight:700;font-size:12px">' +
-            photos +
-            '</span>' +
-            '<span style="background:rgba(18,19,21,.85);color:#f2ede4;font-size:10px;letter-spacing:.1em;padding:3px 6px;white-space:nowrap;text-transform:uppercase">' +
-            escapeHtml(first.location) +
-            '</span></div>',
+          html: spotMarkerHtml(first.location, sessions.length, photos),
           className: "",
-          iconSize: L.point(34, 26),
-          iconAnchor: L.point(17, 13),
+          iconSize: L.point(px, px),
+          iconAnchor: L.point(px / 2, px / 2),
         }),
-      });
+        sessionCount: sessions.length,
+      } as any);
       marker.on("click", () => { window.location.href = exploreUrl; });
-      (marker.options as any).sessionCount = sessions.length;
       clusterGroup.addLayer(marker);
     });
 
@@ -163,6 +154,7 @@ export default function MapInner({
     } else {
       map.setView(view.center, view.zoom);
     }
+    bindLabelZoom(map);
     mapInstance.current = map;
 
     return () => { map.remove(); mapInstance.current = null; };
