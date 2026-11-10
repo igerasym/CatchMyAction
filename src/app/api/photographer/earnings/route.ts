@@ -43,6 +43,7 @@ export async function GET(req: NextRequest) {
   const purchases = await prisma.purchase.findMany({
     where: {
       photo: { session: { photographerId: userId } },
+      revokedAt: null,
       createdAt: { gte: sinceDate },
     },
     orderBy: { createdAt: "desc" },

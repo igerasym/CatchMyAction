@@ -127,10 +127,17 @@ export default function PhotoGrid({
         const data = await res.json();
         if (data.purchased) {
           setPurchasedIds((prev) => new Set(prev).add(purchasedPhotoId!));
-          const dlRes = await fetch(`/api/photos/${purchasedPhotoId}/download`);
-          const dlData = await dlRes.json();
+          let dlData: { downloadUrl?: string } = {};
+          try {
+            dlData = await (await fetch(`/api/photos/${purchasedPhotoId}/download`)).json();
+          } catch {
+            // handled below: the buyer is told where to find the photo
+          }
           setPayState(null);
           clearSavedCart();
+          if (!dlData.downloadUrl) {
+            toastError("Payment received. Your download didn't start, so open My Actions to get the photo.");
+          }
           if (dlData.downloadUrl) {
             setPurchaseSuccess({ count: 1, downloadUrl: dlData.downloadUrl });
             const a = document.createElement("a");

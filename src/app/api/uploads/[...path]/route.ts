@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import fs from "fs";
 import path from "path";
+import { BUCKET_ORIGINALS } from "@/lib/s3";
 
 const UPLOADS_ROOT = path.resolve(process.cwd(), "public", "uploads");
 
@@ -14,10 +15,16 @@ export async function GET(
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
   }
 
+  // Full-resolution originals are only handed out through the authenticated purchase routes,
+  // which sign an S3 URL. This public route must not serve them in production.
+  if (process.env.NODE_ENV === "production" && params.path[0] === BUCKET_ORIGINALS) {
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+  }
+
   const filePath = path.resolve(UPLOADS_ROOT, ...params.path);
 
   // Ensure resolved path is still within uploads directory
-  if (!filePath.startsWith(UPLOADS_ROOT)) {
+  if (!filePath.startsWith(UPLOADS_ROOT + path.sep)) {
     return NextResponse.json({ error: "Invalid path" }, { status: 400 });
   }
 

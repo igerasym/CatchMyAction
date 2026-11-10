@@ -28,6 +28,7 @@ export async function GET(req: NextRequest) {
 
   const purchaseWhere: any = {
     photo: { session: { photographerId: userId } },
+    revokedAt: null,
     ...(dateFilter && { createdAt: { gte: dateFilter } }),
   };
 
