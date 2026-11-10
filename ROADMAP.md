@@ -196,6 +196,41 @@ selling frames.
 A cheaper intermediate: a short silent preview clip (about 15 s) attached to a session, no face search, while photos
 stay the thing that is sold.
 
+### Instagram auto-posting (paused)
+Added 2026-11-08. Goal: publish a photo or carousel to our Instagram account from the admin side, each post approved
+by a human first.
+
+Status: **paused.** In the Meta App Dashboard (app "CatchMyActions") the use case "Instagram API" offers only
+"API setup with Unified login" (requires a business portfolio) and the legacy "Facebook login" setup. The simpler
+Instagram-login-only setup was not available. Until there are first photographers and sales, posts are made by hand or
+with the Meta Business Suite scheduler (no API, no tokens, $0).
+
+Where it stopped (2026-11-09):
+- Meta app: "CatchMyActions", App ID `1114105051498025` (public, not a secret), unpublished, development mode. Basic
+  settings filled: domain `catchmyactions.com`, privacy `/privacy`, terms `/terms`, data deletion `/contact`.
+- Meta says plainly that "API setup with Instagram login is not available for new apps", so only **Unified login** is
+  left. A Facebook Login for Business configuration exists: "Instagram API (unified login)", configuration ID
+  `1000649243088708`, token type system user (SUAT, never expires), redirect `https://catchmyactions.com/auth/callback`
+  (registered in Meta, the route does not exist in the app).
+- Its permissions still include `ads_management`, `ads_read`, `instagram_manage_messages`, `instagram_manage_comments`.
+  Trim to `instagram_basic` + `instagram_content_publish` before generating a token.
+- **Blocked at:** generating the token asks to create a business portfolio with company details checked against official
+  registries. CatchMyAction has no registered company, so this may fail. Never attach the owner's other portfolios
+  (`#DoskaBar`, `theframe.warsaw`).
+- The Graph API Explorer route with a plain user token failed: "the app needs at least one supported permission" and
+  then "no valid configurations".
+- Incident: the app token (`APP_ID|APP_SECRET`) was pasted in chat on 2026-11-09. The owner was asked to reset the App
+  Secret in Settings → Basic; not confirmed. Treat the old secret as leaked.
+
+Next steps if resumed: create a separate "CatchMyAction" business portfolio (or decide to post by hand), add the
+Instagram account as Instagram Tester under App roles and accept the invite in Instagram (Settings → Apps and websites),
+generate the SUAT on the API setup page, store it on the host only.
+
+Facts from Meta docs (re-check before building): the account must be professional; images are published from a public
+JPEG `image_url` via a media container and `/media_publish`; carousels allow up to 20 items; roughly 100 API posts per
+24 h; long-lived tokens last 60 days and need refreshing. The token lives only in `~/app/.env.production` on the
+server, never in chat or the repo.
+
 ### Auto-post published sessions to Instagram
 Added 2026-11-08. When a photographer publishes a session, post one photo from it, with a banner naming the spot, to a
 CatchMyAction brand account. Free reach for the photographer, and a signal for athletes at that spot: "your session is up,
