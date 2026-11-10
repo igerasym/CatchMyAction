@@ -219,8 +219,20 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - Every search is a paid Rekognition `SearchFacesByImage` call. Limits (`src/lib/find-me-limits.ts`), per hour:
   15 per account when signed in, 8 per IP when anonymous, 30 per IP for everyone.
 
+- **Search across all sessions** (homepage "Find my photos", `src/app/api/find-me/route.ts`, rules in
+  `src/lib/global-find-me.ts`): one selfie is searched against the face collection of each published session with photos
+  (newest 40, 4 at a time; sessions without a face index are skipped). One request is up to 40 Rekognition calls, so it has
+  its own tighter limits per hour: 6 per account, 3 per IP when anonymous, 10 per IP for everyone. Results are grouped by
+  session; "Open session" saves the ticked photos exactly like the per-session search (claimed when signed in, otherwise
+  kept in `sessionStorage`). The 40-session cap and one-call-per-session design are fine at tens of sessions; when the
+  catalogue grows, switch to one shared collection with the session id in `ExternalImageId`.
+
 ### Risks
 
+- **Search across all sessions makes finding one person easier.** Before, a visitor had to pick a session; now one photo of
+  a face searches everything published. Mitigations in place: explicit consent, tight rate limits, selfie not stored,
+  the photos are already public. Not in place: any proof that the selfie is the searcher's own face. If this becomes a
+  concern, add the "that's me" confirmation to sign-in and/or limit anonymous searches to a few results.
 - **Rate limits are in memory.** They reset on every deploy or restart and are not shared between processes. Fine for
   one container; move to Redis or the database before scaling out.
 - **Per-IP limits trust client headers.** `clientIp` reads `cf-connecting-ip`, then `x-real-ip`, then `x-forwarded-for`.

@@ -49,11 +49,12 @@ export default function NavBar() {
           : "sticky bg-ink border-b border-line"
       }`}
     >
-      <div className="max-w-7xl mx-auto px-5 md:px-8 py-4 flex items-center justify-between">
+      {/* On the home page the bar lines up with the viewfinder frame and the headline (44px phone / 72px desktop) */}
+      <div className={`${isHome ? "px-[44px] md:px-[72px] py-3" : "max-w-7xl mx-auto px-5 md:px-8 py-4"} flex items-center justify-between`}>
         <Link href="/" className="flex items-center gap-2.5 text-bone" aria-label="CatchMyAction home">
           <Logo size={24} />
-          <span className="hidden sm:inline text-[17px] font-extrabold tracking-tight" style={{ fontStretch: "112%" }}>
-            CatchMyAction
+          <span className="hidden sm:inline text-[15px] font-extrabold uppercase tracking-[0.02em]" style={{ fontStretch: "125%" }}>
+            Catch<span className="text-rec">My</span>Action
           </span>
         </Link>
         <div className="flex items-center gap-5 text-sm">
@@ -131,6 +132,9 @@ export default function NavBar() {
             </div>
           ) : (
             <>
+              <Link href="/#photographers" className="hidden md:inline text-bone/75 hover:text-bone transition-colors">
+                For photographers
+              </Link>
               <Link href="/login" className="text-bone/75 hover:text-bone transition-colors">
                 Sign in
               </Link>

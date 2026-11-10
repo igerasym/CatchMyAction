@@ -184,3 +184,33 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 .leaflet-control-attribution a {
   color: #b3ada3 !important;
 }
+
+/* Hero autofocus box (src/app/components/home/focus-box.tsx).
+   Photo is 1920x1280 with the surfer at (46.9%, 71.1%). The box is placed like the photo is drawn:
+   cover-fit -> object-position (posx) -> optional zoom from the left edge (zoom), all in container units. */
+.hero-photo { container-type: size; }
+.focus-box {
+  --posx: 0.5;
+  --zoom: 1;
+  --size: clamp(84px, 10.8cqw, 150px);
+  --dw: max(100cqw, 150cqh);        /* drawn photo width: cover scale * 1920, photo is 1.5:1 */
+  --dh: max(100cqh, 66.6667cqw);    /* drawn photo height */
+  --sx: calc((100cqw - var(--dw)) * var(--posx) + 0.469 * var(--dw));
+  --sy: calc((100cqh - var(--dh)) * 0.5 + 0.711 * var(--dh));
+  position: absolute;
+  z-index: 10;
+  pointer-events: none;
+  width: var(--size);
+  height: var(--size);
+  left: calc(var(--sx) * var(--zoom) - var(--size) / 2);
+  top: calc(var(--oy) * 100cqh + (var(--sy) - var(--oy) * 100cqh) * var(--zoom) - var(--size) / 2);
+}
+.focus-box { --oy: 0.5; }
+@media (min-width: 768px) {
+  .focus-box { --posx: 0.7; --zoom: 1.4; }
+}
+/* Very wide frames crop the photo a lot top and bottom: zoom from the bottom edge so the surfer stays in view */
+@container (min-aspect-ratio: 17/10) {
+  .focus-box { --oy: 1; }
+  .hero-photo img { transform-origin: left bottom; }
+}
