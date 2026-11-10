@@ -80,7 +80,10 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - **Disk guard (since 2026-11-07):** the Docker build cache is not covered by `docker image prune` and grew to 19.5 GB,
   leaving 8 MB free. Before building, the script now checks for 3 GB free; if short it runs `docker builder prune -af`
   and, if that is still not enough, logs `not deploying … will retry next tick` and exits **without** marking the commit
-  failed. After a successful deploy it drops build cache older than 48 h. `docker builder prune` only removes build
+  failed. After a successful deploy it drops build cache older than 12 h (was 48 h until 2026-11-10: at 10-13 deploys a day that
+  kept 10.7 GB of cache with 5.7 GB free, since the guard only fires below 3 GB; cleared by hand that day, disk 72% → 53%).
+  If you change the script, copy it to `~/bin/auto-deploy.sh` on the host; merging alone does not update it.
+  `docker builder prune` only removes build
   cache (not containers, images or volumes), so it does not touch `cafe-manager`; its next build just starts colder.
   Do not use `--max-used-space` here: the host's buildkit is older than 0.17 and rejects it.
 - Not covered: changes to the untracked prod config (`.env.production`, `docker-compose.production.yml`, `.env`).
