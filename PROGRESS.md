@@ -10,7 +10,7 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 ---
 
 ## Infrastructure (Production)
-- EC2 t4g.small (ARM64, 2GB RAM + 1GB swap) in us-west-2
+- EC2 t4g.small (ARM64, 1.8 GB RAM + 4 GB swap, 20 GB disk) in us-west-2 (full details in `docs/INFRA.md`)
 - Elastic IP: 52.39.186.224
 - PostgreSQL 16 in Docker on EC2
 - S3: catchmyaction-originals (private) + catchmyaction-previews (public)
@@ -40,7 +40,7 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 12. Watermarked previews + thumbnails (Sharp)
 13. S3 storage + CloudFront CDN delivery
 14. QR codes (modal with copy link + download) + Notify Me + prominent QR on empty sessions + skip-upload flow
-15. Stripe Connect Express (82/18 split) — live mode, fallback to platform-only when photographer Connect not ready
+15. Stripe Connect Express — live mode. First 5 paid sales per photographer pay only a card-fee estimate (2.9% + $0.30), then 18%. Without an active Connect account the platform holds the money (`pending`) and pays out later. Webhook live since 2026-11-10; refunds and disputes revoke access.
 16. Earnings tab: revenue chart (canvas), per-session breakdown with views, recent transactions
 17. Session view tracking (excludes photographer's own views)
 
@@ -91,14 +91,10 @@ Action sports photo marketplace. Photographers upload sessions, athletes find th
 53. /api/uploads: path traversal protection
 54. Explore search: matches custom session locations + word-level matching
 
-## Deploy Commands
-```bash
-# Deploy to production
-ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 "cd ~/app && git checkout -- . && git pull && docker-compose -f docker-compose.production.yml build app 2>&1 | tail -5 && docker-compose -f docker-compose.production.yml up -d 2>&1 | tail -3"
-
-# DB migration on prod
-ssh -i catchmyaction-key.pem ec2-user@52.39.186.224 'docker run --rm --network app_default -v $(pwd)/app/prisma:/app/prisma -w /app -e DATABASE_URL="$(grep ^DATABASE_URL ~/app/.env.production | cut -d= -f2-)" node:20-alpine sh -c "apk add --no-cache openssl && npm install -g prisma@5.22.0 && prisma db push --schema /app/prisma/schema.prisma" 2>&1 | tail -10'
-```
+## Deploy
+Merging to `main` deploys automatically (build, `prisma migrate deploy` with a backup first, swap, health check,
+rollback). Do not deploy by hand and never use `prisma db push` on prod. Details: `docs/INFRA.md` → "Auto-deploy".
+Agent entry point and current state: `AGENTS.md`.
 
 ## Next Steps
 

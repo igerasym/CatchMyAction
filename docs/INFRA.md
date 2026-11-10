@@ -132,6 +132,16 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   `src/lib/rate-limit.ts`): anonymous Find Me (paid Rekognition calls), forgot/reset password, photo reports. Fix: close
   3000 in the SG (nginx already proxies to it locally) and allow 80/443 only from Cloudflare's IP ranges. See "Find Me".
 - Cloudflare → origin is plain HTTP (no 443 on nginx).
+- **Capacity check 2026-11-10:** 2 vCPU Graviton, 1.8 GB RAM (668 MB available), swap 519 MB of 4 GB used, load ~0,
+  app container 83 MB, Postgres 31 MB. No OOM in the kernel log for 7 days. `dockerd` holds ~700 MB RSS because builds
+  run on this host. The size is fine for current traffic; the tight spots are the on-host `next build` and the disk
+  (build cache, see Auto-deploy). Move up to t4g.medium (4 GB) only when builds fail or traffic grows; building the image
+  in CI instead would keep the small instance enough for longer.
+- **Sales hardening still open (review of 2026-11-09):** a second paid checkout for a photo the buyer already owns
+  creates no row and is not refunded (`fulfillCheckoutSession` upserts with `update: {}`); no receipt email;
+  rate limits are not applied to `purchase`, `bulk-purchase`, `verify-purchase`, `download`; Connect is gated on
+  `charges_enabled` only (should also check `capabilities.transfers === "active"`); `NEXT_PUBLIC_APP_URL` falls back
+  to localhost without failing at boot.
 
 ## Photographer payouts
 
@@ -147,13 +157,24 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
   `STRIPE_TEST_KEY=sk_test_… STRIPE_TEST_ACCOUNT=acct_… npx vitest run test/stripe-sandbox.test.ts`.
   `STRIPE_TEST_ACCOUNT` is a TEST-mode connected account with the `transfers` capability active (set `STRIPE_TEST_CURRENCY`
   to the platform's currency if it is not USD). Never put these keys in the repo or in chat.
-- **Production runs a LIVE key** (`sk_live_…`), so there is no test mode on prod. As of 2026-11-08 `STRIPE_WEBHOOK_SECRET`
-  is defined but EMPTY in the container, so `/api/webhooks/stripe` rejects every call and a purchase is recorded only
-  when the buyer returns to the site after paying (`verify-purchase` / `bulk-verify`). A buyer who closes the tab after
-  paying would be charged with no purchase row. No paid purchase exists yet (all 4 purchases are free). Before the first
-  real sale: add the endpoint `https://<domain>/api/webhooks/stripe` in the Stripe dashboard (events
-  `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `charge.refunded`, `charge.dispute.created`,
-  `charge.dispute.closed`) and put its signing secret in `.env.production`.
+- **Production runs a LIVE key** (`sk_live_…`), so there is no test mode on prod, and live Stripe has no "Send test
+  webhook" button (that needs a sandbox). Test with a real $1 purchase and refund instead.
+- **Webhook is live since 2026-11-10.** Stripe destination `catchmyactions-prod` (`we_1Ua3Fp6RssFhFCH4wcdlYqub`),
+  scope "Your account", payload Snapshot, API version `2026-02-25.clover` (the code pins `2024-04-10`; the fields we read
+  did not change, so this is fine unless an event shape breaks). Events: `checkout.session.completed`,
+  `checkout.session.async_payment_succeeded`, `charge.refunded`, `charge.dispute.created`, `charge.dispute.closed`.
+  The signing secret is `STRIPE_WEBHOOK_SECRET` in `~/app/.env.production`. After changing it, recreate the container
+  (`docker-compose -f docker-compose.production.yml up -d app`); a plain restart does not reread the env file.
+  A request without a valid signature gets 400.
+- **Verified end to end on 2026-11-10** with a real $1.01 purchase: delivery 200, `Purchase` row with
+  `photographerShareCents = 68` (commission-free sale: 33¢ card-fee estimate), `payoutStatus = pending` (photographer
+  had no active Connect account), download worked. Then a full refund: the `charge.refunded` delivery reached the
+  OLD code (refund at 01:04:11 UTC, deploy of the revoke code finished 01:04:39), which ignored it with 200; after
+  "Resend" in Stripe → Event deliveries, `revokedAt` was set. Lesson: events handled before a deploy are not retried;
+  resend them by hand.
+- Before 2026-11-10 the webhook secret was empty, so every call got 400 and purchases were recorded only by the redirect
+  (`verify-purchase` / `bulk-verify`). Both paths still exist and are idempotent. There is no reconciliation job for a
+  buyer who closes the tab while the webhook is down.
 - **Refunds and disputes revoke access** (`Purchase.revokedAt`, migration `20261109190000_purchase_revoked_at`). The webhook sets it
   on a full refund (`charge.refunded` with `refunded = true`) and on `charge.dispute.created`, and clears it when a dispute is
   won. A partial refund keeps access. Revoked purchases are hidden from My Actions, refused by `/download`, and left out of

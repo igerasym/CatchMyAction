@@ -111,3 +111,14 @@ The site is surf-first for now. The old hand-written surf list was replaced by a
   - `Furana` sits 540 m from curated `Tombstones`; both were imported (possibly the same break).
 - **Roll back the import:** `DELETE FROM "Spot" WHERE source = 'brizocast';` (sessions that pointed at them get `spotId = NULL`),
   then restore the 87 old spots from the pre-import dump `~/backups/catchmyaction-2026-11-08T092959Z.sql.gz` if needed.
+
+### 2026-11-09 — Cloud 9 duplicate label (data fix on prod)
+- The site showed two Cloud 9 entries: `Cloud 9` and `Siargao (Cloud 9)`. The `Spot` table had only one (`Cloud 9`,
+  `source = brizocast`); the second was the free-text `Session.location` left over from the old hand-written list.
+- Fixed: `UPDATE "Session" SET location = 'Cloud 9' WHERE location = 'Siargao (Cloud 9)'` (4 rows). All 5 Cloud 9
+  sessions now point at the same spot and show one label. Dump taken first:
+  `~/backups/catchmyaction-2026-11-09T093033Z-pre-cloud9.sql.gz`.
+- Kept on purpose: the spot `Siargao, Philippines` (`source = session`, 1 session). The owner wants it as the island
+  location, not as a surf break.
+- Lesson: after a catalogue import, also check `Session.location` text for old names; the import re-points `spotId` but
+  never rewrites the label the user typed.
