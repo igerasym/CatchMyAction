@@ -149,6 +149,9 @@ input[type="time"]::-webkit-calendar-picker-indicator {
 }
 .leaflet-bar { border-radius: 0 !important; border: 1px solid #383a40 !important; }
 
+/* Session pins: the spot-name chip shows only when zoomed in (src/lib/map-markers.ts) */
+.cma-labels-off .cma-spot-label { display: none; }
+
 /* Keep Leaflet map below search dropdown */
 .leaflet-container {
   z-index: 1 !important;

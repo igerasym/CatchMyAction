@@ -7,6 +7,7 @@ import { DARK_TILE_URL, TILE_ATTRIBUTION } from "@/lib/map-tiles";
 import { format } from "date-fns";
 import { escapeHtml } from "@/lib/html";
 import { fitView, WORLD_VIEW } from "@/lib/map-fit";
+import { bindLabelZoom, clusterSize, countSquareHtml, spotMarkerHtml, spotTitle } from "@/lib/map-markers";
 
 if (typeof window !== "undefined") {
   (window as any).L = L;
@@ -133,14 +134,8 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, flyTo }: Pr
         cluster.getAllChildMarkers().forEach((m: any) => {
           total += m.options.sessionCount || 1;
         });
-        let px = 22;
-        if (total > 20) px = 32;
-        else if (total > 5) px = 27;
-        return L.divIcon({
-          html: '<div style="background:' + REC + ';color:' + REC_INK + ';display:flex;align-items:center;justify-content:center;font:700 11px ' + MONO + ';width:' + px + 'px;height:' + px + 'px">' + total + '</div>',
-          className: "",
-          iconSize: L.point(px, px),
-        });
+        const px = clusterSize(total);
+        return L.divIcon({ html: countSquareHtml(total), className: "", iconSize: L.point(px, px) });
       },
     });
 
@@ -204,21 +199,15 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, flyTo }: Pr
           list + more + '</div>';
       }
 
-      // Focus-bracket marker: REC square with photo count + mono location chip (homepage style)
+      // Same pin as a cluster: session count in the square; name + photos in a chip when zoomed in
+      const px = clusterSize(sessions.length);
       const marker = L.marker([first.lat, first.lng], {
-        title: first.location,
+        title: spotTitle(first.location, sessions.length, totalPhotos),
         icon: L.divIcon({
-          html:
-            '<div style="position:relative;display:flex;align-items:center;gap:6px;cursor:pointer;font-family:' + MONO + '">' +
-            '<span style="position:relative;display:flex;align-items:center;justify-content:center;width:34px;height:26px;background:' + REC + ';color:' + REC_INK + ';font-weight:700;font-size:12px">' +
-            totalPhotos +
-            '</span>' +
-            '<span style="background:rgba(18,19,21,.85);color:' + BONE + ';font-size:10px;letter-spacing:.1em;padding:3px 6px;white-space:nowrap;text-transform:uppercase">' +
-            escapeHtml(first.location) +
-            '</span></div>',
+          html: spotMarkerHtml(first.location, sessions.length, totalPhotos),
           className: "",
-          iconSize: L.point(34, 26),
-          iconAnchor: L.point(17, 13),
+          iconSize: L.point(px, px),
+          iconAnchor: L.point(px / 2, px / 2),
         }),
         sessionCount: sessions.length,
       } as any).bindPopup(popup);
@@ -238,6 +227,7 @@ export default function ExploreMap({ markers, allSpots, onSpotClick, flyTo }: Pr
     } else {
       map.setView(view.center, view.zoom);
     }
+    bindLabelZoom(map);
     mapInstance.current = map;
 
     return () => { map.remove(); mapInstance.current = null; };
