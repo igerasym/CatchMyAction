@@ -11,6 +11,19 @@ export const MATCH_THRESHOLD = 80;
 export const STRONG_MATCH = 90;
 export const GLOBAL_FIND_ME_WINDOW_MS = 60 * 60 * 1000;
 
+/**
+ * Session ids the visitor chose to search (the sessions around the place they picked), as a comma separated list.
+ * Cleaned and capped: the server still only searches published sessions, so this never widens access, only cost.
+ */
+export function parseSessionIds(raw: unknown): string[] {
+  if (typeof raw !== "string") return [];
+  const ids = raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter((s) => /^[A-Za-z0-9_-]{8,40}$/.test(s));
+  return Array.from(new Set(ids)).slice(0, MAX_SESSIONS_SEARCHED);
+}
+
 export interface RateRule {
   key: string;
   max: number;
@@ -74,6 +87,32 @@ export function buildGlobalResults(
     out.push({ ...info, matches, best: matches[0].similarity });
   }
   return out.sort((a, b) => b.best - a.best || b.date.localeCompare(a.date));
+}
+
+/**
+ * A shared spot collection returns matches from every session at the spot, tagged only with the photo id. Sort them
+ * into per-session searches, keeping the best similarity per photo, and keep only the sessions that were asked for.
+ */
+export function groupMatchesBySession(
+  matches: { photoId: string; similarity: number }[],
+  photoSession: Map<string, string>,
+  wanted: Set<string>
+): SessionSearch[] {
+  const best = new Map<string, { photoId: string; similarity: number }>();
+  for (const m of matches) {
+    const sid = photoSession.get(m.photoId);
+    if (!sid || !wanted.has(sid)) continue;
+    const prev = best.get(m.photoId);
+    if (!prev || m.similarity > prev.similarity) best.set(m.photoId, m);
+  }
+  const bySession = new Map<string, SessionSearch>();
+  for (const m of Array.from(best.values())) {
+    const sid = photoSession.get(m.photoId)!;
+    const entry = bySession.get(sid) ?? { sessionId: sid, matches: [] };
+    entry.matches.push(m);
+    bySession.set(sid, entry);
+  }
+  return Array.from(bySession.values());
 }
 
 /** Run `fn` over `items` with at most `limit` in flight; results keep the input order. */

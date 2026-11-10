@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildGlobalResults, globalFindMeRateRules, mapPool } from "@/lib/global-find-me";
+import { buildGlobalResults, globalFindMeRateRules, groupMatchesBySession, mapPool, parseSessionIds } from "@/lib/global-find-me";
 
 const sessions = new Map([
   ["s1", { id: "s1", title: "WSL", location: "Cloud 9", date: "2026-10-31T00:00:00.000Z" }],
@@ -89,5 +89,45 @@ describe("mapPool", () => {
   });
   it("handles an empty list", async () => {
     expect(await mapPool([], 3, async () => 1)).toEqual([]);
+  });
+});
+
+describe("parseSessionIds", () => {
+  it("splits, trims, dedupes and drops anything that is not an id", () => {
+    expect(parseSessionIds(" cmw8kqhr80001pk8s26g8qxdb ,cmw8kqhr80001pk8s26g8qxdb,abc,../etc/passwd, cmx9aaaa0001pk8s26g8qxdc")).toEqual([
+      "cmw8kqhr80001pk8s26g8qxdb",
+      "cmx9aaaa0001pk8s26g8qxdc",
+    ]);
+  });
+  it("is empty for missing or non-text input", () => {
+    expect(parseSessionIds(null)).toEqual([]);
+    expect(parseSessionIds(undefined)).toEqual([]);
+    expect(parseSessionIds("")).toEqual([]);
+  });
+  it("caps how many sessions one search can cover", () => {
+    const many = Array.from({ length: 100 }, (_, i) => `session-id-${String(i).padStart(4, "0")}`).join(",");
+    expect(parseSessionIds(many)).toHaveLength(40);
+  });
+});
+
+describe("groupMatchesBySession", () => {
+  const photoSession = new Map([["p1", "s1"], ["p2", "s1"], ["p3", "s2"], ["p4", "other"]]);
+  it("sorts matches from a shared collection into the sessions that were asked for", () => {
+    const r = groupMatchesBySession(
+      [{ photoId: "p1", similarity: 91 }, { photoId: "p3", similarity: 85 }, { photoId: "p2", similarity: 99 }, { photoId: "p4", similarity: 99 }],
+      photoSession,
+      new Set(["s1", "s2"])
+    );
+    expect(r.find((s) => s.sessionId === "s1")!.matches.map((m) => m.photoId).sort()).toEqual(["p1", "p2"]);
+    expect(r.find((s) => s.sessionId === "s2")!.matches).toHaveLength(1);
+    expect(r.find((s) => s.sessionId === "other")).toBeUndefined(); // another session at the same spot, not asked for
+  });
+  it("keeps the best similarity when a photo is matched twice and ignores unknown photos", () => {
+    const r = groupMatchesBySession(
+      [{ photoId: "p1", similarity: 80 }, { photoId: "p1", similarity: 95 }, { photoId: "ghost", similarity: 99 }],
+      photoSession,
+      new Set(["s1"])
+    );
+    expect(r).toEqual([{ sessionId: "s1", matches: [{ photoId: "p1", similarity: 95 }] }]);
   });
 });

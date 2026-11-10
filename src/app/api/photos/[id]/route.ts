@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { deleteObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
 import { getAuthUser } from "@/lib/auth-helpers";
-import { deleteFacesForPhoto } from "@/lib/rekognition";
+import { removePhotoFaces } from "@/lib/face-index";
 
 /** DELETE /api/photos/:id — delete a single photo (owner only) */
 export async function DELETE(
@@ -21,7 +21,8 @@ export async function DELETE(
       thumbnailKey: true,
       featuredKey: true,
       sessionId: true,
-      session: { select: { photographerId: true } },
+      faceIds: true,
+      session: { select: { photographerId: true, faceCollection: true } },
     },
   });
 
@@ -61,7 +62,7 @@ export async function DELETE(
       ...(photo.featuredKey ? [deleteObject(BUCKET_PREVIEWS, photo.featuredKey)] : []),
     ]);
     // Clean up face vectors from Rekognition
-    deleteFacesForPhoto(photo.sessionId, photo.id).catch(() => {});
+    removePhotoFaces(photo, { id: photo.sessionId, faceCollection: photo.session.faceCollection }).catch(() => {});
   } catch {
     // Files may not exist, ok
   }

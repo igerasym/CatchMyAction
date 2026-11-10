@@ -4,6 +4,8 @@ import {
   IndexFacesCommand,
   SearchFacesByImageCommand,
   DeleteCollectionCommand,
+  DeleteFacesCommand,
+  ListFacesCommand,
   DetectModerationLabelsCommand,
 } from "@aws-sdk/client-rekognition";
 
@@ -23,18 +25,13 @@ const rekognition = IS_LOCAL
 
 const ORIGINALS_BUCKET = process.env.S3_BUCKET_ORIGINALS || "originals";
 
-// Rekognition ExternalImageId only allows [a-zA-Z0-9_.\-:]
-function sanitizeExternalId(id: string): string {
-  return id.replace(/[^a-zA-Z0-9_.\-:]/g, "_");
-}
+// Which collection a session's faces live in is decided in src/lib/face-collections.ts (one per spot, else per session).
 
-/** Create a face collection for a session */
-export async function createFaceCollection(sessionId: string): Promise<boolean> {
+/** Create a face collection (no-op when it already exists). */
+export async function createFaceCollection(collectionId: string): Promise<boolean> {
   if (!rekognition) return false;
   try {
-    await rekognition.send(new CreateCollectionCommand({
-      CollectionId: `session-${sessionId}`,
-    }));
+    await rekognition.send(new CreateCollectionCommand({ CollectionId: collectionId }));
     return true;
   } catch (err: any) {
     if (err.name === "ResourceAlreadyExistsException") return true;
@@ -43,57 +40,51 @@ export async function createFaceCollection(sessionId: string): Promise<boolean> 
   }
 }
 
-/** Index faces in a photo (called during upload).
- *  Uses S3 reference — no need to download the image. */
-export async function indexFacesInPhoto(
-  sessionId: string,
-  photoId: string,
-  s3Key: string
-): Promise<number> {
-  if (!rekognition) return 0;
+/**
+ * Index the faces in a photo into a collection (called during upload).
+ * Uses an S3 reference, so no download. Returns the FaceIds created; store them so the faces can be deleted exactly.
+ */
+export async function indexFacesInPhoto(collectionId: string, photoId: string, s3Key: string): Promise<string[]> {
+  if (!rekognition) return [];
   try {
-    // Ensure collection exists
-    await createFaceCollection(sessionId);
+    await createFaceCollection(collectionId);
 
     const result = await rekognition.send(new IndexFacesCommand({
-      CollectionId: `session-${sessionId}`,
-      Image: {
-        S3Object: {
-          Bucket: ORIGINALS_BUCKET,
-          Name: s3Key,
-        },
-      },
-      ExternalImageId: photoId,
+      CollectionId: collectionId,
+      Image: { S3Object: { Bucket: ORIGINALS_BUCKET, Name: s3Key } },
+      ExternalImageId: photoId, // a cuid: already within [a-zA-Z0-9_.\-:]
       DetectionAttributes: ["DEFAULT"],
       MaxFaces: 10,
       QualityFilter: "AUTO",
     }));
 
-    const indexed = result.FaceRecords?.length || 0;
-    if (indexed > 0) {
-      console.log(`Indexed ${indexed} face(s) in photo ${photoId} for session ${sessionId}`);
-    }
-    return indexed;
+    const ids = (result.FaceRecords || []).map((r) => r.Face?.FaceId).filter((x): x is string => !!x);
+    if (ids.length > 0) console.log(`Indexed ${ids.length} face(s) in photo ${photoId} into ${collectionId}`);
+    return ids;
   } catch (err: any) {
     // Don't fail upload if face indexing fails
     console.error(`Index faces error for photo ${photoId}:`, err.message);
-    return 0;
+    return [];
   }
 }
 
-/** Search for matching faces using a selfie image buffer */
+/**
+ * Search a collection with a selfie. Returns photos (ExternalImageId) with their best similarity. A shared spot
+ * collection holds many sessions, so ask for plenty of matches: callers filter them to the sessions they want.
+ */
 export async function searchFacesBySelfie(
-  sessionId: string,
+  collectionId: string,
   selfieBuffer: Buffer,
-  threshold = 70
+  threshold = 70,
+  maxFaces = 200
 ): Promise<{ photoId: string; similarity: number }[]> {
   if (!rekognition) return [];
 
   const result = await rekognition.send(new SearchFacesByImageCommand({
-    CollectionId: `session-${sessionId}`,
+    CollectionId: collectionId,
     Image: { Bytes: selfieBuffer },
     FaceMatchThreshold: threshold,
-    MaxFaces: 50,
+    MaxFaces: maxFaces,
   }));
 
   if (!result.FaceMatches || result.FaceMatches.length === 0) return [];
@@ -101,10 +92,8 @@ export async function searchFacesBySelfie(
   // Group by photo (ExternalImageId) and take highest similarity per photo
   const photoMap = new Map<string, number>();
   for (const match of result.FaceMatches) {
-    const rawId = match.Face?.ExternalImageId;
-    if (!rawId) continue;
-    // Restore original photoId (underscores back to hyphens if needed)
-    const photoId = rawId;
+    const photoId = match.Face?.ExternalImageId;
+    if (!photoId) continue;
     const similarity = match.Similarity || 0;
     if (!photoMap.has(photoId) || similarity > photoMap.get(photoId)!) {
       photoMap.set(photoId, similarity);
@@ -116,41 +105,44 @@ export async function searchFacesBySelfie(
     .sort((a, b) => b.similarity - a.similarity);
 }
 
-/** Delete face collection when session is deleted */
-export async function deleteFaceCollection(sessionId: string): Promise<void> {
+/** Delete a whole face collection (only ever a per-session one, never a shared spot collection). */
+export async function deleteFaceCollection(collectionId: string): Promise<void> {
   if (!rekognition) return;
   try {
-    await rekognition.send(new DeleteCollectionCommand({
-      CollectionId: `session-${sessionId}`,
-    }));
+    await rekognition.send(new DeleteCollectionCommand({ CollectionId: collectionId }));
   } catch {
     // Collection might not exist — that's fine
   }
 }
 
-/** Delete faces for a specific photo from a session collection */
-export async function deleteFacesForPhoto(sessionId: string, photoId: string): Promise<void> {
+/** Delete faces by FaceId (Rekognition takes up to 4096 per call). */
+export async function deleteFaces(collectionId: string, faceIds: string[]): Promise<void> {
+  if (!rekognition || faceIds.length === 0) return;
+  for (let i = 0; i < faceIds.length; i += 4000) {
+    try {
+      await rekognition.send(new DeleteFacesCommand({ CollectionId: collectionId, FaceIds: faceIds.slice(i, i + 4000) }));
+    } catch (err: any) {
+      if (err?.name !== "ResourceNotFoundException") console.error("Delete faces error:", err.message);
+    }
+  }
+}
+
+/**
+ * Delete the faces of one photo by scanning the collection. Only for legacy photos indexed before FaceIds were kept
+ * (their collection is that session's own, so it is small). Pages through ALL faces; the old version looked at the
+ * first 100 only and silently left the rest behind.
+ */
+export async function deleteFacesForPhotoByScan(collectionId: string, photoId: string): Promise<void> {
   if (!rekognition) return;
   try {
-    // List faces with this ExternalImageId
-    const { ListFacesCommand } = await import("@aws-sdk/client-rekognition");
-    const listResult = await rekognition.send(new ListFacesCommand({
-      CollectionId: `session-${sessionId}`,
-      MaxResults: 100,
-    }));
-
-    const faceIds = (listResult.Faces || [])
-      .filter((f) => f.ExternalImageId === photoId)
-      .map((f) => f.FaceId!)
-      .filter(Boolean);
-
-    if (faceIds.length > 0) {
-      const { DeleteFacesCommand } = await import("@aws-sdk/client-rekognition");
-      await rekognition.send(new DeleteFacesCommand({
-        CollectionId: `session-${sessionId}`,
-        FaceIds: faceIds,
-      }));
-    }
+    const faceIds: string[] = [];
+    let next: string | undefined;
+    do {
+      const page = await rekognition.send(new ListFacesCommand({ CollectionId: collectionId, MaxResults: 4096, NextToken: next }));
+      for (const f of page.Faces || []) if (f.ExternalImageId === photoId && f.FaceId) faceIds.push(f.FaceId);
+      next = page.NextToken;
+    } while (next);
+    await deleteFaces(collectionId, faceIds);
   } catch {
     // Non-critical — don't fail photo deletion
   }

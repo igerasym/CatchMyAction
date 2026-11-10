@@ -25,7 +25,7 @@ ARG NEXT_PUBLIC_CARTO_KEY=""
 ENV NEXT_PUBLIC_CARTO_KEY=$NEXT_PUBLIC_CARTO_KEY
 RUN npm run build
 # Compile maintenance scripts (spot seed/import) to plain JS — the runner has no TS toolchain
-RUN npx esbuild scripts/seed-spots.ts scripts/import-spots.ts --bundle --platform=node --target=node20 --format=cjs --external:@prisma/client --outdir=scripts/dist
+RUN npx esbuild scripts/seed-spots.ts scripts/import-spots.ts scripts/reindex-faces.ts --bundle --platform=node --target=node20 --format=cjs --external:@prisma/client --outdir=scripts/dist
 
 # Production image
 FROM base AS runner

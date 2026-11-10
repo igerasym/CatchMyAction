@@ -84,7 +84,7 @@ This file is the handoff for coding agents. Read it first, then the doc for the 
 - `Session.location` is free text typed by the photographer. Spot imports re-point `spotId` but never rewrite that label.
 - The home page is cached for 60 s (`unstable_cache`), so a data fix shows up after about a minute.
 - Home page (since 2026-11-10) has one job, "Find my photos": hero (`components/home/hero.tsx`, the selfie dialog is
-  `home/find-photos.tsx` -> `/api/find-me`, searches every published session) -> how it works -> latest sessions ->
+  `home/find-photos.tsx` -> `/api/find-me`: pick a place first, then searches the face collections of the sessions within 3 km of it; faces live in one Rekognition collection per spot, see docs/INFRA.md) -> how it works -> latest sessions ->
   photographer band. The old Find Me / Session Log / Discover map sections were removed; the map lives on `/sessions`.
   The red "It's you" box is pure CSS in `globals.css` (`.focus-box`) and must match the hero photo's crop/zoom classes in
   `hero.tsx`; if you change `/hero-bg.jpg` or those classes, update the surfer coordinates there.

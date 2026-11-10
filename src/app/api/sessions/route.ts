@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
         sportType: sport,
         photographerId: user.id,
         ...(coords && { locationLat: coords.lat, locationLng: coords.lng }),
-        ...(spotId && { spotId }),
+        ...(spotId && { spotId, faceCollection: `spot-${spotId}` }), // faces of a session at a spot share its collection
         ...(pricePerPhoto !== undefined ? { pricePerPhoto } : {}),
         ...conditions,
       } as any,
