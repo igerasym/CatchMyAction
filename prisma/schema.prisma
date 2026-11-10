@@ -69,6 +69,10 @@ model Session {
   spotId String?
   spot   Spot?   @relation(fields: [spotId], references: [id], onDelete: SetNull)
 
+  // Rekognition collection holding this session's faces. Sessions at a catalogue spot share "spot-<spotId>", so one
+  // search covers the whole spot. NULL = not moved yet: the legacy per-session collection "session-<id>".
+  faceCollection String?
+
   @@index([location, date])
   @@index([photographerId])
   @@index([spotId])
@@ -95,6 +99,8 @@ model Photo {
   gpsLat       Float?
   gpsLng       Float?
   priceInCents Int       @default(500) // $5.00
+  // Rekognition FaceIds of the faces indexed from this photo, so they can be deleted exactly (empty on legacy photos)
+  faceIds      String[]  @default([])
   createdAt    DateTime  @default(now())
 
   sessionId String

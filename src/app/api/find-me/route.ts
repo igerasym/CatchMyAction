@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { searchFacesBySelfie } from "@/lib/rekognition";
+import { collectionsToSearch } from "@/lib/face-collections";
 import { getViewerId } from "@/lib/auth-helpers";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { getPreviewUrl } from "@/lib/s3";
@@ -9,6 +10,7 @@ import {
   MATCH_THRESHOLD,
   MAX_SESSIONS_SEARCHED,
   buildGlobalResults,
+  groupMatchesBySession,
   globalFindMeRateRules,
   mapPool,
   parseSessionIds,
@@ -60,19 +62,21 @@ export async function POST(req: NextRequest) {
       where: { id: { in: chosen }, published: true, photoCount: { gt: 0 } },
       orderBy: { date: "desc" },
       take: MAX_SESSIONS_SEARCHED,
-      select: { id: true, title: true, location: true, date: true },
+      select: { id: true, title: true, location: true, date: true, faceCollection: true },
     });
 
+    // Sessions at one spot share a collection: one search per collection, not per session
+    const collections = collectionsToSearch(sessionRows);
     let noFace = false;
     let failed = 0;
-    const searches: SessionSearch[] = await mapPool(sessionRows, CONCURRENCY, async (s) => {
-      if (noFace) return { sessionId: s.id, matches: [] };
+    const perCollection = await mapPool(collections, CONCURRENCY, async (collectionId) => {
+      if (noFace) return [];
       try {
-        return { sessionId: s.id, matches: await searchFacesBySelfie(s.id, buffer, MATCH_THRESHOLD) };
+        return await searchFacesBySelfie(collectionId, buffer, MATCH_THRESHOLD);
       } catch (err: any) {
-        if (err?.name === "InvalidParameterException") noFace = true; // no usable face in the selfie: same for every session
-        else if (err?.name !== "ResourceNotFoundException") failed++; // a session without a face index is just skipped
-        return { sessionId: s.id, matches: [] };
+        if (err?.name === "InvalidParameterException") noFace = true; // no usable face in the selfie: same for every collection
+        else if (err?.name !== "ResourceNotFoundException") failed++; // a collection nobody indexed into yet is just skipped
+        return [];
       }
     });
 
@@ -85,17 +89,25 @@ export async function POST(req: NextRequest) {
         { status: 422 }
       );
     }
-    if (failed > 0 && failed === sessionRows.length) {
+    if (failed > 0 && failed === collections.length) {
       return NextResponse.json({ error: "Search failed. Please try again.", code: "failed" }, { status: 500 });
     }
 
-    const photoIds = Array.from(new Set(searches.flatMap((s) => s.matches.map((m) => m.photoId))));
+    const matches = perCollection.flat();
+    const photoIds = Array.from(new Set(matches.map((m) => m.photoId)));
     const photoRows = photoIds.length
       ? await prisma.photo.findMany({
           where: { id: { in: photoIds } },
           select: { id: true, sessionId: true, thumbnailKey: true },
         })
       : [];
+
+    // Only the sessions the visitor asked for (and that are published): a spot collection also holds other sessions
+    const searches: SessionSearch[] = groupMatchesBySession(
+      matches,
+      new Map(photoRows.map((p) => [p.id, p.sessionId])),
+      new Set(sessionRows.map((s) => s.id))
+    );
 
     const sessions = buildGlobalResults(
       searches,

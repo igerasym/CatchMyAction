@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { searchFacesBySelfie } from "@/lib/rekognition";
+import { currentCollection } from "@/lib/face-collections";
 import { getViewerId } from "@/lib/auth-helpers";
 import { rateLimit, clientIp } from "@/lib/rate-limit";
 import { FIND_ME_WINDOW_MS, canSearchSession, findMeRateRules } from "@/lib/find-me-limits";
@@ -27,7 +28,7 @@ export async function POST(
 
   const session = await prisma.session.findUnique({
     where: { id: params.id },
-    select: { published: true, photographerId: true },
+    select: { id: true, published: true, photographerId: true, faceCollection: true },
   });
   if (!canSearchSession(session, viewerId)) {
     return NextResponse.json({ error: "Session not found", code: "not_found" }, { status: 404 });
@@ -55,7 +56,14 @@ export async function POST(
     }
 
     const buffer = Buffer.from(await file.arrayBuffer());
-    const matches = await searchFacesBySelfie(params.id, buffer, MATCH_THRESHOLD);
+    // The session's faces may share a spot collection with other sessions: keep only photos of this session
+    const found = await searchFacesBySelfie(currentCollection(session!), buffer, MATCH_THRESHOLD);
+    const inSession = found.length
+      ? new Set(
+          (await prisma.photo.findMany({ where: { id: { in: found.map((m) => m.photoId) }, sessionId: params.id }, select: { id: true } })).map((p) => p.id)
+        )
+      : new Set<string>();
+    const matches = found.filter((m) => inSession.has(m.photoId));
 
     return NextResponse.json({ matches, count: matches.length });
   } catch (err: any) {

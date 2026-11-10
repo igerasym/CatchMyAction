@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthUser, getViewerId, verifySessionOwner } from "@/lib/auth-helpers";
-import { deleteFaceCollection } from "@/lib/rekognition";
+import { moveSessionFaces, removeSessionFaces } from "@/lib/face-index";
 import { notifySubscribers } from "@/lib/notify";
 import { geocodeLocation } from "@/lib/geocode";
 import { deleteObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS } from "@/lib/s3";
@@ -74,7 +74,7 @@ export async function PATCH(
   const current = await prisma.session.findUnique({
     where: { id: params.id },
     select: {
-      published: true, pricePerPhoto: true, photoCount: true, location: true, sportType: true,
+      published: true, pricePerPhoto: true, photoCount: true, location: true, sportType: true, spotId: true,
       locationLat: true, locationLng: true, date: true, startTime: true, waveHeight: true, windSpeed: true,
     },
   });
@@ -180,6 +180,11 @@ export async function PATCH(
       });
     }
 
+    // The spot decides which face collection the session's photos belong to: move them when it changes (background)
+    if (session.spotId !== current.spotId) {
+      moveSessionFaces(params.id).catch((e) => console.error("Moving faces after a spot change failed:", e?.message));
+    }
+
     // Notify subscribers when the session goes live with photos (once per subscriber)
     const notified = wasUnpublished && published === true ? await notifySubscribers(params.id) : 0;
 
@@ -219,12 +224,13 @@ export async function DELETE(
 
   const photos = await prisma.photo.findMany({
     where: { sessionId: params.id },
-    select: { originalKey: true, previewKey: true, thumbnailKey: true, featuredKey: true },
+    select: { originalKey: true, previewKey: true, thumbnailKey: true, featuredKey: true, faceIds: true },
   });
+  const faceHolder = await prisma.session.findUnique({ where: { id: params.id }, select: { id: true, faceCollection: true } });
 
   // Only free-download records remain; photos cascade with the session
   await prisma.purchase.deleteMany({ where: { photo: { sessionId: params.id } } });
-  deleteFaceCollection(params.id).catch(() => {}); // Clean up Rekognition collection
+  if (faceHolder) removeSessionFaces(faceHolder, photos).catch(() => {}); // Clean up the face index (a shared spot collection only loses this session's faces)
   await prisma.session.delete({ where: { id: params.id } });
 
   // Remove the files too (previously left orphaned in S3) — background, best effort

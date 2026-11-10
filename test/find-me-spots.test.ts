@@ -153,7 +153,8 @@ describe("sessionChipLabel", () => {
 describe("areaSessions", () => {
   const area = [
     session({ id: "c9", location: "Cloud 9", spotId: "cloud9", spotName: "Cloud 9", lat: 9.8, lng: 126.16, date: "2026-10-31T00:00:00.000Z" }),
-    session({ id: "tanbo", location: "Tanbo", spotId: "tanbo", spotName: "Tanbo", lat: 9.75, lng: 126.12, date: "2026-01-10T00:00:00.000Z" }), // ~7 km away
+    session({ id: "c9b", location: "Cloud 9 north", spotId: "cloud9n", spotName: "Cloud 9 North", lat: 9.802, lng: 126.162, date: "2026-03-01T00:00:00.000Z" }), // ~0.3 km
+    session({ id: "tanbo", location: "Tanbo", spotId: "tanbo", spotName: "Tanbo", lat: 9.75, lng: 126.12, date: "2026-01-10T00:00:00.000Z" }), // ~7 km away: a different beach
     session({ id: "cokes", location: "Cokes", spotId: "cokes", spotName: "Cokes", lat: 4.3, lng: 73.5, date: "2026-10-26T00:00:00.000Z" }), // other side of the planet
     session({ id: "nowhere", location: "Nowhere", date: "2026-09-01T00:00:00.000Z" }),
   ];
@@ -161,7 +162,7 @@ describe("areaSessions", () => {
   const pick = (key: string) => groups.find((g) => g.key === key)!;
 
   it("includes neighbouring spots and leaves faraway ones out", () => {
-    expect(areaSessions(groups, pick("spot:cloud9")).map((s) => s.id)).toEqual(["c9", "tanbo"]);
+    expect(areaSessions(groups, pick("spot:cloud9")).map((s) => s.id)).toEqual(["c9", "c9b"]);
     expect(areaSessions(groups, pick("spot:cokes")).map((s) => s.id)).toEqual(["cokes"]);
   });
 
@@ -170,6 +171,7 @@ describe("areaSessions", () => {
   });
 
   it("honours the radius", () => {
-    expect(areaSessions(groups, pick("spot:cloud9"), 1).map((s) => s.id)).toEqual(["c9"]);
+    expect(areaSessions(groups, pick("spot:cloud9"), 0.1).map((s) => s.id)).toEqual(["c9"]);
+    expect(areaSessions(groups, pick("spot:cloud9"), 10).map((s) => s.id)).toEqual(["c9", "c9b", "tanbo"]);
   });
 });

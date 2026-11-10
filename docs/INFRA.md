@@ -219,15 +219,26 @@ Every merge to `main` goes live automatically within ~5 min + build time (~6 min
 - Every search is a paid Rekognition `SearchFacesByImage` call. Limits (`src/lib/find-me-limits.ts`), per hour:
   15 per account when signed in, 8 per IP when anonymous, 30 per IP for everyone.
 
+- **Face collections: one per catalogue spot** (`src/lib/face-collections.ts`, `src/lib/face-index.ts`). Sessions at a
+  spot share the Rekognition collection `spot-<spotId>`, so a search is one call per spot however many sessions it has
+  (about $0.001, storage $0.00001 per face per month). A session without a spot keeps its own `session-<id>`.
+  `Session.faceCollection` records where its faces are (NULL = still the old per-session collection, which is why old
+  sessions keep working until moved) and `Photo.faceIds` the FaceIds, so deletes are exact (the old `ListFaces` clean-up
+  only ever looked at the first 100 faces). Changing a session's spot moves its faces in the background; deleting a
+  session removes only its faces from a shared collection. **To move existing sessions** (one-off, costs ~$0.001 per
+  photo): `docker exec app-app-1 node scripts/dist/reindex-faces.js --link-spots` prints the plan and the cost (dry run);
+  add `--apply` to do it. `--link-spots` also attaches old sessions that have coordinates but no spot to the nearest
+  catalogue spot within 3 km.
 - **Search around a place** (homepage "Find my photos", `src/app/api/find-me/route.ts`, rules in
   `src/lib/global-find-me.ts` and `src/lib/find-me-spots.ts`): the visitor first picks where they were ("Near me" or a
-  spot search, `components/home/place-picker.tsx`); the client sends the ids of the sessions within `AREA_KM` (50 km) of
-  that spot and the server searches only those, if published (max 40, 4 at a time; sessions without a face index are
-  skipped). Not every session: Maldives photos are noise for someone in Portugal, and each session is one paid Rekognition
-  call. Tighter limits than the per-session search per hour: 6 per account, 3 per IP when anonymous, 10 per IP for everyone. Results are grouped by
-  session; "Open session" saves the ticked photos exactly like the per-session search (claimed when signed in, otherwise
-  kept in `sessionStorage`). The 40-session cap and one-call-per-session design are fine at tens of sessions; when the
-  catalogue grows, switch to one shared collection with the session id in `ExternalImageId`.
+  spot search, `components/home/place-picker.tsx`); the client sends the ids of the sessions within `AREA_KM` (3 km) of
+  that spot and the server maps them to their face collections (usually one) and searches those, then keeps only the
+  requested, published sessions (max 40 sessions per request). Not every session: Maldives photos are noise for someone
+  in Portugal. Limits per hour: 6 per account, 3 per IP when anonymous, 10 per IP for everyone. Anonymous search stays
+  allowed on purpose (value before sign-in; a search is ~$0.001, so a captcha is not worth the friction yet): watch the
+  Rekognition spend and add a CloudWatch billing alarm, and only require sign-in or a captcha if abuse shows up.
+  Results are grouped by session, old and new together; "Open session" saves the ticked photos exactly like the
+  per-session search (claimed when signed in, otherwise kept in `sessionStorage`).
 
 ### Risks
 

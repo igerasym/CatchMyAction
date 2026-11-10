@@ -89,6 +89,32 @@ export function buildGlobalResults(
   return out.sort((a, b) => b.best - a.best || b.date.localeCompare(a.date));
 }
 
+/**
+ * A shared spot collection returns matches from every session at the spot, tagged only with the photo id. Sort them
+ * into per-session searches, keeping the best similarity per photo, and keep only the sessions that were asked for.
+ */
+export function groupMatchesBySession(
+  matches: { photoId: string; similarity: number }[],
+  photoSession: Map<string, string>,
+  wanted: Set<string>
+): SessionSearch[] {
+  const best = new Map<string, { photoId: string; similarity: number }>();
+  for (const m of matches) {
+    const sid = photoSession.get(m.photoId);
+    if (!sid || !wanted.has(sid)) continue;
+    const prev = best.get(m.photoId);
+    if (!prev || m.similarity > prev.similarity) best.set(m.photoId, m);
+  }
+  const bySession = new Map<string, SessionSearch>();
+  for (const m of Array.from(best.values())) {
+    const sid = photoSession.get(m.photoId)!;
+    const entry = bySession.get(sid) ?? { sessionId: sid, matches: [] };
+    entry.matches.push(m);
+    bySession.set(sid, entry);
+  }
+  return Array.from(bySession.values());
+}
+
 /** Run `fn` over `items` with at most `limit` in flight; results keep the input order. */
 export async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const results: R[] = new Array(items.length);

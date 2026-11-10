@@ -141,11 +141,12 @@ export function sessionChipLabel(s: Pick<FindMeSession, "date" | "startTime" | "
   return `${dow} ${d} ${MONTHS[m - 1]} ${span}`;
 }
 
-/** Search area around a chosen spot: its own sessions plus those of every spot within this radius. */
-export const AREA_KM = 50;
+/** Search area around a chosen spot: its own sessions plus those of every spot within this radius (3 km: neighbouring
+ * pins of the same break; a different beach 7 km away is a different spot). */
+export const AREA_KM = 3;
 
 /**
- * Sessions to search for a chosen spot, newest first. Neighbouring spots count (Siargao's beaches are ~10 km apart);
+ * Sessions to search for a chosen spot, newest first. Neighbouring spots count;
  * a spot without coordinates only searches its own sessions.
  */
 export function areaSessions(groups: SpotGroup[], chosen: SpotGroup, km = AREA_KM): FindMeSession[] {

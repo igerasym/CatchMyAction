@@ -5,7 +5,8 @@ import { prisma } from "@/lib/db";
 import { putObject, BUCKET_ORIGINALS, BUCKET_PREVIEWS, getPreviewUrl } from "@/lib/s3";
 import { createPreview, createThumbnail, getImageMetadata, extractExif } from "@/lib/image-processing";
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
-import { indexFacesInPhoto, moderateImage } from "@/lib/rekognition";
+import { moderateImage } from "@/lib/rekognition";
+import { indexPhotoFaces } from "@/lib/face-index";
 import { notifySubscribers } from "@/lib/notify";
 
 const MAX_FILE_SIZE = 25 * 1024 * 1024; // 25MB — pro cameras shoot big
@@ -127,11 +128,6 @@ export async function POST(req: NextRequest) {
     putObject(BUCKET_PREVIEWS, thumbnailKey, thumbnail),
   ]);
 
-  // Index faces in the photo for "Find Me" feature (async, non-blocking)
-  indexFacesInPhoto(sessionId, photoId, originalKey).catch((err) =>
-    console.error("Background face indexing failed:", err.message)
-  );
-
   const photo = await prisma.photo.create({
     data: {
       id: photoId,
@@ -160,6 +156,9 @@ export async function POST(req: NextRequest) {
     where: { id: sessionId },
     data: { photoCount: { increment: 1 } },
   });
+
+  // Index faces for "Find Me" (background; runs after the photo row exists so its FaceIds can be saved on it)
+  void indexPhotoFaces({ id: photoId, originalKey }, { id: sessionId, faceCollection: session.faceCollection });
 
   // Session already live (e.g. published empty, QR shared first): tell the people waiting
   if (session.published) notifySubscribers(sessionId).catch(() => {});

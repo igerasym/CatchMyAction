@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import { getAuthUser, verifySessionOwner } from "@/lib/auth-helpers";
-import { deleteFaceCollection, indexFacesInPhoto } from "@/lib/rekognition";
+import { rateLimit } from "@/lib/rate-limit";
+import { moveSessionFaces } from "@/lib/face-index";
 
-/** POST /api/sessions/:id/reindex-faces — re-index all faces in a session */
+/**
+ * POST /api/sessions/:id/reindex-faces — rebuild a session's faces in the collection it belongs to (its spot's).
+ * Costs one Rekognition IndexFaces call per photo, so it is limited per session.
+ */
 export async function POST(
   _req: NextRequest,
   { params }: { params: { id: string } }
@@ -14,20 +17,10 @@ export async function POST(
   if (!(await verifySessionOwner(params.id, user.id))) {
     return NextResponse.json({ error: "Not your session" }, { status: 403 });
   }
-
-  // Delete old collection and re-create
-  await deleteFaceCollection(params.id);
-
-  const photos = await prisma.photo.findMany({
-    where: { sessionId: params.id },
-    select: { id: true, originalKey: true },
-  });
-
-  let indexed = 0;
-  for (const photo of photos) {
-    const faces = await indexFacesInPhoto(params.id, photo.id, photo.originalKey);
-    if (faces > 0) indexed++;
+  if (!rateLimit(`reindex:${params.id}`, 3, 60 * 60 * 1000)) {
+    return NextResponse.json({ error: "Re-indexing this session too often. Try again in a while." }, { status: 429 });
   }
 
-  return NextResponse.json({ total: photos.length, indexed, message: `Indexed faces in ${indexed}/${photos.length} photos` });
+  const { photos, indexed } = await moveSessionFaces(params.id);
+  return NextResponse.json({ total: photos, indexed, message: `Indexed faces in ${indexed}/${photos} photos` });
 }
