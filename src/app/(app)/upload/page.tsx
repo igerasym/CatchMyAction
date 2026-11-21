@@ -88,24 +88,37 @@ export default function UploadPage() {
     localStorage.setItem(DRAFT_KEY, JSON.stringify({ title, location, date, startTime, endTime, description, price }));
   }
 
-  // Create session on backend
+  // Create session on backend. Guarded: the request takes a few seconds (geocoding, spot, sea conditions) and a
+  // second tap used to create a second, empty session that stayed behind as a draft.
+  const creatingRef = useRef(false);
+  const [creating, setCreating] = useState(false);
   async function createSession() {
-    const res = await fetch("/api/sessions", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ title, location, spotId, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100), sportType }),
-    });
-    const data = await res.json();
-    if (data.id) {
-      localStorage.removeItem(DRAFT_KEY);
-      if (data.needsLocation) {
-        setPendingSessionId(data.id);
-        setShowLocationPicker(true);
+    if (creatingRef.current || sessionId || pendingSessionId) return;
+    creatingRef.current = true;
+    setCreating(true);
+    try {
+      const res = await fetch("/api/sessions", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title, location, spotId, date, startTime, endTime, description, pricePerPhoto: Math.round(parseFloat(price) * 100), sportType }),
+      });
+      const data = await res.json();
+      if (data.id) {
+        localStorage.removeItem(DRAFT_KEY);
+        if (data.needsLocation) {
+          setPendingSessionId(data.id);
+          setShowLocationPicker(true);
+        } else {
+          setSessionId(data.id);
+        }
       } else {
-        setSessionId(data.id);
+        setFormError(data.error || "Failed to create session");
       }
-    } else {
-      setFormError(data.error || "Failed to create session");
+    } catch {
+      setFormError("Connection lost. Check your internet and try again.");
+    } finally {
+      creatingRef.current = false;
+      setCreating(false);
     }
   }
 
@@ -384,8 +397,8 @@ export default function UploadPage() {
         {formError && (
           <Notice>{formError}</Notice>
         )}
-        <button type="submit" className="btn-pri w-full justify-center">
-          {user ? "Create Session" : "Continue →"}
+        <button type="submit" disabled={creating} className="btn-pri w-full justify-center disabled:opacity-60">
+          {creating ? "Creating session…" : user ? "Create Session" : "Continue →"}
         </button>
       </form>
 
