@@ -23,9 +23,8 @@ export default function FreshSessions({ sessions }: { sessions: FreshSession[] }
   return (
     <section aria-labelledby="fresh-title" className="bg-ink px-8 md:px-[72px] py-14 md:py-20">
       <div className="max-w-[1320px] mx-auto">
-        <p className="hud mb-3">Latest sessions</p>
         <h2 id="fresh-title" className="disp text-[clamp(34px,4.6vw,60px)] mb-8 md:mb-10">
-          Fresh from the water<span className="text-rec">.</span>
+          Latest sessions<span className="text-rec">.</span>
         </h2>
         <ul className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {sessions.map((s) => (
