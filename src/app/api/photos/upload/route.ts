@@ -101,27 +101,28 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Duplicate photo — this image was already uploaded to this session." }, { status: 409 });
   }
 
-  // All checks passed — extract EXIF, process and store
-  const exif = await extractExif(buffer);
+  // All checks passed. Build the renditions and read EXIF in parallel, then moderate the small preview (not the
+  // up-to-25MB original): Rekognition gets ~150KB instead of the full file, same result, far faster.
+  const photoId = randomUUID();
+  const originalKey = `sessions/${sessionId}/originals/${photoId}.jpg`;
+  const previewKey = `sessions/${sessionId}/previews/${photoId}.jpg`;
+  const thumbnailKey = `sessions/${sessionId}/thumbnails/${photoId}.jpg`;
 
-  // Content moderation (Rekognition) — reject prohibited content
-  const moderation = await moderateImage(buffer);
+  const [exif, preview, thumbnail] = await Promise.all([
+    extractExif(buffer),
+    createPreview(buffer, { credit: session.photographer.name }),
+    createThumbnail(buffer),
+  ]);
+
+  // Content moderation (Rekognition) — reject prohibited content. Moderating the preview is enough and much lighter.
+  const moderation = await moderateImage(preview.buffer);
   if (moderation.flagged) {
     return NextResponse.json({
       error: `Photo rejected: prohibited content detected (${moderation.labels.join(", ")})`,
     }, { status: 400 });
   }
 
-  const photoId = randomUUID();
-  const originalKey = `sessions/${sessionId}/originals/${photoId}.jpg`;
-  const previewKey = `sessions/${sessionId}/previews/${photoId}.jpg`;
-  const thumbnailKey = `sessions/${sessionId}/thumbnails/${photoId}.jpg`;
-
-  const [preview, thumbnail] = await Promise.all([
-    createPreview(buffer, { credit: session.photographer.name }),
-    createThumbnail(buffer),
-  ]);
-
+  // Upload the original (full quality, what buyers get) and both renditions together
   await Promise.all([
     putObject(BUCKET_ORIGINALS, originalKey, buffer),
     putObject(BUCKET_PREVIEWS, previewKey, preview.buffer),
